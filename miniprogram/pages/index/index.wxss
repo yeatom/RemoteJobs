@@ -1,0 +1,355 @@
+/** index.wxss - remote jobs list **/
+
+page {
+  background-color: #f5f7fb;
+  height: 100%;
+  overflow: hidden; /* prevent outer page from scrolling */
+  /* hide page-level scrollbars */
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+page::-webkit-scrollbar {
+  display: none;
+}
+
+.page {
+  position: relative; /* 为绝对定位的filter-dropdown提供定位上下文 */
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  padding: 40rpx 32rpx 0;
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
+.page-header {
+  margin-bottom: 32rpx;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.page-title {
+  font-size: 40rpx;
+  font-weight: 600;
+  color: #1f2933;
+}
+
+.filter-toggle {
+  display: flex;
+  align-items: center;
+  padding: 8rpx 16rpx;
+  border-radius: 999rpx;
+  background-color: #e5f0ff;
+}
+
+.filter-label {
+  font-size: 24rpx;
+  color: #1d4ed8;
+  margin-right: 8rpx;
+}
+
+.filter-triangle {
+  width: 0;
+  height: 0;
+  border-left: 10rpx solid transparent;
+  border-right: 10rpx solid transparent;
+  border-top: 10rpx solid #1d4ed8;
+  transition: transform 0.2s ease; /* 添加平滑过渡动画 */
+}
+
+.filter-triangle-up {
+  transform: rotate(180deg); /* 旋转180度，使三角向上 */
+}
+
+/* 遮罩层：半透明背景，覆盖整个页面 */
+.filter-mask {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 999; /* 低于弹窗，但高于其他内容 */
+  background-color: transparent; /* 透明背景，不阻挡视线，但可以接收点击事件 */
+}
+
+.filter-dropdown {
+  position: absolute;
+  top: 120rpx; /* page padding-top(40rpx) + page-header(约72rpx) + 一点间距 = 120rpx，位于filter按钮下方 */
+  right: 32rpx; /* 右对齐，与filter按钮对齐 */
+  width: auto; /* 宽度自适应内容 */
+  min-width: 160rpx; /* 最小宽度 */
+  z-index: 1000; /* 确保浮在scroll-view和搜索栏上方 */
+  background-color: #ffffff; /* 白色背景，清晰易读 */
+  border-radius: 12rpx; /* 圆角 */
+  padding: 6rpx; /* 紧凑的内边距 */
+  box-shadow: 0 4rpx 16rpx rgba(0, 0, 0, 0.1), 0 2rpx 8rpx rgba(0, 0, 0, 0.08); /* 双层阴影，增强层次感 */
+  border: 1rpx solid rgba(29, 78, 216, 0.1); /* 淡蓝色边框，与主题呼应 */
+  /* 不再占据文档流空间，移除margin-bottom */
+}
+
+.filter-option {
+  background-color: transparent; /* 默认透明背景 */
+  padding: 18rpx 24rpx; /* Adjust padding for separator */
+  font-size: 26rpx;
+  color: #1d4ed8; /* 与filter-label相同的深蓝色，保持统一 */
+  transition: background-color 0.2s ease; /* 平滑过渡动画 */
+  cursor: pointer; /* 鼠标指针 */
+  position: relative; /* Needed for pseudo-element positioning */
+}
+
+.filter-option::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 24rpx; /* Horizontal padding */
+  right: 24rpx; /* Horizontal padding */
+  height: 1rpx;
+  background-color: rgba(29, 78, 216, 0.1); /* Light blue separator */
+}
+
+.filter-option:active {
+  background-color: #e5f0ff; /* 点击时的浅蓝色背景，与filter-toggle呼应 */
+  color: #1d4ed8; /* 保持蓝色，与按钮文字颜色统一 */
+}
+
+.filter-option:last-child::after {
+  display: none;
+}
+
+.search-bar {
+  margin-bottom: 30rpx;
+  display: flex;
+  align-items: center;
+  position: relative;
+}
+
+.hamburger-icon {
+  position: absolute;
+  left: 24rpx;
+  width: 48rpx; /* Increased width for better touch area */
+  height: 48rpx; /* Increased height for better touch area */
+  display: flex;
+  flex-direction: column;
+  justify-content: center; /* Center the lines vertically */
+  align-items: center;
+  z-index: 2;
+}
+
+.hamburger-line {
+  width: 32rpx; /* Reduced line width */
+  height: 4rpx;
+  background-color: #555;
+  border-radius: 2rpx;
+}
+
+.hamburger-line:nth-child(2) {
+  margin: 8rpx 0;
+}
+
+.search-input {
+  display: block;
+  width: 100%;
+  box-sizing: border-box;
+  height: 72rpx;
+  line-height: 72rpx;
+  padding: 0 24rpx 0 85rpx; /* Adjusted left padding */
+  border-radius: 20rpx;
+  border: none;
+  background-color: rgb(235, 238, 240);
+  font-size: 26rpx;
+  color: #111827;
+  position: relative;
+  z-index: 1; /* Lower z-index than the icon */
+}
+
+.search-placeholder {
+  color: #9ca3af;
+  font-size: 26rpx;
+  line-height: 72rpx;
+}
+
+.job-list {
+  flex: 1;
+  height: 0; /* use flex: 1 with height: 0 to properly calculate available space */
+  min-height: 0; /* allow flex item to shrink below content size */
+  /* hide scrollbars inside main list */
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.job-list-content {
+  /* padding-bottom is set dynamically via inline style based on device */
+  min-height: 100%; /* ensure content fills scroll-view */
+}
+
+.no-more-container {
+  position: relative;
+  height: 0; /* 不占用正常布局空间 */
+  min-height: 0;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 0;
+  overflow: visible; /* 允许内容溢出显示 */
+}
+
+.no-more-text {
+  font-size: 24rpx;
+  color: #9ca3af;
+  opacity: 0;
+  transform: translateY(20rpx); /* 初始位置在容器下方 */
+  transition: opacity 0.3s ease, transform 0.3s ease;
+  white-space: nowrap;
+}
+
+.no-more-text.no-more-visible {
+  opacity: 1;
+  transform: translateY(0); /* 显示时回到正常位置 */
+}
+
+.job-list::-webkit-scrollbar {
+  display: none;
+}
+
+.job-card {
+  background-color: #ffffff;
+  border-radius: 24rpx;
+  padding: 28rpx 28rpx 20rpx;
+  box-shadow: 0 8rpx 20rpx rgba(15, 23, 42, 0.04);
+  margin-bottom: 24rpx;
+}
+
+.job-main {
+  margin-bottom: 20rpx;
+}
+
+.job-title-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12rpx;
+}
+
+.job-title {
+  font-size: 32rpx;
+  font-weight: 600;
+  color: #111827;
+  flex: 1;
+  margin-right: 16rpx;
+}
+
+.job-time {
+  font-size: 24rpx;
+  color: #9ca3af;
+}
+
+.job-company {
+  font-size: 26rpx;
+  color: #4b5563;
+  margin-bottom: 16rpx;
+}
+
+.job-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  font-size: 24rpx;
+  color: #6b7280;
+  margin-bottom: 4rpx;
+}
+
+.job-meta-item {
+  margin-right: 6rpx;
+}
+
+.job-meta-dot {
+  margin: 0 6rpx;
+}
+
+.job-tags {
+  margin: 10rpx 0;
+  white-space: nowrap;
+  /* hide horizontal tag scroll bar */
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.job-tags::-webkit-scrollbar {
+  display: none;
+}
+
+.job-tag {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 16rpx;
+  height: 40rpx;
+  margin-right: 12rpx;
+  border-radius: 999rpx;
+  background-color: #e5f0ff;
+}
+
+.job-tag-text {
+  font-size: 22rpx;
+  color: #1d4ed8;
+}
+
+.list-loading {
+  text-align: center;
+  color: #9ca3af;
+  font-size: 24rpx;
+  padding: 20rpx 0 10rpx;
+}
+
+/* Drawer Styles */
+.drawer-mask {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.4);
+  z-index: 1999;
+}
+
+.drawer-menu {
+  position: fixed;
+  top: 0;
+  left: -80%; /* Start off-screen */
+  width: 80%;
+  height: 100%;
+  background-color: #ffffff;
+  z-index: 2000;
+  transition: left 0.3s ease;
+  box-shadow: 2rpx 0 10rpx rgba(0, 0, 0, 0.1);
+}
+
+.drawer-open {
+  left: 0; /* Slide in */
+}
+
+.drawer-header {
+  display: flex;
+  align-items: center;
+  padding: 40rpx;
+  border-bottom: 1rpx solid #eee;
+}
+
+.avatar, .avatar-placeholder {
+  width: 100rpx;
+  height: 100rpx;
+  border-radius: 50%;
+  margin-right: 24rpx;
+}
+
+.avatar-placeholder {
+  background-color: #e0e0e0; /* Gray placeholder color */
+}
+
+.nickname {
+  font-size: 32rpx;
+  font-weight: bold;
+  color: #333;
+}

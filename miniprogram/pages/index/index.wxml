@@ -1,0 +1,97 @@
+<!-- Remote jobs list page -->
+<view class="page">
+  <view class="page-header">
+    <text class="page-title">远程工作机会</text>
+    <view class="filter-toggle" bindtap="toggleFilter">
+      <text class="filter-label">{{currentFilter}}</text>
+      <view class="filter-triangle {{showFilter ? 'filter-triangle-up' : ''}}" />
+    </view>
+  </view>
+
+  <view class="search-bar">
+    <view class="hamburger-icon" bindtap="toggleDrawer">
+      <view class="hamburger-line"></view>
+      <view class="hamburger-line"></view>
+      <view class="hamburger-line"></view>
+    </view>
+    <input
+      class="search-input"
+      type="text"
+      placeholder="搜索职位名称或来源.."
+      placeholder-class="search-placeholder"
+      confirm-type="search"
+      value="{{searchKeyword}}"
+      bindinput="onSearchInput"
+    />
+  </view>
+
+  <!-- Drawer Mask -->
+  <view wx:if="{{showDrawer}}" class="drawer-mask" bindtap="toggleDrawer"></view>
+
+  <!-- Drawer Menu -->
+  <view class="drawer-menu {{showDrawer ? 'drawer-open' : ''}}">
+    <view class="drawer-header">
+      <block wx:if="{{isLoggedIn}}">
+        <image class="avatar" src="{{userInfo.avatarUrl}}" />
+      </block>
+      <block wx:else>
+        <view class="avatar-placeholder" bindtap="handleLogin"></view>
+      </block>
+      <text class="nickname">{{isLoggedIn ? userInfo.nickName : 'Click to Login'}}</text>
+    </view>
+    <!-- Other drawer content will go here -->
+  </view>
+
+  <!-- 遮罩层：点击非弹窗区域时关闭弹窗 -->
+  <view wx:if="{{showFilter}}" class="filter-mask" bindtap="toggleFilter"></view>
+  
+  <view wx:if="{{showFilter}}" class="filter-dropdown" catchtap="stopPropagation">
+    <block wx:for="{{filterOptions}}" wx:key="*this">
+      <view class="filter-option" data-value="{{item}}" bindtap="onSelectFilter">
+        <text>{{item}}</text>
+      </view>
+    </block>
+  </view>
+
+  <scroll-view
+    class="job-list"
+    scroll-y="{{isScrollable}}"
+    scroll-top="{{scrollTop}}"
+    scroll-with-animation="{{true}}"
+    lower-threshold="{{lowerThreshold}}"
+    bindscrolltolower="onScrollLower"
+    bindscroll="onScroll"
+    bindtouchstart="onTouchStart"
+    bindtouchend="onTouchEnd"
+    show-scrollbar="{{false}}"
+    enable-back-to-top="{{false}}"
+    enable-passive="{{true}}"
+  >
+    <view class="job-list-content">
+      <block wx:for="{{filteredJobs}}" wx:key="_id">
+        <view class="job-card" data-_id="{{item._id}}" bindtap="onJobTap">
+          <view class="job-main">
+            <view class="job-title-row">
+              <text class="job-title">{{item.title}}</text>
+              <text class="job-time">{{item.createdAt}}</text>
+            </view>
+            <view class="job-meta" wx:if="{{(item.team && item.team !== '未知公司') || item.salary}}">
+              <text wx:if="{{item.team && item.team !== '未知公司'}}" class="job-meta-item">{{item.team}}</text>
+              <text wx:if="{{(item.team && item.team !== '未知公司') && item.salary}}" class="job-meta-dot">·</text>
+              <text wx:if="{{item.salary}}" class="job-meta-item">{{item.salary}}</text>
+            </view>
+            <scroll-view class="job-tags" scroll-x="{{true}}" show-scrollbar="{{false}}">
+              <view class="job-tag" wx:for="{{item.displayTags || item.tags}}" wx:key="*this">
+                <text class="job-tag-text">{{item}}</text>
+              </view>
+            </scroll-view>
+          </view>
+        </view>
+      </block>
+      <view wx:if="{{loading}}" class="list-loading">加载中...</view>
+      <view wx:if="{{!hasMore && filteredJobs.length > 0}}" class="no-more-container">
+        <view class="no-more-text {{showNoMore ? 'no-more-visible' : ''}}">没有更多了</view>
+      </view>
+    </view>
+  </scroll-view>
+</view>
