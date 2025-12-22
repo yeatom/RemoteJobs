@@ -2,6 +2,25 @@
 const COLLECT_COLLECTION = 'collected_jobs'
 const COLLECT_DEBOUNCE_DELAY = 300
 
+function formatDescription(description?: string): string {
+  if (!description) return ''
+  const escapeHtml = (text: string) =>
+    text
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;')
+
+  return description
+    .split(/\n+/)
+    .map((line) => {
+      const content = escapeHtml(line.trim())
+      return `<p>${content || '&nbsp;'}</p>`
+    })
+    .join('')
+}
+
 type JobDetailItem = {
   _id: string
   createdAt: string
@@ -123,7 +142,8 @@ Component({
             ...job,
             tags,
             displayTags,
-          } as JobDetailItem,
+            richDescription: formatDescription(job.description),
+          } as JobDetailItem & { richDescription: string },
           loading: false,
           collected: isCollected,
         })

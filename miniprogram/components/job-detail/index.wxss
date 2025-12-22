@@ -36,19 +36,16 @@
 }
 
 .back-button {
-  width: 60rpx;
-  height: 60rpx;
-  font-size: 40rpx;
-  color: #111827;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  line-height: 1;
+  width: 20rpx;
+  height: 20rpx;
+  border-left: 6rpx solid #111827;
+  border-bottom: 6rpx solid #111827;
+  transform: rotate(45deg);
+  margin-left: 5px;
 }
 
-.back-icon {
-  font-size: 44rpx;
-  font-weight: 500;
+.back-button::after {
+  content: '';
 }
 
 .close-button {
@@ -86,7 +83,7 @@
 }
 
 .detail-body {
-  padding: 32rpx;
+  padding: 32rpx 43rpx;
 }
 
 .detail-title {
@@ -118,7 +115,7 @@
   display: flex;
   flex-wrap: wrap;
   gap: 12rpx;
-  margin-bottom: 32rpx;
+  margin-bottom: 25rpx;
 }
 
 .detail-tag {
@@ -138,17 +135,27 @@
 
 .detail-description {
   margin-bottom: 32rpx;
-  padding: 32rpx 0;
+  padding: 18rpx 0;
   border-top: 1rpx solid #eee;
   border-bottom: 1rpx solid #eee;
 }
 
 .detail-description-text {
-  font-size: 30rpx;
+  font-size: 27rpx;
   color: #111827;
-  line-height: 1.8;
+  line-height: 1.84;
   white-space: pre-wrap;
   word-break: break-word;
+  user-select: text;
+  -webkit-user-select: text;
+}
+
+.detail-description-rich {
+  font-size: 27rpx;
+  color: #111827;
+  line-height: 1.84;
+  user-select: text;
+  -webkit-user-select: text;
 }
 
 .detail-link {
@@ -174,4 +181,8 @@
   text-align: center;
   font-size: 28rpx;
   color: #9ca3af;
+}
+
+.back-icon {
+  display: none;
 }
