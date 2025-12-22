@@ -47,15 +47,60 @@ Component({
     selectedCollection: '', // The collection name for the selected job
 
     isSearching: false, // Flag to differentiate between paginated loading and search
+
+    // login gate
+    isAuthorizing: false,
+    userInfo: null as WechatMiniprogram.UserInfo | null,
   },
   lifetimes: {
     attached() {
       this.setData({ searchKeyword: '' })
+
+      // Restore cached userInfo if available
+      const cachedUserInfo = wx.getStorageSync('userInfo') as WechatMiniprogram.UserInfo | undefined
+      if (cachedUserInfo && cachedUserInfo.avatarUrl && cachedUserInfo.nickName) {
+        this.setData({ userInfo: cachedUserInfo })
+      }
+
       this.getSystemAndUIInfo()
       this.loadJobs(true)
     },
   },
   methods: {
+    async ensureLoggedIn(): Promise<boolean> {
+      // Try restore from storage first
+      if (!this.data.userInfo) {
+        const cachedUserInfo = wx.getStorageSync('userInfo') as WechatMiniprogram.UserInfo | undefined
+        if (cachedUserInfo && cachedUserInfo.avatarUrl && cachedUserInfo.nickName) {
+          this.setData({ userInfo: cachedUserInfo })
+        }
+      }
+
+      if (this.data.userInfo) return true
+      if (this.data.isAuthorizing) return false
+
+      this.setData({ isAuthorizing: true })
+      try {
+        const res = await new Promise<WechatMiniprogram.GetUserProfileSuccessCallbackResult>((resolve, reject) => {
+          wx.getUserProfile({
+            desc: '用于完善用户资料',
+            success: resolve,
+            fail: reject,
+          })
+        })
+
+        wx.setStorageSync('userInfo', res.userInfo)
+        this.setData({ userInfo: res.userInfo })
+        return true
+      } catch (err) {
+        console.error('[jobs] getUserProfile failed', err)
+        wx.showToast({ title: '请先登录', icon: 'none' })
+        return false
+      } finally {
+        this.setData({ isAuthorizing: false })
+      }
+    },
+
     async getSystemAndUIInfo() {
       try {
         const windowInfo = wx.getWindowInfo()
@@ -198,7 +243,7 @@ Component({
           .skip(skip)
           .limit(pageSize)
           .get()
-        
+
         const newJobs = this.mapJobs(res.data || [])
         const allJobs = reset ? newJobs : [...this.data.jobs, ...newJobs]
 
@@ -248,7 +293,7 @@ Component({
       const { loading, hasMore, lastLoadTime } = this.data
       const now = Date.now()
       if (loading || !hasMore || now - lastLoadTime < 500) return
-      
+
       this.setData({ lastLoadTime: now })
       this.loadJobs(false)
     },
@@ -304,13 +349,17 @@ Component({
     },
 
     onJobTap(e: WechatMiniprogram.TouchEvent) {
-      const _id = e.currentTarget.dataset._id as string;
-      const collectionName = collectionMap[this.data.currentFilter] || 'domestic_remote_jobs';
-      this.setData({
-        selectedJobId: _id,
-        selectedCollection: collectionName,
-        showJobDetail: true,
-      });
+      const _id = e.currentTarget.dataset._id as string
+      const collectionName = collectionMap[this.data.currentFilter] || 'domestic_remote_jobs'
+
+      this.ensureLoggedIn().then((ok) => {
+        if (!ok) return
+        this.setData({
+          selectedJobId: _id,
+          selectedCollection: collectionName,
+          showJobDetail: true,
+        })
+      })
     },
 
     closeJobDetail() {

@@ -18,6 +18,18 @@ Component({
     loginDisabled: false,
   },
 
+  lifetimes: {
+    attached() {
+      const cachedUserInfo = wx.getStorageSync('userInfo') as WechatMiniprogram.UserInfo | undefined
+      if (cachedUserInfo && cachedUserInfo.avatarUrl && cachedUserInfo.nickName) {
+        this.setData({
+          userInfo: cachedUserInfo,
+          isLoggedIn: true,
+        })
+      }
+    },
+  },
+
   methods: {
     onClose() {
       this.triggerEvent('close')
@@ -31,11 +43,14 @@ Component({
         desc: '用于完善用户资料',
         success: (res) => {
           const { avatarUrl, nickName } = res.userInfo
+          const userInfo = {
+            avatarUrl,
+            nickName,
+          } as WechatMiniprogram.UserInfo
+
+          wx.setStorageSync('userInfo', userInfo)
           this.setData({
-            userInfo: {
-              avatarUrl,
-              nickName,
-            } as WechatMiniprogram.UserInfo,
+            userInfo,
             isLoggedIn: true,
           })
         },

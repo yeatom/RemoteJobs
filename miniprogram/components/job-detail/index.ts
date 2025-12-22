@@ -57,6 +57,7 @@ Component({
     loading: false,
     collected: false,
     collectBusy: false,
+    collectDocId: '',
   },
 
   observers: {
@@ -70,6 +71,7 @@ Component({
           loading: false,
           collected: false,
           collectBusy: false,
+          collectDocId: '',
         })
       }
     },
@@ -82,7 +84,7 @@ Component({
 
     async toggleCollect() {
       const job = this.data.job
-      if (!job?._id || this.data.collectBusy) return
+      if (!job || this.data.collectBusy) return
 
       this.setData({ collectBusy: true })
       const targetCollected = !this.data.collected
@@ -170,42 +172,55 @@ Component({
 
     async addCollectRecord(job: JobDetailItem) {
       const db = wx.cloud.database()
-      const jobId = job._id
       const recordData = {
-        summary: job.summary || '',
-        description: job.description || '',
-        salary: job.salary || '',
-        source_name: job.source_name || '',
-        source_url: job.source_url || '',
-        type: job.type || '',
-        team: job.team || '',
-        title: job.title || '',
-        collectedAt: job.createdAt || '',
+        jobId: job._id,
+        title: job.title,
+        team: job.team,
+        salary: job.salary,
+        summary: job.summary,
+        description: job.description,
+        source_name: job.source_name,
+        source_url: job.source_url,
+        type: job.type,
+        createdAt: job.createdAt,
       }
 
-      await db.collection(COLLECT_COLLECTION).doc(jobId).set({
-        data: recordData,
-      })
+      const result = await db.collection(COLLECT_COLLECTION).add({ data: recordData })
+      this.setData({ collectDocId: result._id || '' })
     },
 
     async removeCollectRecord(jobId: string) {
       const db = wx.cloud.database()
-      await db.collection(COLLECT_COLLECTION).doc(jobId).remove()
+      let docId = this.data.collectDocId
+      if (!docId) {
+        const lookup = await db.collection(COLLECT_COLLECTION).where({ jobId }).limit(1).get()
+        docId = lookup.data?.[0]?._id || ''
+      }
+      if (!docId) return
+      await db.collection(COLLECT_COLLECTION).doc(docId).remove()
+      this.setData({ collectDocId: '' })
     },
 
     async checkCollectState(jobId: string, silent = false) {
       if (!jobId) return false
       const db = wx.cloud.database()
       try {
-        await db.collection(COLLECT_COLLECTION).doc(jobId).get()
-        if (!silent) this.setData({ collected: true })
-        return true
-      } catch (err: any) {
-        const noDoc = typeof err?.errMsg === 'string' && err.errMsg.indexOf('no document') > -1
-        if (!noDoc && !silent) {
-          console.warn('[job-detail] checkCollectState failed', err)
+        const res = await db.collection(COLLECT_COLLECTION).where({ jobId }).limit(1).get()
+        const doc = res.data?.[0]
+        const exists = !!doc
+        const updates: Partial<typeof this.data> = {
+          collectDocId: doc?._id || '',
         }
-        if (!silent) this.setData({ collected: false })
+        if (!silent) updates.collected = exists
+        this.setData(updates)
+        return exists
+      } catch (err) {
+        if (!silent) {
+          this.setData({ collected: false, collectDocId: '' })
+        } else {
+          this.setData({ collectDocId: '' })
+        }
+        console.warn('[job-detail] checkCollectState failed', err)
         return false
       }
     },
