@@ -21,8 +21,8 @@
             <text class="detail-tag-text">{{item}}</text>
           </view>
         </view>
-        <view class="detail-summary" wx:if="{{job.summary}}">
-          <text class="detail-summary-text">{{job.summary}}</text>
+        <view class="detail-description" wx:if="{{job.description}}">
+          <text class="detail-description-text">{{job.description}}</text>
         </view>
         <view class="detail-link" wx:if="{{job.source_url}}">
           <button class="link-button" bindtap="onCopyLink">复制链接</button>

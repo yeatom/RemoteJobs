@@ -1,3 +1,4 @@
 
 # Private environment variables
 miniprogram/env.js
+.idea/*

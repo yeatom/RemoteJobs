@@ -7,6 +7,7 @@ type JobItem = {
   salary: string
   source_name: string
   summary: string
+  description?: string
   team: string
   title: string
   type: string

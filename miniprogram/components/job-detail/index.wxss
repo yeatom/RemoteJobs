@@ -101,17 +101,17 @@
   color: #1d4ed8;
 }
 
-.detail-summary {
+.detail-description {
   margin-bottom: 32rpx;
-  padding: 24rpx;
-  background-color: #f5f7fb;
-  border-radius: 16rpx;
+  padding: 32rpx 0;
+  border-top: 1rpx solid #eee;
+  border-bottom: 1rpx solid #eee;
 }
 
-.detail-summary-text {
-  font-size: 28rpx;
-  color: #4b5563;
-  line-height: 1.6;
+.detail-description-text {
+  font-size: 30rpx;
+  color: #111827;
+  line-height: 1.8;
   white-space: pre-wrap;
   word-break: break-word;
 }
