@@ -1,4 +1,7 @@
 // miniprogram/components/job-detail/index.ts
+const COLLECT_COLLECTION = 'collected_jobs'
+const COLLECT_DEBOUNCE_DELAY = 300
+
 type JobDetailItem = {
   _id: string
   createdAt: string
@@ -33,6 +36,8 @@ Component({
   data: {
     job: null as JobDetailItem | null,
     loading: false,
+    collected: false,
+    collectBusy: false,
   },
 
   observers: {
@@ -44,6 +49,8 @@ Component({
         this.setData({
           job: null,
           loading: false,
+          collected: false,
+          collectBusy: false,
         })
       }
     },
@@ -54,12 +61,45 @@ Component({
       this.triggerEvent('close')
     },
 
+    async toggleCollect() {
+      const job = this.data.job
+      if (!job?._id || this.data.collectBusy) return
+
+      this.setData({ collectBusy: true })
+      const targetCollected = !this.data.collected
+
+      try {
+        if (targetCollected) {
+          await this.addCollectRecord(job)
+        } else {
+          await this.removeCollectRecord(job._id)
+        }
+
+        this.setData({ collected: targetCollected })
+        wx.showToast({
+          title: targetCollected ? '收藏成功' : '已取消收藏',
+          icon: 'none',
+        })
+      } catch (err) {
+        console.error('[job-detail] toggleCollect failed', err)
+        wx.showToast({ title: '操作失败', icon: 'none' })
+      } finally {
+        setTimeout(() => {
+          this.setData({ collectBusy: false })
+        }, COLLECT_DEBOUNCE_DELAY)
+      }
+    },
+
     async fetchJobDetails(id: string, collection: string) {
-      this.setData({ loading: true })
+      this.setData({
+        loading: true,
+        job: null,
+      })
       try {
         const db = wx.cloud.database()
+        const collectStatePromise = this.checkCollectState(id, true)
         const res = await db.collection(collection).doc(id).get()
-        
+
         // Process tags similar to index page
         const job = res.data as any
         const tags = (job.summary || '')
@@ -77,6 +117,7 @@ Component({
           }
         }
 
+        const isCollected = await collectStatePromise
         this.setData({
           job: {
             ...job,
@@ -84,6 +125,7 @@ Component({
             displayTags,
           } as JobDetailItem,
           loading: false,
+          collected: isCollected,
         })
       } catch (err) {
         console.error('[job-detail] fetchJobDetails failed', err)
@@ -105,6 +147,40 @@ Component({
         },
       })
     },
+
+    async addCollectRecord(job: JobDetailItem) {
+      const db = wx.cloud.database()
+      const { _id: jobId, ...jobData } = job
+      await db.collection(COLLECT_COLLECTION).doc(jobId).set({
+        data: {
+          ...jobData,
+          jobId,
+          sourceCollection: this.data.collection,
+          collectedAt: db.serverDate(),
+        },
+      })
+    },
+
+    async removeCollectRecord(jobId: string) {
+      const db = wx.cloud.database()
+      await db.collection(COLLECT_COLLECTION).doc(jobId).remove()
+    },
+
+    async checkCollectState(jobId: string, silent = false) {
+      if (!jobId) return false
+      const db = wx.cloud.database()
+      try {
+        await db.collection(COLLECT_COLLECTION).doc(jobId).get()
+        if (!silent) this.setData({ collected: true })
+        return true
+      } catch (err: any) {
+        const noDoc = typeof err?.errMsg === 'string' && err.errMsg.indexOf('no document') > -1
+        if (!noDoc && !silent) {
+          console.warn('[job-detail] checkCollectState failed', err)
+        }
+        if (!silent) this.setData({ collected: false })
+        return false
+      }
+    },
   },
 })
-

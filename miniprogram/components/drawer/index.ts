@@ -34,6 +34,14 @@ Component({
         },
       })
     },
+
+    onOpenFavorites() {
+      if (!this.data.isLoggedIn) {
+        wx.showToast({ title: '请先登录', icon: 'none' })
+        return
+      }
+      wx.reLaunch({ url: '/pages/favorites/index' })
+      this.onClose()
+    },
   },
 })
-

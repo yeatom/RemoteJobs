@@ -10,6 +10,9 @@
     </block>
     <text class="nickname">{{isLoggedIn ? userInfo.nickName : 'Click to Login'}}</text>
   </view>
-  <!-- Other drawer content will go here -->
+  <view class="drawer-list">
+    <view class="drawer-item" bindtap="onOpenFavorites">
+      <text class="drawer-item-text">我收藏的岗位</text>
+    </view>
+  </view>
 </view>
-

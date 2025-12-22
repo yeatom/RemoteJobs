@@ -31,7 +31,24 @@
   padding: 40rpx 32rpx 20rpx;
   border-bottom: 1rpx solid #eee;
   display: flex;
-  justify-content: flex-end;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.back-button {
+  width: 60rpx;
+  height: 60rpx;
+  font-size: 40rpx;
+  color: #111827;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+}
+
+.back-icon {
+  font-size: 44rpx;
+  font-weight: 500;
 }
 
 .close-button {
@@ -45,9 +62,27 @@
   line-height: 1;
 }
 
+.collect-button {
+  width: 60rpx;
+  height: 60rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.collect-icon {
+  font-size: 48rpx;
+  color: #9ca3af;
+}
+
+.collect-icon-active {
+  color: #fbbf24;
+}
+
 .detail-content {
   flex: 1;
-  height: 0; /* Use with flex: 1 for proper height calculation */
+  height: 0;
+  padding-top: 0;
 }
 
 .detail-body {
@@ -140,4 +175,3 @@
   font-size: 28rpx;
   color: #9ca3af;
 }
-

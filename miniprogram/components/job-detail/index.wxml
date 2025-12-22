@@ -1,9 +1,16 @@
 <!--miniprogram/components/job-detail/index.wxml-->
 <view wx:if="{{show}}" class="detail-mask" bindtap="onClose"></view>
 <view class="detail-drawer {{show ? 'detail-drawer-open' : ''}}">
-  <view class="detail-header">
-    <view class="close-button" bindtap="onClose">×</view>
-  </view>
+  <block wx:if="{{job}}">
+    <view class="detail-header">
+      <view class="back-button" bindtap="onClose">
+        <text class="back-icon">{{'<'}}</text>
+      </view>
+      <view class="collect-button" bindtap="toggleCollect">
+        <text class="collect-icon {{collected ? 'collect-icon-active' : ''}}">{{collected ? '★' : '☆'}}</text>
+      </view>
+    </view>
+  </block>
   <scroll-view class="detail-content" scroll-y="{{true}}">
     <block wx:if="{{loading}}">
       <view class="loading">加载中...</view>
@@ -34,4 +41,3 @@
     </block>
   </scroll-view>
 </view>
-
