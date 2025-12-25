@@ -39,9 +39,9 @@ page::-webkit-scrollbar {
 
 /* --- Unified search right-side buttons (region + filter) --- */
 .search-pill {
-  height: 64rpx;
+  height: 45rpx;
   padding: 0 12rpx;
-  border-radius: 16rpx;
+  border-radius: 18rpx;
   background-color: #e5f0ff;
   display: inline-flex;
   align-items: center;
@@ -177,8 +177,9 @@ page::-webkit-scrollbar {
   width: auto;
   height: 64rpx;
   line-height: 64rpx;
-  border-radius: 16rpx;
+  border-radius: 18rpx;
   padding: 0 18rpx;
+  background-color: #EDEDED;
 }
 
 .search-placeholder {
