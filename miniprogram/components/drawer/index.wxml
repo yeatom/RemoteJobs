@@ -1,5 +1,46 @@
 <!--miniprogram/components/drawer/index.wxml-->
 <view wx:if="{{show}}" class="drawer-mask" bindtap="onClose"></view>
-<view class="drawer-menu {{show ? 'drawer-open' : ''}}">
-  <!-- empty drawer (intentionally blank) -->
+
+<view class="drawer-menu {{show ? 'drawer-open' : ''}}" catchtap="stopPropagation">
+  <view class="drawer-top">
+    <view class="drawer-close" bindtap="onClose">×</view>
+    <view class="drawer-title">筛选</view>
+  </view>
+
+  <scroll-view class="drawer-body" scroll-y="true" enhanced="true" show-scrollbar="{{false}}">
+    <view class="drawer-section">
+      <view class="drawer-section-title">薪资</view>
+      <view class="drawer-grid">
+        <view
+          wx:for="{{salaryOptions}}"
+          wx:key="*this"
+          class="drawer-chip {{tempValue.salary === item ? 'drawer-chip-active' : ''}}"
+          data-value="{{item}}"
+          bindtap="onPickSalary"
+        >
+          <text class="drawer-chip-text">{{item}}</text>
+        </view>
+      </view>
+    </view>
+
+    <view class="drawer-section">
+      <view class="drawer-section-title">经验</view>
+      <view class="drawer-grid">
+        <view
+          wx:for="{{experienceOptions}}"
+          wx:key="*this"
+          class="drawer-chip {{tempValue.experience === item ? 'drawer-chip-active' : ''}}"
+          data-value="{{item}}"
+          bindtap="onPickExperience"
+        >
+          <text class="drawer-chip-text">{{item}}</text>
+        </view>
+      </view>
+    </view>
+  </scroll-view>
+
+  <view class="drawer-footer">
+    <view class="drawer-btn drawer-btn-ghost" bindtap="onReset">清除</view>
+    <view class="drawer-btn drawer-btn-primary" bindtap="onConfirm">确定</view>
+  </view>
 </view>

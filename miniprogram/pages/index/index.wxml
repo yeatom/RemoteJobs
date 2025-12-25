@@ -33,7 +33,14 @@
   </view>
 
   <!-- Drawer Component -->
-  <drawer show="{{showDrawer}}" bind:close="toggleDrawer" bind:openFavorites="openFavoritesSheet" />
+  <drawer
+    show="{{showDrawer}}"
+    value="{{drawerFilter}}"
+    bind:close="toggleDrawer"
+    bind:confirm="onDrawerConfirm"
+    bind:reset="onDrawerReset"
+    bind:openFavorites="openFavoritesSheet"
+  />
 
   <!-- Collected jobs bottom sheet -->
   <block wx:if="{{showFavoritesSheet}}">

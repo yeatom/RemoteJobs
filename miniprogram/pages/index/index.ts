@@ -27,6 +27,16 @@ const typeCollectionMap: Record<string, string> = {
   web3: 'web3_remote_jobs',
 }
 
+type DrawerFilterValue = {
+  salary: string
+  experience: string
+}
+
+const DEFAULT_DRAWER_FILTER: DrawerFilterValue = {
+  salary: '全部',
+  experience: '全部',
+}
+
 Component({
   data: {
     jobs: <JobItem[]>[],
@@ -57,6 +67,8 @@ Component({
     favoritesSheetOpen: false,
     favoritesLoading: false,
     favoritesJobs: [] as ResolvedFavoriteJob[],
+
+    drawerFilter: DEFAULT_DRAWER_FILTER as DrawerFilterValue,
   },
   lifetimes: {
     attached() {
@@ -459,6 +471,56 @@ Component({
 
     closeJobDetail() {
       this.setData({ showJobDetail: false })
+    },
+
+    onDrawerConfirm(e: WechatMiniprogram.CustomEvent) {
+      const value = (e.detail?.value || DEFAULT_DRAWER_FILTER) as DrawerFilterValue
+      this.setData({ drawerFilter: { ...DEFAULT_DRAWER_FILTER, ...value }, showDrawer: false }, () => {
+        this.applyDrawerFilters()
+      })
+    },
+
+    onDrawerReset(e: WechatMiniprogram.CustomEvent) {
+      const value = (e.detail?.value || DEFAULT_DRAWER_FILTER) as DrawerFilterValue
+      this.setData({ drawerFilter: { ...DEFAULT_DRAWER_FILTER, ...value }, showDrawer: false }, () => {
+        this.applyDrawerFilters()
+      })
+    },
+
+    applyDrawerFilters() {
+      // keep search behavior: if searching, don't re-filter result set here
+      if (this.data.isSearching) return
+
+      const { jobs, drawerFilter, searchKeyword } = this.data
+
+      // first, apply keyword locally (existing behavior)
+      const keyword = (searchKeyword || '').toLowerCase()
+      let list = jobs
+      if (keyword) {
+        list = list.filter((job) => {
+          const title = (job.title || '').toLowerCase()
+          const sourceName = (job.source_name || '').toLowerCase()
+          return title.indexOf(keyword) > -1 || sourceName.indexOf(keyword) > -1
+        })
+      }
+
+      // then apply drawer filters (simple contains match for now)
+      if (drawerFilter?.salary && drawerFilter.salary !== '全部') {
+        list = list.filter((j) => (j.salary || '').includes(drawerFilter.salary))
+      }
+      if (drawerFilter?.experience && drawerFilter.experience !== '全部') {
+        const text = drawerFilter.experience
+        list = list.filter((j) => {
+          const summary = j.summary || ''
+          const desc = j.description || ''
+          const tags = (j.tags || []).join(',')
+          return summary.includes(text) || desc.includes(text) || tags.includes(text)
+        })
+      }
+
+      this.setData({ filteredJobs: list, scrollTop: 0 }, () => {
+        this.checkScrollability()
+      })
     },
   },
 })
