@@ -2,11 +2,6 @@
 <view wx:if="{{show}}" class="drawer-mask" bindtap="onClose"></view>
 
 <view class="drawer-menu {{show ? 'drawer-open' : ''}}" catchtap="stopPropagation">
-  <view class="drawer-top">
-    <view class="drawer-close" bindtap="onClose">×</view>
-    <view class="drawer-title">筛选</view>
-  </view>
-
   <scroll-view class="drawer-body" scroll-y="true" enhanced="true" show-scrollbar="{{false}}">
     <view class="drawer-section">
       <view class="drawer-section-title">薪资</view>

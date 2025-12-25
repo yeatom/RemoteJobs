@@ -166,6 +166,7 @@ page::-webkit-scrollbar {
 }
 
 .search-bar {
+  margin-top: -20rpx;
   margin-bottom: 30rpx;
   display: flex;
   align-items: center;
