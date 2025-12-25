@@ -22,6 +22,8 @@ Page({
             desc: t('community.desc', lang),
           },
         })
+        // Immediately set navigation bar title when language changes
+        wx.setNavigationBarTitle({ title: t('app.navTitle', lang) })
       },
     })
   },

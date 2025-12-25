@@ -33,6 +33,10 @@ Page({
     ;(this as any)._langDetach = attachLanguageAware(this, {
       onLanguageRevive: () => {
         this.syncLanguageFromApp()
+        // Immediately set navigation bar title when language changes
+        const app = getApp<IAppOption>() as any
+        const lang = normalizeLanguage(app?.globalData?.language)
+        wx.setNavigationBarTitle({ title: t('app.navTitle', lang) })
       },
     })
   },
