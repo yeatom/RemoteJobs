@@ -30,13 +30,16 @@
     <view class="me-item" bindtap="onOpenFavorites">
       <text class="me-item-text">我收藏的岗位</text>
     </view>
+
+    <view class="me-item" bindtap="onLanguageTap">
+      <text class="me-item-text">语言</text>
+    </view>
   </view>
 
   <!-- Favorites bottom sheet (5/6 height, no header) -->
   <block wx:if="{{showFavoritesSheet}}">
     <view class="favorites-sheet-mask {{favoritesSheetOpen ? 'favorites-sheet-mask-open' : ''}}" bindtap="closeFavoritesSheet"></view>
     <view class="favorites-sheet {{favoritesSheetOpen ? 'favorites-sheet-open' : ''}}">
-      <view class="favorites-sheet-handle"></view>
 
       <view class="favorites-list-padding">
         <job-list
@@ -51,6 +54,22 @@
       </view>
 
       <view wx:if="{{!favoritesLoading && favoritesJobs.length === 0}}" class="empty-favorites">暂无收藏岗位</view>
+    </view>
+  </block>
+
+  <!-- Language bottom sheet (same animation as favorites) -->
+  <block wx:if="{{showLanguageSheet}}">
+    <view class="language-sheet-mask {{languageSheetOpen ? 'language-sheet-mask-open' : ''}}" bindtap="closeLanguageSheet"></view>
+    <view class="language-sheet {{languageSheetOpen ? 'language-sheet-open' : ''}}">
+
+      <view class="language-sheet-content">
+        <view class="language-item {{currentLanguage === '中文' ? 'language-item-active' : ''}}" data-value="中文" bindtap="onLanguageSelect">
+          <text class="language-item-text">中文</text>
+        </view>
+        <view class="language-item {{currentLanguage === 'English' ? 'language-item-active' : ''}}" data-value="English" bindtap="onLanguageSelect">
+          <text class="language-item-text">English</text>
+        </view>
+      </view>
     </view>
   </block>
 

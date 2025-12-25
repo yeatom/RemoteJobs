@@ -142,19 +142,16 @@
   transform: translateY(0);
 }
 
-.favorites-sheet-handle {
-  width: 86rpx;
-  height: 10rpx;
-  border-radius: 999rpx;
-  background: rgba(17, 24, 39, 0.15);
-  margin: 16rpx auto 8rpx;
-}
-
 .favorites-list-padding {
   flex: 1;
   height: 0;
-  padding: 0 32rpx 24rpx;
+  padding: 32rpx 32rpx 0rpx;
   box-sizing: border-box;
+}
+
+/* remove unused handle styles */
+.favorites-sheet-handle {
+  display: none;
 }
 
 .empty-favorites {
@@ -174,4 +171,77 @@
 .favorites-job-list {
   flex: 1;
   height: 100%;
+}
+
+/* --- Language bottom sheet (same motion pattern as favorites) --- */
+.language-sheet-mask {
+  position: fixed;
+  left: 0;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.35);
+  z-index: 2399;
+  opacity: 0;
+  transition: opacity 0.25s ease;
+}
+
+.language-sheet-mask-open {
+  opacity: 1;
+}
+
+.language-sheet {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: auto;
+  background: #ffffff;
+  border-top-left-radius: 24rpx;
+  border-top-right-radius: 24rpx;
+  transform: translateY(100%);
+  transition: transform 0.25s ease;
+  z-index: 2400;
+  display: flex;
+  flex-direction: column;
+  padding-bottom: 10rpx;
+}
+
+.language-sheet-open {
+  transform: translateY(0);
+}
+
+/* remove unused handle styles */
+.language-sheet-handle {
+  display: none;
+}
+
+.language-sheet-content {
+  padding: 0 32rpx 32rpx;
+  padding-top: 24rpx;
+}
+
+.language-item {
+  height: 96rpx;
+  border-radius: 18rpx;
+  background: #f3f4f6;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 18rpx;
+}
+
+.language-item-text {
+  font-size: 30rpx;
+  font-weight: 600;
+  color: #111827;
+}
+
+.language-item-active {
+  background: rgba(29, 78, 216, 0.10);
+  border: 2rpx solid #1d4ed8;
+}
+
+.language-item-active .language-item-text {
+  color: #1d4ed8;
 }

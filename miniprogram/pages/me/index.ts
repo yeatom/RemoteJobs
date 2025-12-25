@@ -1,30 +1,7 @@
 // miniprogram/pages/me/index.ts
 
-type JobItem = {
-  _id: string
-  createdAt: string
-  source_url: string
-  salary: string
-  source_name: string
-  summary: string
-  description?: string
-  team: string
-  title: string
-  type: string
-  tags: string[]
-  displayTags?: string[]
-}
-
-type ResolvedFavoriteJob = JobItem & {
-  jobId: string
-  sourceCollection: string
-}
-
-const typeCollectionMap: Record<string, string> = {
-  国内: 'domestic_remote_jobs',
-  国外: 'abroad_remote_jobs',
-  web3: 'web3_remote_jobs',
-}
+import type { ResolvedFavoriteJob } from '../../utils/job'
+import { mapJobs, typeCollectionMap } from '../../utils/job'
 
 Page({
   data: {
@@ -40,6 +17,10 @@ Page({
     showJobDetail: false,
     selectedJobId: '',
     selectedCollection: '',
+
+    showLanguageSheet: false,
+    languageSheetOpen: false,
+    currentLanguage: '中文',
   },
 
   onShow() {
@@ -274,32 +255,31 @@ Page({
       showJobDetail: true,
     })
   },
+
+  openLanguageSheet() {
+    this.setData({ showLanguageSheet: true, languageSheetOpen: false })
+    setTimeout(() => {
+      this.setData({ languageSheetOpen: true })
+    }, 30)
+  },
+
+  closeLanguageSheet() {
+    this.setData({ languageSheetOpen: false })
+    setTimeout(() => {
+      this.setData({ showLanguageSheet: false })
+    }, 260)
+  },
+
+  onLanguageSelect(e: WechatMiniprogram.TouchEvent) {
+    const value = (e.currentTarget.dataset.value || '') as string
+    if (!value) return
+
+    this.setData({ currentLanguage: value })
+    wx.showToast({ title: '敬请期待', icon: 'none' })
+    this.closeLanguageSheet()
+  },
+
+  onLanguageTap() {
+    this.openLanguageSheet()
+  },
 })
-
-// Add helper next to typeCollectionMap
-function mapJobs(jobs: any[]): any[] {
-  return jobs.map((item: any) => {
-    const tags = (item.summary || '')
-      .split(/[,，]/)
-      .map((t: string) => t.trim().replace(/[。！!.,，、；;]+$/g, '').trim())
-      .filter((t: string) => t && t.length > 1)
-
-    const displayTags = [...tags]
-    if (item.source_name && typeof item.source_name === 'string' && item.source_name.trim()) {
-      const sourceTag = item.source_name.trim()
-      if (displayTags.length >= 1) {
-        displayTags.splice(1, 0, sourceTag)
-      } else {
-        displayTags.push(sourceTag)
-      }
-    }
-
-    return {
-      ...item,
-      tags,
-      displayTags,
-    }
-  })
-}
-
-// In loadFavoritesJobs(), when pushing merged items, normalize with mapJobs

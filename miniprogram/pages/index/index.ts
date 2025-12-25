@@ -1,31 +1,7 @@
 // index.ts - remote jobs list
 
-type JobItem = {
-  _id: string
-  createdAt: string
-  source_url: string
-  salary: string
-  source_name: string
-  summary: string
-  description?: string
-  team: string
-  title: string
-  type: string
-  tags: string[]
-  displayTags?: string[]
-}
-
-type ResolvedFavoriteJob = JobItem & {
-  jobId: string
-  sourceCollection: string
-}
-
-// Single mapping used for both: currentFilter -> collection, and collected_jobs.type -> collection
-const typeCollectionMap: Record<string, string> = {
-  国内: 'domestic_remote_jobs',
-  国外: 'abroad_remote_jobs',
-  web3: 'web3_remote_jobs',
-}
+import type { JobItem } from '../../utils/job'
+import { mapJobs, typeCollectionMap } from '../../utils/job'
 
 type DrawerFilterValue = {
   salary: string
@@ -132,7 +108,7 @@ Component({
           { source_name: searchRegex },
         ])).orderBy('createdAt', 'desc').limit(100).get()
 
-        const mappedJobs = this.mapJobs(res.data || [])
+        const mappedJobs = mapJobs(res.data || []) as JobItem[]
 
         this.setData({
           jobs: mappedJobs,
@@ -217,7 +193,7 @@ Component({
           .limit(pageSize)
           .get()
 
-        const newJobs = this.mapJobs(res.data || [])
+        const newJobs = mapJobs(res.data || []) as JobItem[]
         const allJobs = reset ? newJobs : [...this.data.jobs, ...newJobs]
 
           this.setData({
@@ -233,31 +209,6 @@ Component({
       } finally {
         this.setData({ loading: false })
       }
-    },
-
-    mapJobs(jobs: any[]): JobItem[] {
-      return jobs.map((item: any) => {
-        const tags = (item.summary || '')
-          .split(/[,，]/)
-          .map((t: string) => t.trim().replace(/[。！!.,，、；;]+$/g, '').trim())
-          .filter((t: string) => t && t.length > 1)
-
-        const displayTags = [...tags]
-        if (item.source_name && typeof item.source_name === 'string' && item.source_name.trim()) {
-          const sourceTag = item.source_name.trim()
-          if (displayTags.length >= 1) {
-            displayTags.splice(1, 0, sourceTag)
-          } else {
-            displayTags.push(sourceTag)
-          }
-        }
-
-        return {
-          ...item,
-          tags,
-          displayTags,
-        } as JobItem
-      })
     },
 
     maybeLoadMore() {
