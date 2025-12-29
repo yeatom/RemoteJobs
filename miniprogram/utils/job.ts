@@ -20,15 +20,6 @@ export type ResolvedSavedJob = JobItem & {
   sourceCollection: string
 }
 
-// Single mapping used for both:
-// 1) currentFilter -> collection
-// 2) collected_jobs.type -> collection
-export const typeCollectionMap: Record<string, string> = {
-  国内: 'domestic_remote_jobs',
-  国外: 'abroad_remote_jobs',
-  web3: 'web3_remote_jobs',
-}
-
 export function normalizeJobTags<T extends { summary?: string; source_name?: string }>(item: T): {
   tags: string[]
   displayTags: string[]

@@ -2,7 +2,7 @@
 
 import { isAiChineseUnlocked } from '../../utils/subscription'
 import type { ResolvedSavedJob } from '../../utils/job'
-import { mapJobs, typeCollectionMap } from '../../utils/job'
+import { mapJobs } from '../../utils/job'
 import { normalizeLanguage, t, type AppLanguage } from '../../utils/i18n'
 import { attachLanguageAware } from '../../utils/languageAware'
 
@@ -246,54 +246,45 @@ Page({
         return
       }
 
-      const groups = new Map<string, string[]>()
-      for (const row of collected) {
-        const t = row?.type
-        const id = row?.jobId // 从 collected_jobs 集合读取的 jobId 字段（实际是岗位的 _id）
-        if (!t || !id) continue
-        const list = groups.get(t) || []
-        list.push(id)
-        groups.set(t, list)
+      // 获取所有收藏的 jobId
+      const jobIds = collected.map(row => row?.jobId).filter(Boolean) as string[]
+      
+      if (jobIds.length === 0) {
+        this.setData({ savedJobs: [] })
+        return
       }
+
+      // 从 remote_jobs collection 查询所有收藏的职位
+      const results = await Promise.all(
+        jobIds.map(async (id) => {
+          try {
+            const res = await db.collection('remote_jobs').doc(id).get()
+            return { id, data: res.data }
+          } catch {
+            return null
+          }
+        })
+      )
 
       const jobByKey = new Map<string, any>()
-      const fetchGroup = async (type: string, ids: string[]) => {
-        const collectionName = typeCollectionMap[type]
-        if (!collectionName) return
-
-        const results = await Promise.all(
-          ids.map(async (id) => {
-            try {
-              const res = await db.collection(collectionName).doc(id).get()
-              return { id, collectionName, data: res.data }
-            } catch {
-              return null
-            }
-          })
-        )
-
-        for (const r of results) {
-          if (!r?.data) continue
-          jobByKey.set(`${type}:${r.id}`, { ...r.data, _id: r.id, sourceCollection: r.collectionName })
-        }
+      for (const r of results) {
+        if (!r?.data) continue
+        jobByKey.set(r.id, { ...r.data, _id: r.id })
       }
 
-      await Promise.all(Array.from(groups.entries()).map(([type, ids]) => fetchGroup(type, ids)))
-
+      // 按照 collected 的顺序合并数据
       const merged: ResolvedSavedJob[] = []
       for (const row of collected) {
-        const type = row?.type
         const _id = row?.jobId // 从 collected_jobs 集合读取的 jobId 字段（实际是岗位的 _id）
-        if (!type || !_id) continue
+        if (!_id) continue
 
-        const key = `${type}:${_id}`
-        const job = jobByKey.get(key)
+        const job = jobByKey.get(_id)
         if (!job) continue
 
         merged.push({
           ...(job as any),
           _id,
-          sourceCollection: job.sourceCollection,
+          sourceCollection: 'remote_jobs',
         })
       }
 
@@ -314,9 +305,10 @@ Page({
   onSavedJobTap(e: any) {
     const job = e?.detail?.job
     const _id = (job?._id || e?.currentTarget?.dataset?._id) as string
-    const collection = (job?.sourceCollection || e?.currentTarget?.dataset?.collection || '') as string
+    // 统一使用 remote_jobs collection
+    const collection = 'remote_jobs'
 
-    if (!_id || !collection) {
+    if (!_id) {
       wx.showToast({ title: '无法打开详情', icon: 'none' })
       return
     }

@@ -21,4 +21,38 @@
   justify-content: space-between;
   padding: 200rpx 0;
   box-sizing: border-box;
+}
+
+/* 公共头部样式 - 供 job-detail 和 drawer 组件复用 */
+.detail-header {
+  padding: 40rpx 32rpx 20rpx;
+  border-bottom: 1rpx solid #eee;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  position: relative;
+}
+
+.back-hit {
+  position: absolute;
+  left: 0;
+  top: 0;
+  height: 100%;
+  width: 120rpx;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+}
+
+.back-button {
+  width: 16rpx;
+  height: 16rpx;
+  border-left: 5rpx solid #111827;
+  border-bottom: 5rpx solid #111827;
+  transform: rotate(45deg);
+  margin-left: 40rpx;
+}
+
+.back-button::after {
+  content: '';
 } 

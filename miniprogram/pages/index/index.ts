@@ -1,21 +1,21 @@
 import type { JobItem, ResolvedSavedJob } from '../../utils/job'
-import { mapJobs, typeCollectionMap } from '../../utils/job'
+import { mapJobs } from '../../utils/job'
 import { normalizeLanguage, t } from '../../utils/i18n'
 import { attachLanguageAware } from '../../utils/languageAware'
 import { toDateMs } from '../../utils/time'
 
-type FilterType = '国内' | '国外' | 'web3'
-
 type DrawerFilterValue = {
   salary: string
   experience: string
-  source_name?: string
+  source_name?: string[] // 支持多选
+  region?: string // 单选
 }
 
 const DEFAULT_DRAWER_FILTER: DrawerFilterValue = {
   salary: '全部',
   experience: '全部',
-  source_name: '全部',
+  source_name: [], // 空数组表示"全部"
+  region: '全部', // 单选，默认"全部"
 }
 
 Page({
@@ -23,66 +23,47 @@ Page({
     jobs: <JobItem[]>[],
     filteredJobs: <JobItem[]>[],
     currentTab: 0,
-    tabLabels: ['公开', '精选', '收藏'],
     jobsByTab: [<JobItem[]>[], <JobItem[]>[], <JobItem[]>[]] as JobItem[][],
     hasLoadedTab: [false, false, false] as boolean[],
-    regionCache: {} as Record<FilterType, JobItem[]>,
     isFeaturedUnlocked: false,
     featuredScrollEnabled: true,
-    filterOptions: ['国内', '国外', 'web3'] as FilterType[],
     pageSize: 15,
     loading: false,
     hasMore: true,
     lowerThreshold: 100,
-    scrollViewHeight: 0,
     lastLoadTime: 0,
     showJobDetail: false,
     selectedJobData: null as any,
+    selectedCollection: 'remote_jobs', // 统一使用 remote_jobs collection
 
     tabState: [
       {
-        showFilter: false,
-        currentFilter: '国内' as FilterType,
         searchKeyword: '',
         scrollTop: 0,
         showDrawer: false,
         isSearching: false,
         drawerFilter: { ...DEFAULT_DRAWER_FILTER } as DrawerFilterValue,
-        displayCurrentFilter: '国内',
-        displayFilterOptions: ['国内', '国外', 'web3'],
       },
       {
-        showFilter: false,
-        currentFilter: '国内' as FilterType,
         searchKeyword: '',
         scrollTop: 0,
         showDrawer: false,
         isSearching: false,
         drawerFilter: { ...DEFAULT_DRAWER_FILTER } as DrawerFilterValue,
-        displayCurrentFilter: '国内',
-        displayFilterOptions: ['国内', '国外', 'web3'],
       },
       {
-        showFilter: false,
-        currentFilter: '国内' as FilterType,
         searchKeyword: '',
         scrollTop: 0,
         showDrawer: false,
         isSearching: false,
         drawerFilter: { ...DEFAULT_DRAWER_FILTER } as DrawerFilterValue,
-        displayCurrentFilter: '国内',
-        displayFilterOptions: ['国内', '国外', 'web3'],
       },
     ] as Array<{
-      showFilter: boolean
-      currentFilter: FilterType
       searchKeyword: string
       scrollTop: number
       showDrawer: boolean
       isSearching: boolean
       drawerFilter: DrawerFilterValue
-      displayCurrentFilter: string
-      displayFilterOptions: string[]
     }>,
 
     ui: {
@@ -101,7 +82,9 @@ Page({
   },
 
   hasActiveFilters(drawerFilter: DrawerFilterValue): boolean {
-    return !!(drawerFilter?.source_name && drawerFilter.source_name !== '全部')
+    const hasSourceFilter = !!(drawerFilter?.source_name && Array.isArray(drawerFilter.source_name) && drawerFilter.source_name.length > 0)
+    const hasRegionFilter = !!(drawerFilter?.region && drawerFilter.region !== '全部')
+    return hasSourceFilter || hasRegionFilter
   },
 
   onLoad() {
@@ -122,14 +105,9 @@ Page({
         const loaded = this.data.hasLoadedTab as boolean[]
         loaded[0] = true
         
-        const cache = (this.data as any).regionCache as Record<FilterType, JobItem[]>
-        const currentState = this.getCurrentTabState()
-        const filterKey = currentState.currentFilter as FilterType
-        cache[filterKey] = primary
         this.setData({ 
           jobsByTab: tabs, 
-          hasLoadedTab: loaded, 
-          regionCache: cache,
+          hasLoadedTab: loaded,
           jobs: primary,
           filteredJobs: primary,
         })
@@ -154,19 +132,48 @@ Page({
   },
 
   onPullDownRefresh() {
+    this.setData({ loading: true })
     if (this.data.currentTab === 0) {
-      this.loadJobsForTab(0, true).finally(() => {
+      this.loadJobsForTab(0, true).then(() => {
+        const tabs = this.data.jobsByTab as JobItem[][]
+        this.setData({
+          jobs: tabs[0] || [],
+          filteredJobs: tabs[0] || [],
+          loading: false,
+        })
+      }).catch(() => {
+        this.setData({ loading: false })
+      }).finally(() => {
         wx.stopPullDownRefresh()
       })
     } else if (this.data.currentTab === 1) {
-      this.loadJobsForTab(1, true).finally(() => {
+      this.loadJobsForTab(1, true).then(() => {
+        const tabs = this.data.jobsByTab as JobItem[][]
+        this.setData({
+          jobs: tabs[1] || [],
+          filteredJobs: tabs[1] || [],
+          loading: false,
+        })
+      }).catch(() => {
+        this.setData({ loading: false })
+      }).finally(() => {
         wx.stopPullDownRefresh()
       })
     } else if (this.data.currentTab === 2) {
-      this.loadSavedJobsForTab().finally(() => {
+      this.loadSavedJobsForTab().then(() => {
+        const tabs = this.data.jobsByTab as JobItem[][]
+        this.setData({
+          jobs: tabs[2] || [],
+          filteredJobs: tabs[2] || [],
+          loading: false,
+        })
+      }).catch(() => {
+        this.setData({ loading: false })
+      }).finally(() => {
         wx.stopPullDownRefresh()
       })
     } else {
+      this.setData({ loading: false })
       wx.stopPullDownRefresh()
     }
   },
@@ -184,9 +191,6 @@ Page({
     if (idx === this.data.currentTab) return
     
     const currentState = this.getCurrentTabState()
-    if (currentState.showFilter) {
-      this.updateCurrentTabState({ showFilter: false })
-    }
     if (currentState.showDrawer) {
       this.updateCurrentTabState({ showDrawer: false })
     }
@@ -198,9 +202,23 @@ Page({
     if (idx === 1) {
       this.checkFeaturedSubscription()
       if (!loaded[idx]) {
-        this.loadJobsForTab(idx, true).catch(() => {})
+        this.setData({ loading: true })
+        this.loadJobsForTab(idx, true).then(() => {
+          const updatedTabs = this.data.jobsByTab as JobItem[][]
+          if (this.data.currentTab === idx) {
+            this.setData({ 
+              jobs: updatedTabs[idx] || [], 
+              filteredJobs: updatedTabs[idx] || [],
+              loading: false,
+            })
+          }
+        }).catch(() => {
+          if (this.data.currentTab === idx) {
+            this.setData({ loading: false })
+          }
+        })
       } else {
-        this.setData({ jobs: tabs[idx], filteredJobs: tabs[idx] })
+        this.setData({ jobs: tabs[idx], filteredJobs: tabs[idx], loading: false })
       }
     } else if (idx === 2) {
       if (!loaded[idx]) {
@@ -245,28 +263,11 @@ Page({
         }
       }
       } else {
-      const currentState = this.getCurrentTabState()
+      // tab 0 (公开)
       if (loaded[idx]) {
         this.setData({ jobs: tabs[idx], filteredJobs: tabs[idx], loading: false })
       } else {
-        const cache = (this.data as any).regionCache as Record<FilterType, JobItem[]>
-        const filterKey = currentState.currentFilter as FilterType
-        const cachedJobs = cache[filterKey]
-        if (cachedJobs && cachedJobs.length > 0) {
-          const updatedTabs = this.data.jobsByTab as JobItem[][]
-          updatedTabs[idx] = cachedJobs
-          const updatedLoaded = this.data.hasLoadedTab as boolean[]
-          updatedLoaded[idx] = true
-          this.setData({ 
-            jobsByTab: updatedTabs, 
-            hasLoadedTab: updatedLoaded,
-            jobs: cachedJobs, 
-            filteredJobs: cachedJobs,
-            loading: false,
-          })
-        } else {
-          this.setData({ loading: true })
-        }
+        this.setData({ loading: true })
         // Load fresh data in background
         this.loadJobsForTab(idx, true).then(() => {
           const updatedTabs = this.data.jobsByTab as JobItem[][]
@@ -290,9 +291,6 @@ Page({
     const idx = Number(e.currentTarget.dataset.idx || 0)
     
     const currentState = this.getCurrentTabState()
-    if (currentState.showFilter) {
-      this.updateCurrentTabState({ showFilter: false })
-    }
     if (currentState.showDrawer) {
       this.updateCurrentTabState({ showDrawer: false })
     }
@@ -304,9 +302,23 @@ Page({
     if (idx === 1) {
       this.checkFeaturedSubscription()
       if (!loaded[idx]) {
-        this.loadJobsForTab(idx, true).catch(() => {})
+        this.setData({ loading: true })
+        this.loadJobsForTab(idx, true).then(() => {
+          const updatedTabs = this.data.jobsByTab as JobItem[][]
+          if (this.data.currentTab === idx) {
+            this.setData({ 
+              jobs: updatedTabs[idx] || [], 
+              filteredJobs: updatedTabs[idx] || [],
+              loading: false,
+            })
+          }
+        }).catch(() => {
+          if (this.data.currentTab === idx) {
+            this.setData({ loading: false })
+          }
+        })
       } else {
-        this.setData({ jobs: tabs[idx], filteredJobs: tabs[idx] })
+        this.setData({ jobs: tabs[idx], filteredJobs: tabs[idx], loading: false })
       }
     } else if (idx === 2) {
       if (!loaded[idx]) {
@@ -351,28 +363,11 @@ Page({
         }
       }
       } else {
-      const currentState = this.getCurrentTabState()
+      // tab 0 (公开)
       if (loaded[idx]) {
         this.setData({ jobs: tabs[idx], filteredJobs: tabs[idx], loading: false })
       } else {
-        const cache = (this.data as any).regionCache as Record<FilterType, JobItem[]>
-        const filterKey = currentState.currentFilter as FilterType
-        const cachedJobs = cache[filterKey]
-        if (cachedJobs && cachedJobs.length > 0) {
-          const updatedTabs = this.data.jobsByTab as JobItem[][]
-          updatedTabs[idx] = cachedJobs
-          const updatedLoaded = this.data.hasLoadedTab as boolean[]
-          updatedLoaded[idx] = true
-          this.setData({ 
-            jobsByTab: updatedTabs, 
-            hasLoadedTab: updatedLoaded,
-            jobs: cachedJobs, 
-            filteredJobs: cachedJobs,
-            loading: false,
-          })
-        } else {
-          this.setData({ loading: true })
-        }
+        this.setData({ loading: true })
         // Load fresh data in background
         this.loadJobsForTab(idx, true).then(() => {
           const updatedTabs = this.data.jobsByTab as JobItem[][]
@@ -396,28 +391,12 @@ Page({
       const app = getApp<IAppOption>() as any
       const lang = normalizeLanguage(app?.globalData?.language)
 
-      const labelByType: Record<FilterType, string> = {
-        '国内': t('jobs.regionDomestic', lang),
-        '国外': t('jobs.regionAbroad', lang),
-        web3: t('jobs.regionWeb3', lang),
-      }
-
-      const displayFilterOptions = (this.data.filterOptions as FilterType[]).map((k) => labelByType[k])
-      
-      // Update all tabs' display labels
-      const tabState = this.data.tabState.map((state) => ({
-        ...state,
-        displayCurrentFilter: labelByType[state.currentFilter],
-        displayFilterOptions,
-      }))
-
       this.setData({
         ui: {
           searchPlaceholder: t('jobs.searchPlaceholder', lang),
           filterLabel: t('jobs.filterLabel', lang),
           emptyFavorites: t('me.emptyFavorites', lang),
         },
-        tabState,
       })
     },
 
@@ -429,15 +408,6 @@ Page({
       } catch (err) {
         // ignore
       }
-    },
-
-    getScrollViewHeight() {
-      const query = wx.createSelectorQuery().in(this)
-      query.select('.job-list').boundingClientRect((rect: any) => {
-        if (rect && rect.height) {
-          this.setData({ scrollViewHeight: rect.height })
-        }
-      }).exec()
     },
 
     onSearchInput(e: WechatMiniprogram.Input) {
@@ -496,7 +466,6 @@ Page({
       try {
         const db = wx.cloud.database()
         const currentState = this.getCurrentTabState()
-        const collectionName = typeCollectionMap[currentState.currentFilter] || 'domestic_remote_jobs'
 
         const escapedKeyword = keyword.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
         const searchRegex = db.RegExp({ regexp: escapedKeyword, options: 'i' })
@@ -506,14 +475,34 @@ Page({
           title: searchRegex,
         }
         
-        // 应用筛选条件
-        if (currentState.drawerFilter?.source_name && currentState.drawerFilter.source_name !== '全部') {
-          whereCondition.source_name = currentState.drawerFilter.source_name
+        // 应用区域筛选（单选）
+        const region = currentState.drawerFilter?.region || '全部'
+        if (region !== '全部') {
+          whereCondition.type = region
+        } else {
+          // 如果没有区域筛选，查询所有区域
+          whereCondition.type = db.command.in(['国内', '国外', 'web3'])
+        }
+        
+        // 应用来源筛选（支持多选）
+        const source_names = currentState.drawerFilter?.source_name || []
+        if (Array.isArray(source_names) && source_names.length > 0) {
+          if (source_names.length === 1) {
+            whereCondition.source_name = source_names[0]
+          } else {
+            whereCondition.source_name = db.command.in(source_names)
+          }
         }
 
         const existingJobs = reset ? [] : (this.data.jobsByTab[this.data.currentTab] || [])
         const skip = existingJobs.length
-        const res = await db.collection(collectionName).where(whereCondition)
+        
+        let query: any = db.collection('remote_jobs')
+        if (Object.keys(whereCondition).length > 0) {
+          query = query.where(whereCondition)
+        }
+        
+        const res = await query
           .orderBy('createdAt', 'desc')
           .skip(skip)
           .limit(this.data.pageSize)
@@ -546,77 +535,64 @@ Page({
     async loadJobsForTab(tabIndex: number, reset = false) {
       try {
         const currentState = this.getCurrentTabState()
-        const hasFilters = this.hasActiveFilters(currentState.drawerFilter)
+        const skip = reset ? 0 : (this.data.jobsByTab[tabIndex] || []).length
         
+        // 构建筛选参数
+        const filterParams: any = {}
+        
+        // 区域筛选（单选）
         if (tabIndex === 1) {
-          const collections = Object.values(typeCollectionMap)
-          
-          // 构建筛选参数
-          const filterParams: any = {}
-          if (currentState.drawerFilter?.source_name && currentState.drawerFilter.source_name !== '全部') {
-            filterParams.source_name = currentState.drawerFilter.source_name
-          }
-          
-          const res = await wx.cloud.callFunction({
-            name: 'getJobList',
-            data: {
-              collectionNames: collections,
-              pageSize: this.data.pageSize,
-              ...filterParams,
-            },
-          })
-          
-          if (res.result && (res.result as any).ok) {
-            const jobs = (res.result as any).jobs || []
-            const mapped = mapJobs(jobs) as JobItem[]
-            
-            const tabs = this.data.jobsByTab as JobItem[][]
-            tabs[tabIndex] = mapped
-            const loaded = this.data.hasLoadedTab as boolean[]
-            loaded[tabIndex] = true
-            const hasMore = mapped.length >= this.data.pageSize
-            this.setData({ jobsByTab: tabs, hasLoadedTab: loaded, hasMore })
-          }
+          // 精选 tab：查询所有区域
+          filterParams.types = ['国内', '国外', 'web3']
         } else {
-          const collectionName = typeCollectionMap[currentState.currentFilter] || 'domestic_remote_jobs'
-          const skip = reset ? 0 : (this.data.jobsByTab[tabIndex] || []).length
-          
-          // 构建筛选参数
-          const filterParams: any = {}
-          if (currentState.drawerFilter?.source_name && currentState.drawerFilter.source_name !== '全部') {
-            filterParams.source_name = currentState.drawerFilter.source_name
+          // 公开 tab：使用 drawerFilter 中的区域筛选
+          const region = currentState.drawerFilter?.region || '全部'
+          if (region !== '全部') {
+            // 有区域筛选，使用筛选的区域
+            filterParams.types = [region]
+          } else {
+            // 如果没有区域筛选，查询所有区域
+            filterParams.types = ['国内', '国外', 'web3']
           }
-          
-          const res = await wx.cloud.callFunction({
-            name: 'getJobList',
-            data: {
-              collectionName,
-              pageSize: this.data.pageSize,
-              skip,
-              ...filterParams,
-            },
-          })
-          
-          if (res.result && (res.result as any).ok) {
-            const jobs = (res.result as any).jobs || []
-            const newJobs = mapJobs(jobs) as JobItem[]
-            const existing = (this.data.jobsByTab[tabIndex] || []) as JobItem[]
-            const merged = reset ? newJobs : [...existing, ...newJobs]
+        }
+        
+        // 来源筛选（支持多选）
+        const source_names = currentState.drawerFilter?.source_name || []
+        if (Array.isArray(source_names) && source_names.length > 0) {
+          filterParams.source_name = source_names
+        }
+        
+        const res = await wx.cloud.callFunction({
+          name: 'getJobList',
+          data: {
+            pageSize: this.data.pageSize,
+            skip,
+            ...filterParams,
+          },
+        })
+        
+        if (res.result && (res.result as any).ok) {
+          const jobs = (res.result as any).jobs || []
+          const newJobs = mapJobs(jobs) as JobItem[]
+          const existing = (this.data.jobsByTab[tabIndex] || []) as JobItem[]
+          const merged = reset ? newJobs : [...existing, ...newJobs]
 
-            // 只在无筛选时更新缓存
-            if (!hasFilters) {
-              const cache = (this.data as any).regionCache as Record<FilterType, JobItem[]>
-              const filterKey = currentState.currentFilter as FilterType
-              cache[filterKey] = merged
-              this.setData({ regionCache: cache })
-            }
-
-            const tabs = this.data.jobsByTab as JobItem[][]
-            tabs[tabIndex] = merged
-            const loaded = this.data.hasLoadedTab as boolean[]
-            loaded[tabIndex] = true
-            const hasMore = newJobs.length >= this.data.pageSize
-            this.setData({ jobsByTab: tabs, hasLoadedTab: loaded, hasMore })
+          const tabs = this.data.jobsByTab as JobItem[][]
+          tabs[tabIndex] = merged
+          const loaded = this.data.hasLoadedTab as boolean[]
+          loaded[tabIndex] = true
+          const hasMore = newJobs.length >= this.data.pageSize
+          
+          // 如果当前正在显示这个 tab，立即更新显示
+          const updateData: any = { jobsByTab: tabs, hasLoadedTab: loaded, hasMore }
+          if (this.data.currentTab === tabIndex) {
+            updateData.jobs = merged
+            updateData.filteredJobs = merged
+          }
+          this.setData(updateData)
+        } else {
+          if (this.data.currentTab === tabIndex) {
+            this.setData({ loading: false })
           }
         }
       } catch (err) {
@@ -681,54 +657,47 @@ Page({
           return
         }
 
-        const groups = new Map<string, string[]>()
-        for (const row of collected) {
-          const t = row?.type
-          const id = row?.jobId
-          if (!t || !id) continue
-          const list = groups.get(t) || []
-          list.push(id)
-          groups.set(t, list)
+        const jobIds = collected.map(row => row?.jobId).filter(Boolean) as string[]
+        
+        if (jobIds.length === 0) {
+          const tabs = this.data.jobsByTab as JobItem[][]
+          tabs[2] = []
+          const loaded = this.data.hasLoadedTab as boolean[]
+          loaded[2] = true
+          this.setData({ jobsByTab: tabs, hasLoadedTab: loaded, jobs: [], filteredJobs: [] })
+          return
         }
+
+        // 从 remote_jobs collection 查询所有收藏的职位
+        const results = await Promise.all(
+          jobIds.map(async (id) => {
+            try {
+              const res = await db.collection('remote_jobs').doc(id).get()
+              return { id, data: res.data }
+            } catch {
+              return null
+            }
+          })
+        )
 
         const jobByKey = new Map<string, any>()
-        const fetchGroup = async (type: string, ids: string[]) => {
-          const collectionName = typeCollectionMap[type]
-          if (!collectionName) return
-
-          const results = await Promise.all(
-            ids.map(async (id) => {
-              try {
-                const res = await db.collection(collectionName).doc(id).get()
-                return { id, collectionName, data: res.data }
-              } catch {
-                return null
-              }
-            })
-          )
-
-          for (const r of results) {
-            if (!r?.data) continue
-            jobByKey.set(`${type}:${r.id}`, { ...r.data, _id: r.id, sourceCollection: r.collectionName })
-          }
+        for (const r of results) {
+          if (!r?.data) continue
+          jobByKey.set(r.id, { ...r.data, _id: r.id })
         }
-
-        await Promise.all(Array.from(groups.entries()).map(([type, ids]) => fetchGroup(type, ids)))
 
         const merged: ResolvedSavedJob[] = []
         for (const row of collected) {
-          const type = row?.type
           const _id = row?.jobId // 从 collected_jobs 集合读取的 jobId 字段（实际是岗位的 _id）
-          if (!type || !_id) continue
+          if (!_id) continue
 
-          const key = `${type}:${_id}`
-          const job = jobByKey.get(key)
+          const job = jobByKey.get(_id)
           if (!job) continue
 
           merged.push({
             ...(job as any),
             _id,
-            sourceCollection: job.sourceCollection,
+            sourceCollection: 'remote_jobs',
           })
         }
 
@@ -766,137 +735,8 @@ Page({
       })
     },
 
-    closeFilter() {
-      const currentState = this.getCurrentTabState()
-      if (!currentState.showFilter) return
-      this.updateCurrentTabState({ showFilter: false })
-    },
-
-    toggleFilter() {
-      const currentState = this.getCurrentTabState()
-      this.updateCurrentTabState({ showFilter: !currentState.showFilter })
-    },
-
     stopPropagation() {},
 
-    async onSelectFilter(e: WechatMiniprogram.TouchEvent) {
-      const value = e.currentTarget.dataset.value as FilterType
-      const currentState = this.getCurrentTabState()
-      if (value === currentState.currentFilter) {
-        this.updateCurrentTabState({ showFilter: false })
-        return
-      }
-
-      // 切换 region 时清空筛选条件
-      this.updateCurrentTabState({
-        currentFilter: value,
-        showFilter: false,
-        scrollTop: 0,
-        searchKeyword: '',
-        isSearching: false,
-        drawerFilter: { ...DEFAULT_DRAWER_FILTER },
-      })
-
-      // refresh labels after changing filter
-      this.syncLanguageFromApp()
-
-      // Check cache first
-      const cache = (this.data as any).regionCache as Record<FilterType, JobItem[]>
-      const cachedJobs = cache[value]
-
-      // If currently on tab 0, show cached data immediately (if available), then load
-      if (this.data.currentTab === 0) {
-        if (cachedJobs && cachedJobs.length > 0) {
-          // Show cached data immediately
-          const tabs = this.data.jobsByTab as JobItem[][]
-          tabs[0] = cachedJobs
-          this.setData({ 
-            jobsByTab: tabs, 
-            jobs: cachedJobs, 
-            filteredJobs: cachedJobs,
-            loading: false,
-          })
-        } else {
-          // No cache, show loading state
-          this.setData({ 
-            jobs: [], 
-            filteredJobs: [],
-            loading: true,
-          })
-        }
-
-        // Load fresh data (will update cache)
-        await this.loadJobsForTab(0, true)
-        const updatedTabs = this.data.jobsByTab as JobItem[][]
-        this.setData({ 
-          jobs: updatedTabs[0] || [], 
-          filteredJobs: updatedTabs[0] || [],
-          loading: false,
-        })
-      } else {
-        const tabs = this.data.jobsByTab as JobItem[][]
-        tabs[0] = cachedJobs || []
-        const loaded = this.data.hasLoadedTab as boolean[]
-        loaded[0] = !!cachedJobs
-        this.setData({ jobsByTab: tabs, hasLoadedTab: loaded })
-      }
-    },
-
-    filterJobs() {
-      const currentState = this.getCurrentTabState()
-      if (currentState.isSearching) return
-
-      const jobs = this.data.jobs
-      const keyword = (currentState.searchKeyword || '').toLowerCase()
-
-      if (!keyword) {
-        this.setData({ filteredJobs: jobs })
-        return
-      }
-
-      const filtered = jobs.filter((job) => {
-        const title = (job.title || '').toLowerCase()
-        return title.indexOf(keyword) > -1
-      })
-
-      this.setData({ filteredJobs: filtered }, () => {
-        // this.checkScrollability()
-      })
-    },
-
-    async loadJobs(reset = false) {
-      if (this.data.loading) return
-      this.setData({ loading: true })
-      this.updateCurrentTabState({ isSearching: false })
-
-      try {
-        const db = wx.cloud.database()
-        const { pageSize } = this.data
-        const currentState = this.getCurrentTabState()
-        const collectionName = typeCollectionMap[currentState.currentFilter] || 'domestic_remote_jobs'
-        const skip = reset ? 0 : this.data.jobs.length
-
-        const res = await db
-          .collection(collectionName)
-          .orderBy('createdAt', 'desc')
-          .skip(skip)
-          .limit(pageSize)
-          .get()
-
-        const newJobs = mapJobs(res.data || []) as JobItem[]
-        const allJobs = reset ? newJobs : [...this.data.jobs, ...newJobs]
-
-          this.setData({
-          jobs: allJobs,
-          filteredJobs: allJobs,
-          hasMore: newJobs.length === pageSize,
-        })
-      } catch (e) {
-        wx.showToast({ title: '加载失败', icon: 'none' })
-      } finally {
-        this.setData({ loading: false })
-      }
-    },
 
     maybeLoadMore() {
       const currentState = this.getCurrentTabState()
@@ -964,20 +804,6 @@ Page({
         }
       }
 
-      const cache = (this.data as any).regionCache as Record<FilterType, JobItem[]>
-      for (const region in cache) {
-        const jobs = cache[region as FilterType]
-        if (jobs) {
-          const updatedJobs = jobs.map(job => {
-            if (job._id === _id) {
-              return { ...job, isSaved }
-            }
-            return job
-          })
-          cache[region as FilterType] = updatedJobs
-        }
-      }
-
       const currentTab = this.data.currentTab
       let filteredJobs = this.data.filteredJobs || []
       if (currentTab !== 2) {
@@ -996,7 +822,6 @@ Page({
 
       this.setData({
         jobsByTab: tabs,
-        regionCache: cache,
         filteredJobs,
       })
     },
@@ -1067,12 +892,6 @@ Page({
       }
     },
 
-    // applyDrawerFilters 方法已废弃，筛选现在通过数据库查询实现
-    // 保留此方法以防其他地方调用，但实际不会执行任何操作
-    applyDrawerFilters() {
-      // 筛选现在通过数据库查询实现，此方法不再需要
-      // 如果还有地方调用，应该改为直接调用 loadJobsForTab 或 performCollectionSearch
-    },
 
     onJobTap(e: any) {
       const job = e?.detail?.job || e?.detail

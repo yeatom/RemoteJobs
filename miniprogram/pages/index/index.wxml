@@ -25,26 +25,11 @@
           />
 
           <view class="search-actions">
-            <view class="search-pill" bindtap="toggleFilter">
-              <text class="search-pill-text">{{tabState[0].displayCurrentFilter}}</text>
-              <view class="search-pill-triangle {{tabState[0].showFilter ? 'search-pill-triangle-up' : ''}}" />
-            </view>
-
             <view class="search-pill" bindtap="toggleDrawer">
               <text class="search-pill-text">{{ui.filterLabel}}</text>
               <view class="search-pill-triangle" />
             </view>
           </view>
-        </view>
-
-        <!-- Filter dropdown for tab 0 -->
-        <view wx:if="{{tabState[0].showFilter}}" class="filter-mask filter-mask-open" bindtap="closeFilter"></view>
-        <view wx:if="{{tabState[0].showFilter}}" class="filter-dropdown" catchtap="stopPropagation">
-          <block wx:for="{{filterOptions}}" wx:key="*this" wx:for-index="idx">
-            <view class="filter-option" data-value="{{item}}" bindtap="onSelectFilter">
-              <text>{{tabState[0].displayFilterOptions[idx]}}</text>
-            </view>
-          </block>
         </view>
 
         <view class="job-list-wrapper">
@@ -89,26 +74,11 @@
           />
 
           <view class="search-actions">
-            <view class="search-pill" bindtap="toggleFilter">
-              <text class="search-pill-text">{{tabState[1].displayCurrentFilter}}</text>
-              <view class="search-pill-triangle {{tabState[1].showFilter ? 'search-pill-triangle-up' : ''}}" />
-            </view>
-
             <view class="search-pill" bindtap="toggleDrawer">
               <text class="search-pill-text">{{ui.filterLabel}}</text>
               <view class="search-pill-triangle" />
             </view>
           </view>
-        </view>
-
-        <!-- Filter dropdown for tab 1 -->
-        <view wx:if="{{tabState[1].showFilter}}" class="filter-mask filter-mask-open" bindtap="closeFilter"></view>
-        <view wx:if="{{tabState[1].showFilter}}" class="filter-dropdown" catchtap="stopPropagation">
-          <block wx:for="{{filterOptions}}" wx:key="*this" wx:for-index="idx">
-            <view class="filter-option" data-value="{{item}}" bindtap="onSelectFilter">
-              <text>{{tabState[1].displayFilterOptions[idx]}}</text>
-            </view>
-          </block>
         </view>
 
         <view class="job-list-wrapper featured-tab-wrapper">
@@ -157,26 +127,11 @@
           />
 
           <view class="search-actions">
-            <view class="search-pill" bindtap="toggleFilter">
-              <text class="search-pill-text">{{tabState[2].displayCurrentFilter}}</text>
-              <view class="search-pill-triangle {{tabState[2].showFilter ? 'search-pill-triangle-up' : ''}}" />
-            </view>
-
             <view class="search-pill" bindtap="toggleDrawer">
               <text class="search-pill-text">{{ui.filterLabel}}</text>
               <view class="search-pill-triangle" />
             </view>
           </view>
-        </view>
-
-        <!-- Filter dropdown for tab 2 -->
-        <view wx:if="{{tabState[2].showFilter}}" class="filter-mask filter-mask-open" bindtap="closeFilter"></view>
-        <view wx:if="{{tabState[2].showFilter}}" class="filter-dropdown" catchtap="stopPropagation">
-          <block wx:for="{{filterOptions}}" wx:key="*this" wx:for-index="idx">
-            <view class="filter-option" data-value="{{item}}" bindtap="onSelectFilter">
-              <text>{{tabState[2].displayFilterOptions[idx]}}</text>
-            </view>
-          </block>
         </view>
 
         <view class="job-list-wrapper">
@@ -216,7 +171,6 @@
     wx:if="{{currentTab === 0}}"
     show="{{tabState[0].showDrawer}}"
     value="{{tabState[0].drawerFilter}}"
-    region="{{tabState[0].currentFilter}}"
     bind:close="toggleDrawer"
     bind:confirm="onDrawerConfirm"
     bind:reset="onDrawerReset"
@@ -226,7 +180,6 @@
     wx:if="{{currentTab === 1}}"
     show="{{tabState[1].showDrawer}}"
     value="{{tabState[1].drawerFilter}}"
-    region="{{tabState[1].currentFilter}}"
     bind:close="toggleDrawer"
     bind:confirm="onDrawerConfirm"
     bind:reset="onDrawerReset"
@@ -236,7 +189,6 @@
     wx:if="{{currentTab === 2}}"
     show="{{tabState[2].showDrawer}}"
     value="{{tabState[2].drawerFilter}}"
-    region="{{tabState[2].currentFilter}}"
     bind:close="toggleDrawer"
     bind:confirm="onDrawerConfirm"
     bind:reset="onDrawerReset"

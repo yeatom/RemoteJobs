@@ -29,27 +29,7 @@
   transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.detail-header {
-  padding: 40rpx 32rpx 20rpx;
-  border-bottom: 1rpx solid #eee;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  position: relative;
-}
-
-.back-button {
-  width: 16rpx;
-  height: 16rpx;
-  border-left: 5rpx solid #111827;
-  border-bottom: 5rpx solid #111827;
-  transform: rotate(45deg);
-  margin-left: 40rpx; /* align icon with header left padding */
-}
-
-.back-button::after {
-  content: '';
-}
+/* 头部样式已提取到 app.wxss */
 
 .close-button {
   width: 60rpx;
@@ -212,14 +192,4 @@
   align-items: center;
 }
 
-.back-hit {
-  position: absolute;
-  left: 0;
-  top: 0;
-  height: 100%;
-  /* cover the left padding area + a bit extra but stays inside header */
-  width: 120rpx;
-  display: flex;
-  align-items: center;
-  justify-content: flex-start;
-}
+/* back-hit 样式已提取到 app.wxss */

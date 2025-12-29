@@ -4,83 +4,44 @@ cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV })
 
 const db = cloud.database()
 
-const typeCollectionMap = {
-  国内: 'domestic_remote_jobs',
-  国外: 'abroad_remote_jobs',
-  web3: 'web3_remote_jobs',
-}
-
 exports.main = async (event, context) => {
-  const { collectionName, pageSize = 15, skip = 0, collectionNames, source_name } = event || {}
+  const { pageSize = 15, skip = 0, source_name, types } = event || {}
 
   const wxContext = cloud.getWXContext()
   const openid = wxContext.OPENID
 
   try {
-    let jobs = []
-
     // 构建 where 条件
     const whereCondition = {}
-    if (source_name && source_name !== '全部') {
-      whereCondition.source_name = source_name
+    
+    // 区域筛选（支持多选）
+    if (Array.isArray(types) && types.length > 0) {
+      whereCondition.type = db.command.in(types)
+    }
+    
+    // 来源筛选（支持多选）
+    if (Array.isArray(source_name) && source_name.length > 0) {
+      if (source_name.length === 1) {
+        whereCondition.source_name = source_name[0]
+      } else {
+        whereCondition.source_name = db.command.in(source_name)
+      }
     }
 
-    if (Array.isArray(collectionNames) && collectionNames.length > 0) {
-      const allJobs = []
-      
-      for (const collName of collectionNames) {
-        try {
-          let query = db.collection(collName)
-          
-          // 应用筛选条件
-          if (Object.keys(whereCondition).length > 0) {
-            query = query.where(whereCondition)
-          }
-          
-          const res = await query
-            .orderBy('createdAt', 'desc')
-            .skip(0)
-            .limit(pageSize)
-            .get()
-          
-          const mapped = (res.data || []).map(job => ({
-            ...job,
-            sourceCollection: collName,
-          }))
-          allJobs.push(...mapped)
-        } catch (err) {
-          // ignore
-        }
-      }
-      
-      allJobs.sort((a, b) => {
-        const aTime = new Date(a.createdAt || 0).getTime()
-        const bTime = new Date(b.createdAt || 0).getTime()
-        return bTime - aTime
-      })
-      
-      jobs = allJobs.slice(0, pageSize)
-    } else if (collectionName) {
-      let query = db.collection(collectionName)
-      
-      // 应用筛选条件
-      if (Object.keys(whereCondition).length > 0) {
-        query = query.where(whereCondition)
-      }
-      
-      const res = await query
-        .orderBy('createdAt', 'desc')
-        .skip(skip)
-        .limit(pageSize)
-        .get()
-      
-      jobs = res.data || []
-    } else {
-      return {
-        ok: false,
-        error: 'missing collectionName or collectionNames',
-      }
+    let query = db.collection('remote_jobs')
+    
+    // 应用筛选条件
+    if (Object.keys(whereCondition).length > 0) {
+      query = query.where(whereCondition)
     }
+    
+    const res = await query
+      .orderBy('createdAt', 'desc')
+      .skip(skip)
+      .limit(pageSize)
+      .get()
+    
+    let jobs = res.data || []
 
     if (jobs.length > 0 && openid) {
       try {
@@ -120,9 +81,16 @@ exports.main = async (event, context) => {
       jobs,
     }
   } catch (err) {
+    console.error('getJobList error:', {
+      error: err,
+      message: err.message,
+      stack: err.stack,
+      event: event,
+    })
     return {
       ok: false,
       error: err.message || 'unknown error',
+      details: err.toString(),
     }
   }
 }

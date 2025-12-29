@@ -1,12 +1,9 @@
 // miniprogram/components/drawer/index.ts
 
-// NOTE: Some IDE toolchains warn about string literals containing both ASCII and non-ASCII.
-// It's harmless (these are just data labels), so we silence it by not using literal unions here.
-
 import { normalizeLanguage, t } from '../../utils/i18n'
 const swipeToClose = require('../../behaviors/swipe-to-close')
 
-type DrawerValue = { salary: string; experience: string; source_name?: string }
+type DrawerValue = { salary: string; experience: string; source_name?: string[]; region?: string }
 
 // loosen key types to avoid mixed ASCII/non-ASCII literal warnings from tooling
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
@@ -16,6 +13,10 @@ type ExpKey = string
 
 const SALARY_KEYS: SalaryKey[] = ['全部', '3K以下', '3-5K', '5-10K', '10-20K', '20-50K', '50K以上']
 const EXP_KEYS: ExpKey[] = ['全部', '在校生', '应届生', '1年以内', '1-3年', '3-5年', '5-10年', '10年以上']
+const REGION_KEYS: string[] = ['全部', '国内', '国外', 'web3']
+
+// 所有来源选项（不再根据区域动态变化）
+const ALL_SOURCE_OPTIONS: string[] = ['全部', 'BOSS直聘', '智联招聘', '电鸭', '拉勾招聘']
 
 const EN_SALARY: Record<string, string> = {
   '全部': 'All',
@@ -45,31 +46,47 @@ Component({
     show: { type: Boolean, value: false },
     value: {
       type: Object,
-      value: { salary: '全部', experience: '全部', source_name: '全部' },
-    },
-    region: {
-      type: String,
-      value: '国内', // 用于判断显示哪些来源选项
+      value: { salary: '全部', experience: '全部', source_name: [], region: '全部' },
     },
   },
 
   data: {
-    tempValue: { salary: '全部', experience: '全部', source_name: '全部' } as DrawerValue,
+    tempValue: { salary: '全部', experience: '全部', source_name: [], region: '全部' } as DrawerValue,
 
     // internal keys (Chinese)
     salaryOptions: SALARY_KEYS,
     experienceOptions: EXP_KEYS,
-    sourceOptions: [] as string[], // 根据region动态设置
+    regionOptions: REGION_KEYS,
+    sourceOptions: ALL_SOURCE_OPTIONS, // 固定显示所有来源选项
 
     // display labels
     displaySalaryOptions: [] as string[],
     displayExperienceOptions: [] as string[],
+    displayRegionOptions: [] as string[],
     displaySourceOptions: [] as string[],
+
+    // 导航tab相关
+    navTabs: [
+      { key: 'salary', label: '薪资' },
+      { key: 'experience', label: '经验' },
+      { key: 'region', label: '工作类型' },
+      { key: 'source', label: '招聘软件' },
+    ] as Array<{ key: string; label: string }>,
+
+    // 滚动定位
+    scrollIntoView: '',
+    
+    // 当前选中的导航tab索引
+    currentNavTab: 0,
+    
+    // 是否正在手动切换tab（防止滚动监听覆盖手动选择）
+    isManualTabSwitch: false,
 
     ui: {
       salaryTitle: '薪资',
       experienceTitle: '经验',
-      sourceTitle: '来源',
+      regionTitle: '工作类型',
+      sourceTitle: '招聘软件',
       clear: '清除',
       confirm: '确定',
     } as Record<string, string>,
@@ -79,15 +96,34 @@ Component({
     show(open) {
       if (open) {
         this.syncLanguageFromApp()
-        this.updateSourceOptions()
 
-        const v = (this.properties && (this.properties.value as any)) || { salary: '全部', experience: '全部', source_name: '全部' }
+        const v = (this.properties && (this.properties.value as any)) || { salary: '全部', experience: '全部', source_name: [], region: '全部' }
+        const region = v.region || '全部'
+        const source_name = Array.isArray(v.source_name) ? v.source_name : (v.source_name === '全部' ? [] : (v.source_name ? [v.source_name] : []))
+        
+        // 使用固定的所有来源选项
+        const displaySourceOptions = ALL_SOURCE_OPTIONS.map((k) => k)
+        
+        // 计算每个来源的选中状态
+        const sourceSelected: Record<string, boolean> = {}
+        for (const sourceKey of ALL_SOURCE_OPTIONS) {
+          if (sourceKey === '全部') {
+            sourceSelected[sourceKey] = source_name.length === 0
+          } else {
+            sourceSelected[sourceKey] = source_name.indexOf(sourceKey) > -1
+          }
+        }
+        
         this.setData({
           tempValue: {
             salary: v.salary || '全部',
             experience: v.experience || '全部',
-            source_name: v.source_name || '全部',
+            source_name: source_name,
+            region: region,
           },
+          sourceOptions: ALL_SOURCE_OPTIONS,
+          displaySourceOptions: displaySourceOptions,
+          sourceSelected: sourceSelected,
         })
         
         // Reset drawer position for swipe-to-close
@@ -117,18 +153,35 @@ Component({
     },
     value(v) {
       if (this.properties && this.properties.show) {
-        const next = (v as any) || { salary: '全部', experience: '全部', source_name: '全部' }
+        const next = (v as any) || { salary: '全部', experience: '全部', source_name: [], region: '全部' }
+        const region = next.region || '全部'
+        const source_name = Array.isArray(next.source_name) ? next.source_name : (next.source_name === '全部' ? [] : (next.source_name ? [next.source_name] : []))
+        
+        // 使用固定的所有来源选项
+        const displaySourceOptions = ALL_SOURCE_OPTIONS.map((k) => k)
+        
+        // 计算每个来源的选中状态
+        const sourceSelected: Record<string, boolean> = {}
+        for (const sourceKey of ALL_SOURCE_OPTIONS) {
+          if (sourceKey === '全部') {
+            sourceSelected[sourceKey] = source_name.length === 0
+          } else {
+            sourceSelected[sourceKey] = source_name.indexOf(sourceKey) > -1
+          }
+        }
+        
         this.setData({
           tempValue: {
             salary: next.salary || '全部',
             experience: next.experience || '全部',
-            source_name: next.source_name || '全部',
+            source_name: source_name,
+            region: region,
           },
+          sourceOptions: ALL_SOURCE_OPTIONS,
+          displaySourceOptions: displaySourceOptions,
+          sourceSelected: sourceSelected,
         })
       }
-    },
-    region() {
-      this.updateSourceOptions()
     },
   },
 
@@ -155,19 +208,101 @@ Component({
   },
 
   methods: {
-    updateSourceOptions() {
-      const region = this.properties.region || '国内'
-      let sourceOptions: string[] = []
+    onNavTabTap(e: any) {
+      const key = e.currentTarget.dataset.key
+      const index = e.currentTarget.dataset.index
+      if (!key || index === undefined) return
       
-      if (region === '国内') {
-        sourceOptions = ['全部', 'BOSS直聘', '智联招聘', '电鸭', '拉勾招聘']
-      } else {
-        // 国外和web3暂时不显示来源筛选
-        sourceOptions = []
+      // 如果点击的是当前已选中的tab，不执行任何操作
+      if (this.data.currentNavTab === index) {
+        return
       }
       
-      this.setData({ sourceOptions })
-      this.syncLanguageFromApp()
+      // 如果正在手动切换，忽略新的点击（防止快速点击导致状态混乱）
+      if (this.data.isManualTabSwitch) {
+        return
+      }
+      
+      // 立即更新状态，避免闪烁
+      // 先设置手动切换标志和当前tab，防止滚动监听覆盖
+      this.setData({
+        isManualTabSwitch: true,
+        currentNavTab: index,
+      })
+      
+      // 然后设置滚动定位
+      this.setData({
+        scrollIntoView: `section-${key}`,
+      })
+      
+      // 延迟清除，确保滚动完成，并允许滚动监听重新工作
+      setTimeout(() => {
+        this.setData({
+          scrollIntoView: '',
+          isManualTabSwitch: false,
+        })
+      }, 500)
+    },
+
+    onScrollViewScroll(_e: any) {
+      // 如果正在手动切换tab，不更新（防止覆盖手动选择）
+      if (this.data.isManualTabSwitch) {
+        return
+      }
+      
+      // 防抖处理，避免频繁更新
+      if ((this as any)._scrollTimer) {
+        clearTimeout((this as any)._scrollTimer)
+      }
+      
+      (this as any)._scrollTimer = setTimeout(() => {
+        // 再次检查标志，可能在防抖期间发生了变化
+        if (this.data.isManualTabSwitch) {
+          return
+        }
+        
+        // 根据滚动位置更新当前选中的导航tab
+        const query = wx.createSelectorQuery().in(this)
+        
+        // 查询各个section的位置
+        query.select('#section-salary').boundingClientRect()
+        query.select('#section-experience').boundingClientRect()
+        query.select('#section-region').boundingClientRect()
+        query.select('#section-source').boundingClientRect()
+        query.exec((res: any) => {
+          if (!res || res.length < 4) return
+          
+          // 再次检查标志，可能在查询期间发生了变化
+          if (this.data.isManualTabSwitch) {
+            return
+          }
+          
+          const sections = [
+            { index: 0, rect: res[0] },
+            { index: 1, rect: res[1] },
+            { index: 2, rect: res[2] },
+            { index: 3, rect: res[3] },
+          ]
+          
+          // 找到当前最接近顶部的section（考虑28rpx的padding）
+          const threshold = 28
+          let currentIndex = 0
+          
+          for (let i = sections.length - 1; i >= 0; i--) {
+            if (sections[i].rect && sections[i].rect.top <= threshold) {
+              currentIndex = sections[i].index
+              break
+            }
+          }
+          
+          // 更新当前选中的导航tab
+          if (this.data.currentNavTab !== currentIndex) {
+            this.setData({
+              currentNavTab: currentIndex,
+            })
+          }
+        })
+      }, 100)
     },
     
     syncLanguageFromApp() {
@@ -176,16 +311,25 @@ Component({
 
       const displaySalaryOptions = (this.data.salaryOptions as SalaryKey[]).map((k) => (lang === 'English' ? EN_SALARY[k] : k))
       const displayExperienceOptions = (this.data.experienceOptions as ExpKey[]).map((k) => (lang === 'English' ? EN_EXP[k] : k))
+      const displayRegionOptions = (this.data.regionOptions || []).map((k) => {
+        if (lang === 'English') {
+          const map: Record<string, string> = { '全部': 'All', '国内': 'Domestic', '国外': 'Abroad', 'web3': 'Web3' }
+          return map[k] || k
+        }
+        return k
+      })
       const displaySourceOptions = (this.data.sourceOptions || []).map((k) => k) // 来源暂时只有中文
 
       this.setData({
         displaySalaryOptions,
         displayExperienceOptions,
+        displayRegionOptions,
         displaySourceOptions,
         ui: {
           salaryTitle: t('drawer.salary', lang),
           experienceTitle: t('drawer.experience', lang),
-          sourceTitle: '来源',
+          regionTitle: '工作类型',
+          sourceTitle: '招聘软件',
           clear: t('drawer.clear', lang),
           confirm: t('drawer.confirm', lang),
         },
@@ -209,13 +353,78 @@ Component({
     },
 
     onPickSource(e: any) {
+      const value = (e && e.currentTarget && e.currentTarget.dataset && e.currentTarget.dataset.value) as string
+      if (!value) return
+      
+      let currentSource = this.data.tempValue.source_name || []
+      // 确保 currentSource 是数组
+      if (!Array.isArray(currentSource)) {
+        currentSource = currentSource === '全部' ? [] : (currentSource ? [currentSource] : [])
+      }
+      
+      let newSource: string[]
+      if (value === '全部') {
+        // 点击"全部"：切换到"全部"（清空所有选择）
+        newSource = []
+      } else {
+        // 点击具体来源
+        const index = currentSource.indexOf(value)
+        if (index > -1) {
+          // 已选中，取消选中
+          newSource = currentSource.filter(s => s !== value)
+          // 如果取消后为空，表示回到"全部"
+          if (newSource.length === 0) {
+            newSource = []
+          }
+        } else {
+          // 未选中，添加选中
+          // 如果当前是空数组（"全部"），直接设置为 [value]
+          // 否则添加到现有数组
+          if (currentSource.length === 0) {
+            newSource = [value]
+          } else {
+            newSource = [...currentSource, value]
+          }
+        }
+      }
+      
+      // 计算每个来源的选中状态
+      const sourceSelected: Record<string, boolean> = {}
+      for (const sourceKey of this.data.sourceOptions) {
+        if (sourceKey === '全部') {
+          sourceSelected[sourceKey] = newSource.length === 0
+        } else {
+          sourceSelected[sourceKey] = newSource.indexOf(sourceKey) > -1
+        }
+      }
+      
+      this.setData({ 
+        'tempValue.source_name': newSource,
+        sourceSelected: sourceSelected,
+      })
+    },
+
+    onPickRegion(e: any) {
       const value = (e && e.currentTarget && e.currentTarget.dataset && e.currentTarget.dataset.value) || '全部'
-      this.setData({ tempValue: { ...this.data.tempValue, source_name: value } })
+      const newRegion = value === '全部' ? '全部' : value
+      
+      // 更新区域
+      this.setData({ tempValue: { ...this.data.tempValue, region: newRegion } })
     },
 
     onReset() {
-      const value = { salary: '全部', experience: '全部', source_name: '全部' }
-      this.setData({ tempValue: value })
+      const value = { salary: '全部', experience: '全部', source_name: [], region: '全部' }
+      
+      // 重置来源选中状态
+      const sourceSelected: Record<string, boolean> = {}
+      for (const sourceKey of ALL_SOURCE_OPTIONS) {
+        sourceSelected[sourceKey] = sourceKey === '全部'
+      }
+      
+      this.setData({ 
+        tempValue: value,
+        sourceSelected: sourceSelected,
+      })
       this.triggerEvent('reset', { value })
     },
 

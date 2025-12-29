@@ -11,64 +11,122 @@
   bindtouchend="onTouchEnd"
   catchtap="stopPropagation"
 >
-  <scroll-view 
-    class="drawer-body" 
-    scroll-y="{{!isSwiping}}"
-    enhanced="true" 
-    show-scrollbar="{{false}}"
-    bindscroll="onScrollViewScroll"
-  >
-    <view class="drawer-section">
-      <view class="drawer-section-title">{{ui.salaryTitle}}</view>
-      <view class="drawer-grid">
-        <view
-          wx:for="{{salaryOptions}}"
-          wx:key="*this"
-          wx:for-index="idx"
-          class="drawer-chip {{tempValue.salary === item ? 'drawer-chip-active' : ''}}"
-          data-value="{{item}}"
-          bindtap="onPickSalary"
-        >
-          <text class="drawer-chip-text">{{displaySalaryOptions[idx]}}</text>
-        </view>
+  <!-- 头部 -->
+  <view class="detail-header">
+    <view class="back-hit" bindtap="onClose">
+      <view class="back-button"></view>
+    </view>
+  </view>
+
+  <view class="drawer-main">
+    <!-- 左侧导航tab -->
+    <view class="drawer-nav">
+      <view class="drawer-nav-slider drawer-nav-slider-{{currentNavTab}}"></view>
+      <view
+        wx:for="{{navTabs}}"
+        wx:key="key"
+        wx:for-index="idx"
+        class="drawer-nav-item {{currentNavTab === idx ? 'drawer-nav-item-active' : ''}}"
+        data-key="{{item.key}}"
+        data-index="{{idx}}"
+        bindtap="onNavTabTap"
+      >
+        <text class="drawer-nav-text">{{item.label}}</text>
       </view>
     </view>
 
-    <view class="drawer-section">
-      <view class="drawer-section-title">{{ui.experienceTitle}}</view>
-      <view class="drawer-grid">
-        <view
-          wx:for="{{experienceOptions}}"
-          wx:key="*this"
-          wx:for-index="idx"
-          class="drawer-chip {{tempValue.experience === item ? 'drawer-chip-active' : ''}}"
-          data-value="{{item}}"
-          bindtap="onPickExperience"
-        >
-          <text class="drawer-chip-text">{{displayExperienceOptions[idx]}}</text>
+    <view class="drawer-content">
+    <scroll-view 
+      class="drawer-body" 
+      scroll-y="{{!isSwiping}}"
+      enhanced="true" 
+      show-scrollbar="{{false}}"
+      scroll-into-view="{{scrollIntoView}}"
+      scroll-with-animation="{{true}}"
+      bindscroll="onScrollViewScroll"
+    >
+      <view class="drawer-section drawer-section-salary" id="section-salary">
+        <view class="drawer-section-title">{{ui.salaryTitle}}</view>
+        <view class="drawer-grid">
+          <view
+            wx:for="{{salaryOptions}}"
+            wx:key="*this"
+            wx:for-index="idx"
+            class="drawer-chip {{tempValue.salary === item ? 'drawer-chip-active' : ''}}"
+            data-value="{{item}}"
+            bindtap="onPickSalary"
+          >
+            <text class="drawer-chip-text">{{displaySalaryOptions[idx]}}</text>
+          </view>
         </view>
       </view>
-    </view>
 
-    <view class="drawer-section" wx:if="{{sourceOptions && sourceOptions.length > 0}}">
-      <view class="drawer-section-title">{{ui.sourceTitle}}</view>
-      <view class="drawer-grid">
-        <view
-          wx:for="{{sourceOptions}}"
-          wx:key="*this"
-          wx:for-index="idx"
-          class="drawer-chip {{tempValue.source_name === item ? 'drawer-chip-active' : ''}}"
-          data-value="{{item}}"
-          bindtap="onPickSource"
-        >
-          <text class="drawer-chip-text">{{displaySourceOptions[idx]}}</text>
+      <view class="drawer-section drawer-section-experience" id="section-experience">
+        <view class="drawer-section-title">{{ui.experienceTitle}}</view>
+        <view class="drawer-grid">
+          <view
+            wx:for="{{experienceOptions}}"
+            wx:key="*this"
+            wx:for-index="idx"
+            class="drawer-chip {{tempValue.experience === item ? 'drawer-chip-active' : ''}}"
+            data-value="{{item}}"
+            bindtap="onPickExperience"
+          >
+            <text class="drawer-chip-text">{{displayExperienceOptions[idx]}}</text>
+          </view>
         </view>
       </view>
-    </view>
-  </scroll-view>
 
-  <view class="drawer-footer">
-    <view class="drawer-btn drawer-btn-ghost" bindtap="onReset">{{ui.clear}}</view>
-    <view class="drawer-btn drawer-btn-primary" bindtap="onConfirm">{{ui.confirm}}</view>
+      <view class="drawer-section drawer-section-region" id="section-region">
+        <view class="drawer-section-title">{{ui.regionTitle}}</view>
+        <view class="drawer-grid">
+          <view
+            wx:for="{{regionOptions}}"
+            wx:key="*this"
+            wx:for-index="idx"
+            class="drawer-chip {{tempValue.region === item ? 'drawer-chip-active' : ''}}"
+            data-value="{{item}}"
+            bindtap="onPickRegion"
+          >
+            <text class="drawer-chip-text">{{displayRegionOptions[idx]}}</text>
+          </view>
+        </view>
+      </view>
+
+      <view class="drawer-section drawer-section-source" id="section-source" wx:if="{{sourceOptions && sourceOptions.length > 0}}">
+        <view class="drawer-section-title">{{ui.sourceTitle}}</view>
+        <!-- 全部按钮单独一行 -->
+        <view class="drawer-source-all">
+          <view
+            class="drawer-chip {{sourceSelected['全部'] ? 'drawer-chip-active' : ''}}"
+            data-value="全部"
+            bindtap="onPickSource"
+          >
+            <text class="drawer-chip-text">全部</text>
+          </view>
+        </view>
+        <!-- 其他选项在grid中 -->
+        <view class="drawer-grid drawer-grid-source">
+          <view
+            wx:for="{{sourceOptions}}"
+            wx:key="*this"
+            wx:if="{{item !== '全部'}}"
+            class="drawer-chip {{sourceSelected[item] ? 'drawer-chip-active' : ''}}"
+            data-value="{{item}}"
+            bindtap="onPickSource"
+          >
+            <text class="drawer-chip-text">{{item}}</text>
+          </view>
+        </view>
+      </view>
+      <!-- 底部间距 -->
+      <view class="drawer-bottom-spacer"></view>
+    </scroll-view>
+
+      <view class="drawer-footer">
+        <view class="drawer-btn drawer-btn-ghost" bindtap="onReset">{{ui.clear}}</view>
+        <view class="drawer-btn drawer-btn-primary" bindtap="onConfirm">{{ui.confirm}}</view>
+      </view>
+    </view>
   </view>
 </view>

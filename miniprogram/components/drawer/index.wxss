@@ -21,19 +21,125 @@
   position: fixed;
   top: 0;
   right: 0;
-  left: auto;
-  width: 73%;
+  width: 100%;
   height: 100%;
   background-color: #ffffff;
-  z-index: 2000;
-  transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-  box-shadow: -2rpx 0 16rpx rgba(0, 0, 0, 0.08);
+  z-index: 3000;
+  box-shadow: -2rpx 0 10rpx rgba(0, 0, 0, 0.1);
   display: flex;
   flex-direction: column;
   /* Enable hardware acceleration */
   will-change: transform;
   transform: translate3d(100%, 0, 0); /* Start off-screen to the right */
   -webkit-transform: translate3d(100%, 0, 0);
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.drawer-menu.drawer-swiping {
+  transition: none !important; /* Disable transition during swipe for smooth dragging */
+}
+
+.drawer-menu:not(.drawer-swiping) {
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* 头部样式已提取到 app.wxss，drawer-main 需要 flex-shrink: 0 */
+.detail-header {
+  flex-shrink: 0;
+}
+
+.drawer-main {
+  flex: 1;
+  display: flex;
+  flex-direction: row;
+  height: 0;
+  overflow: hidden;
+}
+
+.drawer-nav {
+  width: 176rpx;
+  background-color: #ffffff;
+  border-right: 1rpx solid #eef2f7;
+  display: flex;
+  flex-direction: column;
+  padding: 16rpx 8rpx;
+  box-sizing: border-box;
+  position: relative;
+  gap: 8rpx;
+  align-items: flex-start;
+}
+
+.drawer-nav-slider {
+  position: absolute;
+  left: 8rpx;
+  top: 16rpx;
+  width: calc(100% - 16rpx);
+  height: 67rpx;
+  background: #e5f0ff;
+  border-radius: 8rpx;
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  z-index: 0;
+  will-change: transform;
+  transform: translate3d(0, 0, 0);
+  -webkit-transform: translate3d(0, 0, 0);
+}
+
+.drawer-nav-slider-0 {
+  transform: translate3d(0, 0, 0);
+}
+
+.drawer-nav-slider-1 {
+  transform: translate3d(0, calc(67rpx + 8rpx), 0);
+}
+
+.drawer-nav-slider-2 {
+  transform: translate3d(0, calc(134rpx + 16rpx), 0);
+}
+
+.drawer-nav-slider-3 {
+  transform: translate3d(0, calc(201rpx + 24rpx), 0);
+}
+
+.drawer-nav-item {
+  height: 67rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: color 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  z-index: 1;
+  color: #6b7280;
+  width: 100%;
+  background-color: transparent;
+  -webkit-tap-highlight-color: transparent;
+  tap-highlight-color: transparent;
+  font-weight: 480;
+}
+
+.drawer-nav-item-active {
+  color: #1d4ed8;
+  font-weight: 600;
+  background-color: transparent;
+}
+
+.drawer-nav-item:active {
+  background-color: transparent;
+  opacity: 1;
+}
+
+.drawer-nav-text {
+  font-size: 30rpx;
+  line-height: 1.5;
+}
+
+.drawer-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+  min-width: 0;
 }
 
 .drawer-open {
@@ -81,12 +187,29 @@
 .drawer-body {
   flex: 1;
   height: 0;
-  padding: 28rpx 28rpx 160rpx;
+  padding: 0 28rpx 0;
   box-sizing: border-box;
 }
 
 .drawer-section {
-  margin-bottom: 34rpx;
+  padding-top: 28rpx;
+}
+
+.drawer-section:first-child {
+  padding-top: 0;
+}
+
+.drawer-section:not(.drawer-section-source) {
+  margin-bottom: 31rpx;
+}
+
+.drawer-section-source {
+  margin-bottom: 0;
+}
+
+.drawer-bottom-spacer {
+  height: 20rpx;
+  width: 100%;
 }
 
 .drawer-section-title {
@@ -100,6 +223,20 @@
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 18rpx 18rpx;
+}
+
+.drawer-source-all {
+  margin-bottom: 18rpx;
+  display: flex;
+  width: 100%;
+}
+
+.drawer-source-all .drawer-chip {
+  width: calc((100% - 18rpx) / 2);
+}
+
+.drawer-grid-source {
+  margin-top: 0;
 }
 
 .drawer-chip {
@@ -129,16 +266,13 @@
 }
 
 .drawer-footer {
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 0;
   padding: 16rpx 24rpx 36rpx;
   background: #ffffff;
   border-top: 1rpx solid #eef2f7;
   display: flex;
   gap: 16rpx;
   box-sizing: border-box;
+  flex-shrink: 0;
 }
 
 .drawer-btn {
