@@ -8,126 +8,229 @@
     <view class="tab {{currentTab === 2 ? 'tab-active' : ''}}" data-idx="2" bindtap="onTabTap">收藏</view>
   </view>
 
-  <view class="search-bar">
-    <input
-      class="search-input"
-      type="text"
-      placeholder="{{ui.searchPlaceholder}}"
-      placeholder-class="search-placeholder"
-      confirm-type="search"
-      value="{{searchKeyword}}"
-      bindinput="onSearchInput"
-    />
-
-    <view class="search-actions">
-      <view class="search-pill" bindtap="toggleFilter">
-        <text class="search-pill-text">{{displayCurrentFilter}}</text>
-        <view class="search-pill-triangle {{showFilter ? 'search-pill-triangle-up' : ''}}" />
-      </view>
-
-      <view class="search-pill" bindtap="toggleDrawer">
-        <text class="search-pill-text">{{ui.filterLabel}}</text>
-        <view class="search-pill-triangle" />
-      </view>
-    </view>
-  </view>
-
   <!-- Swiper for animated tab switch; enable touch for swipe -->
   <swiper current="{{currentTab}}" class="jobs-swiper" indicator-dots="{{false}}" autoplay="{{false}}" circular="{{false}}" duration="300" easing-function="easeOutCubic" disable-touch="{{false}}" bindchange="onSwiperChange">
     <!-- 公开 tab -->
     <swiper-item>
-      <view class="job-list-wrapper">
-        <job-list
-          jobs="{{jobsByTab[0] || []}}"
-          loading="{{loading}}"
-          scroll-y="{{true}}"
-          scroll-top="{{scrollTop}}"
-          lower-threshold="{{lowerThreshold}}"
-          scroll-with-animation="{{true}}"
-          enhanced="{{true}}"
-          show-scrollbar="{{false}}"
-          enable-back-to-top="{{false}}"
-          enable-passive="{{true}}"
+      <view class="tab-content-wrapper">
+        <view class="search-bar">
+          <input
+            class="search-input"
+            type="text"
+            placeholder="{{ui.searchPlaceholder}}"
+            placeholder-class="search-placeholder"
+            confirm-type="search"
+            value="{{tabState[0].searchKeyword}}"
+            bindinput="onSearchInput"
+          />
 
-          enable-detail="{{true}}"
-          detail-selector="#jobDetail"
-          detail-collection-fallback="{{selectedCollection}}"
+          <view class="search-actions">
+            <view class="search-pill" bindtap="toggleFilter">
+              <text class="search-pill-text">{{tabState[0].displayCurrentFilter}}</text>
+              <view class="search-pill-triangle {{tabState[0].showFilter ? 'search-pill-triangle-up' : ''}}" />
+            </view>
 
-          bind:itemtap="onJobTap"
-          bind:scrolltolower="onScrollLower"
-          bind:scroll="onScroll"
-          bind:touchstart="onTouchStart"
-          bind:touchend="onTouchEnd"
-        />
+            <view class="search-pill" bindtap="toggleDrawer">
+              <text class="search-pill-text">{{ui.filterLabel}}</text>
+              <view class="search-pill-triangle" />
+            </view>
+          </view>
+        </view>
+
+        <!-- Filter dropdown for tab 0 -->
+        <view wx:if="{{tabState[0].showFilter}}" class="filter-mask filter-mask-open" bindtap="closeFilter"></view>
+        <view wx:if="{{tabState[0].showFilter}}" class="filter-dropdown" catchtap="stopPropagation">
+          <block wx:for="{{filterOptions}}" wx:key="*this" wx:for-index="idx">
+            <view class="filter-option" data-value="{{item}}" bindtap="onSelectFilter">
+              <text>{{tabState[0].displayFilterOptions[idx]}}</text>
+            </view>
+          </block>
+        </view>
+
+        <view class="job-list-wrapper">
+          <job-list
+            jobs="{{jobsByTab[0] || []}}"
+            loading="{{loading}}"
+            scroll-y="{{true}}"
+            scroll-top="{{tabState[0] ? tabState[0].scrollTop : 0}}"
+            lower-threshold="{{lowerThreshold}}"
+            scroll-with-animation="{{true}}"
+            enhanced="{{true}}"
+            show-scrollbar="{{false}}"
+            enable-back-to-top="{{false}}"
+            enable-passive="{{true}}"
+
+            enable-detail="{{true}}"
+            detail-selector="#jobDetail"
+            detail-collection-fallback="{{selectedCollection}}"
+
+            bind:itemtap="onJobTap"
+            bind:scrolltolower="onScrollLower"
+            bind:scroll="onScroll"
+            bind:touchstart="onTouchStart"
+            bind:touchend="onTouchEnd"
+          />
+        </view>
       </view>
     </swiper-item>
     <!-- 精选 tab -->
     <swiper-item>
-      <view class="job-list-wrapper featured-tab-wrapper">
-        <job-list
-          jobs="{{jobsByTab[1] || []}}"
-          loading="{{loading}}"
-          scroll-y="{{featuredScrollEnabled}}"
-          scroll-top="{{scrollTop}}"
-          lower-threshold="{{lowerThreshold}}"
-          scroll-with-animation="{{true}}"
-          enhanced="{{true}}"
-          show-scrollbar="{{false}}"
-          enable-back-to-top="{{false}}"
-          enable-passive="{{true}}"
+      <view class="tab-content-wrapper {{currentTab === 1 && !isFeaturedUnlocked ? 'featured-locked' : ''}}">
+        <view class="search-bar">
+          <input
+            class="search-input"
+            type="text"
+            placeholder="{{ui.searchPlaceholder}}"
+            placeholder-class="search-placeholder"
+            confirm-type="search"
+            value="{{tabState[1].searchKeyword}}"
+            bindinput="onSearchInput"
+          />
 
-          enable-detail="{{true}}"
-          detail-selector="#jobDetail"
-          detail-collection-fallback="{{selectedCollection}}"
+          <view class="search-actions">
+            <view class="search-pill" bindtap="toggleFilter">
+              <text class="search-pill-text">{{tabState[1].displayCurrentFilter}}</text>
+              <view class="search-pill-triangle {{tabState[1].showFilter ? 'search-pill-triangle-up' : ''}}" />
+            </view>
 
-          bind:itemtap="onJobTap"
-          bind:scrolltolower="onScrollLower"
-          bind:scroll="onScroll"
-          bind:touchstart="onTouchStart"
-          bind:touchend="onTouchEnd"
-        />
-        <!-- Subscription overlay for 精选 tab when expired -->
-        <view wx:if="{{currentTab === 1 && !isFeaturedUnlocked}}" class="featured-overlay" bindtap="onFeaturedSubscribeTap">
-          <view class="featured-overlay-text">订阅后查看更多精选岗位</view>
+            <view class="search-pill" bindtap="toggleDrawer">
+              <text class="search-pill-text">{{ui.filterLabel}}</text>
+              <view class="search-pill-triangle" />
+            </view>
+          </view>
+        </view>
+
+        <!-- Filter dropdown for tab 1 -->
+        <view wx:if="{{tabState[1].showFilter}}" class="filter-mask filter-mask-open" bindtap="closeFilter"></view>
+        <view wx:if="{{tabState[1].showFilter}}" class="filter-dropdown" catchtap="stopPropagation">
+          <block wx:for="{{filterOptions}}" wx:key="*this" wx:for-index="idx">
+            <view class="filter-option" data-value="{{item}}" bindtap="onSelectFilter">
+              <text>{{tabState[1].displayFilterOptions[idx]}}</text>
+            </view>
+          </block>
+        </view>
+
+        <view class="job-list-wrapper featured-tab-wrapper">
+          <job-list
+            jobs="{{jobsByTab[1] || []}}"
+            loading="{{loading}}"
+            scroll-y="{{featuredScrollEnabled}}"
+            scroll-top="{{tabState[1].scrollTop}}"
+            lower-threshold="{{lowerThreshold}}"
+            scroll-with-animation="{{true}}"
+            enhanced="{{true}}"
+            show-scrollbar="{{false}}"
+            enable-back-to-top="{{false}}"
+            enable-passive="{{true}}"
+
+            enable-detail="{{true}}"
+            detail-selector="#jobDetail"
+            detail-collection-fallback="{{selectedCollection}}"
+
+            bind:itemtap="onJobTap"
+            bind:scrolltolower="onScrollLower"
+            bind:scroll="onScroll"
+            bind:touchstart="onTouchStart"
+            bind:touchend="onTouchEnd"
+          />
+        </view>
+        <!-- Subscription overlay for 精选 tab when expired - covers search-bar + job-list -->
+        <view wx:if="{{currentTab === 1 && !isFeaturedUnlocked}}" class="featured-overlay">
+          <view class="featured-overlay-text" bindtap="onFeaturedSubscribeTap">订阅后查看更多精选岗位</view>
         </view>
       </view>
     </swiper-item>
     <!-- 收藏 tab -->
     <swiper-item>
-      <view class="job-list-wrapper">
-        <job-list
-          jobs="{{jobsByTab[2] || []}}"
-          loading="{{loading}}"
-          scroll-y="{{true}}"
-          scroll-top="{{scrollTop}}"
-          lower-threshold="{{lowerThreshold}}"
-          scroll-with-animation="{{true}}"
-          enhanced="{{true}}"
-          show-scrollbar="{{false}}"
-          enable-back-to-top="{{false}}"
-          enable-passive="{{true}}"
+      <view class="tab-content-wrapper">
+        <view class="search-bar">
+          <input
+            class="search-input"
+            type="text"
+            placeholder="{{ui.searchPlaceholder}}"
+            placeholder-class="search-placeholder"
+            confirm-type="search"
+            value="{{tabState[2].searchKeyword}}"
+            bindinput="onSearchInput"
+          />
 
-          enable-detail="{{true}}"
-          detail-selector="#jobDetail"
-          detail-collection-fallback="{{selectedCollection}}"
+          <view class="search-actions">
+            <view class="search-pill" bindtap="toggleFilter">
+              <text class="search-pill-text">{{tabState[2].displayCurrentFilter}}</text>
+              <view class="search-pill-triangle {{tabState[2].showFilter ? 'search-pill-triangle-up' : ''}}" />
+            </view>
 
-          bind:itemtap="onJobTap"
-          bind:scrolltolower="onScrollLower"
-          bind:scroll="onScroll"
-          bind:touchstart="onTouchStart"
-          bind:touchend="onTouchEnd"
-        />
-        <!-- Empty state for favorites tab -->
-        <view wx:if="{{currentTab === 2 && !loading && jobsByTab[2] && jobsByTab[2].length === 0}}" class="empty-favorites">
-          <text class="empty-favorites-text">{{ui.emptyFavorites}}</text>
+            <view class="search-pill" bindtap="toggleDrawer">
+              <text class="search-pill-text">{{ui.filterLabel}}</text>
+              <view class="search-pill-triangle" />
+            </view>
+          </view>
+        </view>
+
+        <!-- Filter dropdown for tab 2 -->
+        <view wx:if="{{tabState[2].showFilter}}" class="filter-mask filter-mask-open" bindtap="closeFilter"></view>
+        <view wx:if="{{tabState[2].showFilter}}" class="filter-dropdown" catchtap="stopPropagation">
+          <block wx:for="{{filterOptions}}" wx:key="*this" wx:for-index="idx">
+            <view class="filter-option" data-value="{{item}}" bindtap="onSelectFilter">
+              <text>{{tabState[2].displayFilterOptions[idx]}}</text>
+            </view>
+          </block>
+        </view>
+
+        <view class="job-list-wrapper">
+          <job-list
+            jobs="{{jobsByTab[2] || []}}"
+            loading="{{loading}}"
+            scroll-y="{{true}}"
+            scroll-top="{{tabState[2].scrollTop}}"
+            lower-threshold="{{lowerThreshold}}"
+            scroll-with-animation="{{true}}"
+            enhanced="{{true}}"
+            show-scrollbar="{{false}}"
+            enable-back-to-top="{{false}}"
+            enable-passive="{{true}}"
+
+            enable-detail="{{true}}"
+            detail-selector="#jobDetail"
+            detail-collection-fallback="{{selectedCollection}}"
+
+            bind:itemtap="onJobTap"
+            bind:scrolltolower="onScrollLower"
+            bind:scroll="onScroll"
+            bind:touchstart="onTouchStart"
+            bind:touchend="onTouchEnd"
+          />
+          <!-- Empty state for favorites tab -->
+          <view wx:if="{{currentTab === 2 && !loading && jobsByTab[2] && jobsByTab[2].length === 0}}" class="empty-favorites">
+            <text class="empty-favorites-text">{{ui.emptyFavorites}}</text>
+          </view>
         </view>
       </view>
     </swiper-item>
   </swiper>
-  <!-- Drawer Component -->
+  <!-- Drawer Component for each tab -->
   <drawer
-    show="{{showDrawer}}"
-    value="{{drawerFilter}}"
+    wx:if="{{currentTab === 0}}"
+    show="{{tabState[0].showDrawer}}"
+    value="{{tabState[0].drawerFilter}}"
+    bind:close="toggleDrawer"
+    bind:confirm="onDrawerConfirm"
+    bind:reset="onDrawerReset"
+    bind:openFavorites="openFavoritesSheet"
+  />
+  <drawer
+    wx:if="{{currentTab === 1}}"
+    show="{{tabState[1].showDrawer}}"
+    value="{{tabState[1].drawerFilter}}"
+    bind:close="toggleDrawer"
+    bind:confirm="onDrawerConfirm"
+    bind:reset="onDrawerReset"
+    bind:openFavorites="openFavoritesSheet"
+  />
+  <drawer
+    wx:if="{{currentTab === 2}}"
+    show="{{tabState[2].showDrawer}}"
+    value="{{tabState[2].drawerFilter}}"
     bind:close="toggleDrawer"
     bind:confirm="onDrawerConfirm"
     bind:reset="onDrawerReset"
@@ -142,17 +245,5 @@
     bind:close="closeJobDetail"
   />
 
-  <!-- 遮罩层：点击非弹窗区域时关闭弹窗 -->
-  <view wx:if="{{showFilter}}" class="filter-mask filter-mask-open" bindtap="closeFilter"></view>
-
-  <view wx:if="{{showFilter}}" class="filter-dropdown" catchtap="stopPropagation">
-    <block wx:for="{{filterOptions}}" wx:key="*this" wx:for-index="idx">
-      <view class="filter-option" data-value="{{item}}" bindtap="onSelectFilter">
-        <text>{{displayFilterOptions[idx]}}</text>
-      </view>
-    </block>
-  </view>
-
-  <!-- duplicate tabs/swiper removed; use single tabs above search bar and single job-list -->
 
 </view>
