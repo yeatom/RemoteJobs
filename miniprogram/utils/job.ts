@@ -17,7 +17,6 @@ export type JobItem = {
 }
 
 export type ResolvedSavedJob = JobItem & {
-  jobId: string
   sourceCollection: string
 }
 

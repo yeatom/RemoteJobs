@@ -63,18 +63,16 @@ Component({
   observers: {
     'show, jobData'(show: boolean, jobData: any) {
       if (show && jobData && jobData._id) {
-        const currentJobId = (this.data.job as any)?._id
-        const newJobId = jobData._id || jobData.jobId
+        const currentId = (this.data.job as any)?._id
+        const newId = jobData._id
         
-        // 如果是同一个职位，只更新 isSaved 状态（避免重新渲染造成抖动）
-        if (currentJobId === newJobId && this.data.job) {
+        if (currentId === newId && this.data.job) {
           if (jobData.isSaved !== undefined && jobData.isSaved !== this.data.collected) {
             this.setData({ collected: jobData.isSaved })
           }
           return
         }
         
-        // 职位ID变化，执行完整的初始化逻辑
         if ((this as any)._animation && typeof (this as any)._animation.stop === 'function') {
           ;(this as any)._animation.stop()
           ;(this as any)._animation = null
@@ -117,8 +115,8 @@ Component({
 
   methods: {
     async setJobFromData(jobData: any) {
-      const jobId = jobData._id || jobData.jobId
-      if (!jobId) return
+      const _id = jobData._id
+      if (!_id) return
       
       let displayTags = jobData.displayTags
       if (!displayTags || !Array.isArray(displayTags) || displayTags.length === 0) {
@@ -138,8 +136,6 @@ Component({
         }
       }
 
-      // 优先使用 jobData.isSaved 字段（如果云端函数已返回）
-      // 如果没有该字段，则查询数据库（向后兼容）
       const isSaved = jobData.isSaved !== undefined ? jobData.isSaved : null
       
       this.setData({
@@ -149,13 +145,12 @@ Component({
           richDescription: formatDescription(jobData.description),
         } as JobDetailItem & { richDescription: string },
         loading: false,
-        collected: isSaved !== null ? isSaved : false, // 如果 isSaved 存在则直接使用，否则先设为 false 避免闪烁
+        collected: isSaved !== null ? isSaved : false,
       })
 
-      // 只有在 jobData.isSaved 不存在时才查询数据库（向后兼容）
       if (isSaved === null) {
         try {
-          const isCollected = await this.checkCollectState(jobId, true)
+          const isCollected = await this.checkCollectState(_id, true)
           this.setData({ collected: isCollected })
         } catch (err) {
           this.setData({ collected: false })
@@ -192,9 +187,8 @@ Component({
 
         this.setData({ collected: targetCollected })
         
-        // 触发自定义事件，通知父组件更新列表中对应职位的收藏状态
         this.triggerEvent('collectchange', {
-          jobId: job._id,
+          _id: job._id,
           isSaved: targetCollected,
         })
         
@@ -243,7 +237,7 @@ Component({
       this.setData({ collectDocId: String((result as any)._id || '') })
     },
 
-    async removeCollectRecord(jobId: string) {
+    async removeCollectRecord(_id: string) {
       const app = getApp<IAppOption>() as any
       const openid = app?.globalData?.user?.openid
       if (!openid) return
@@ -251,7 +245,7 @@ Component({
       const db = wx.cloud.database()
       let docId = this.data.collectDocId
       if (!docId) {
-        const lookup = await db.collection(COLLECT_COLLECTION).where({ openid, jobId }).limit(1).get()
+        const lookup = await db.collection(COLLECT_COLLECTION).where({ openid, jobId: _id }).limit(1).get()
         docId = String((lookup.data?.[0] as any)?._id || '')
       }
       if (!docId) return
@@ -259,8 +253,8 @@ Component({
       this.setData({ collectDocId: '' })
     },
 
-    async checkCollectState(jobId: string, silent = false) {
-      if (!jobId) return false
+    async checkCollectState(_id: string, silent = false) {
+      if (!_id) return false
 
       const app = getApp<IAppOption>() as any
       const openid = app?.globalData?.user?.openid
@@ -271,7 +265,7 @@ Component({
 
       const db = wx.cloud.database()
       try {
-        const res = await db.collection(COLLECT_COLLECTION).where({ openid, jobId }).limit(1).get()
+        const res = await db.collection(COLLECT_COLLECTION).where({ openid, jobId: _id }).limit(1).get()
         const doc = res.data?.[0] as any
         const exists = !!doc
         const updates: Partial<typeof this.data> = {

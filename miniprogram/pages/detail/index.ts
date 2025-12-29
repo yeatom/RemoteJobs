@@ -42,7 +42,7 @@ Page({
       const res = await db.collection(collection).doc(id).get()
       this.setData({ job: res.data })
     } catch (err) {
-      console.error('[detail] fetchJobDetails failed', err)
+      // ignore
     }
   },
 })

@@ -1,4 +1,3 @@
-// 云函数入口文件
 const cloud = require('wx-server-sdk')
 
 cloud.init({
@@ -7,24 +6,20 @@ cloud.init({
 
 const db = cloud.database()
 
-// 生成8位邀请码的函数
 function generateInviteCode(openid) {
-  // 使用openid的hash值生成邀请码，确保永不重复
   let hash = 0
   for (let i = 0; i < openid.length; i++) {
     const char = openid.charCodeAt(i)
     hash = ((hash << 5) - hash) + char
-    hash = hash & hash // 转换为32位整数
+    hash = hash & hash
   }
 
-  // 取绝对值并转换为8位字符串
   const positiveHash = Math.abs(hash)
   const code = positiveHash.toString(36).toUpperCase().padStart(8, '0').slice(-8)
 
   return code
 }
 
-// 检查邀请码是否已存在
 async function checkInviteCodeExists(inviteCode) {
   try {
     const result = await db.collection('users').where({
@@ -33,12 +28,10 @@ async function checkInviteCodeExists(inviteCode) {
 
     return result.total > 0
   } catch (err) {
-    console.error('checkInviteCodeExists error:', err)
     return false
   }
 }
 
-// 云函数入口函数
 exports.main = async (event, context) => {
   const wxContext = cloud.getWXContext()
   const openid = wxContext.OPENID
@@ -51,7 +44,6 @@ exports.main = async (event, context) => {
   }
 
   try {
-    // 先检查用户是否已有邀请码
     const userResult = await db.collection('users').where({
       openid: openid
     }).get()
@@ -63,14 +55,11 @@ exports.main = async (event, context) => {
       }
     }
 
-    // 生成邀请码
     let inviteCode = generateInviteCode(openid)
     let attempts = 0
     const maxAttempts = 10
 
-    // 确保邀请码不重复
     while (await checkInviteCodeExists(inviteCode) && attempts < maxAttempts) {
-      // 如果重复，添加一些随机性再生成
       inviteCode = generateInviteCode(openid + Math.random().toString())
       attempts++
     }
@@ -82,7 +71,6 @@ exports.main = async (event, context) => {
       }
     }
 
-    // 更新用户记录
     if (userResult.data.length > 0) {
       await db.collection('users').doc(userResult.data[0]._id).update({
         data: {
@@ -91,7 +79,6 @@ exports.main = async (event, context) => {
         }
       })
     } else {
-      // 如果用户记录不存在，创建新记录
       await db.collection('users').add({
         data: {
           openid: openid,
@@ -108,7 +95,6 @@ exports.main = async (event, context) => {
     }
 
   } catch (err) {
-    console.error('generateInviteCode error:', err)
     return {
       success: false,
       message: '生成邀请码失败'

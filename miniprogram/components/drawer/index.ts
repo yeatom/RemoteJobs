@@ -4,8 +4,9 @@
 // It's harmless (these are just data labels), so we silence it by not using literal unions here.
 
 import { normalizeLanguage, t } from '../../utils/i18n'
+const swipeToClose = require('../../behaviors/swipe-to-close')
 
-type DrawerValue = { salary: string; experience: string }
+type DrawerValue = { salary: string; experience: string; source?: string }
 
 // loosen key types to avoid mixed ASCII/non-ASCII literal warnings from tooling
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
@@ -38,28 +39,37 @@ const EN_EXP: Record<string, string> = {
 }
 
 Component({
+  behaviors: [swipeToClose],
+  
   properties: {
     show: { type: Boolean, value: false },
     value: {
       type: Object,
-      value: { salary: '全部', experience: '全部' },
+      value: { salary: '全部', experience: '全部', source: '全部' },
+    },
+    region: {
+      type: String,
+      value: '国内', // 用于判断显示哪些来源选项
     },
   },
 
   data: {
-    tempValue: { salary: '全部', experience: '全部' } as DrawerValue,
+    tempValue: { salary: '全部', experience: '全部', source: '全部' } as DrawerValue,
 
     // internal keys (Chinese)
     salaryOptions: SALARY_KEYS,
     experienceOptions: EXP_KEYS,
+    sourceOptions: [] as string[], // 根据region动态设置
 
     // display labels
     displaySalaryOptions: [] as string[],
     displayExperienceOptions: [] as string[],
+    displaySourceOptions: [] as string[],
 
     ui: {
       salaryTitle: '薪资',
       experienceTitle: '经验',
+      sourceTitle: '来源',
       clear: '清除',
       confirm: '确定',
     } as Record<string, string>,
@@ -69,26 +79,56 @@ Component({
     show(open) {
       if (open) {
         this.syncLanguageFromApp()
+        this.updateSourceOptions()
 
-        const v = (this.properties && (this.properties.value as any)) || { salary: '全部', experience: '全部' }
+        const v = (this.properties && (this.properties.value as any)) || { salary: '全部', experience: '全部', source: '全部' }
         this.setData({
           tempValue: {
             salary: v.salary || '全部',
             experience: v.experience || '全部',
+            source: v.source || '全部',
           },
         })
+        
+        // Reset drawer position for swipe-to-close
+        const windowInfo = wx.getWindowInfo()
+        const screenWidth = windowInfo.windowWidth
+        this.setData({ 
+          animationData: null,
+          drawerTranslateX: screenWidth,
+        })
+        setTimeout(() => {
+          if (this.data.show) {
+            this.setData({ drawerTranslateX: 0 } as any)
+          }
+        }, 50)
+      } else {
+        // Reset position when closing (animation is handled by closeDrawer method)
+        const windowInfo = wx.getWindowInfo()
+        const screenWidth = windowInfo.windowWidth
+        // Only reset if not already animating (closeDrawer handles animation)
+        if (!(this as any)._animation) {
+          this.setData({
+            drawerTranslateX: screenWidth,
+            animationData: null,
+          })
+        }
       }
     },
     value(v) {
       if (this.properties && this.properties.show) {
-        const next = (v as any) || { salary: '全部', experience: '全部' }
+        const next = (v as any) || { salary: '全部', experience: '全部', source: '全部' }
         this.setData({
           tempValue: {
             salary: next.salary || '全部',
             experience: next.experience || '全部',
+            source: next.source || '全部',
           },
         })
       }
+    },
+    region() {
+      this.updateSourceOptions()
     },
   },
 
@@ -115,19 +155,37 @@ Component({
   },
 
   methods: {
+    updateSourceOptions() {
+      const region = this.properties.region || '国内'
+      let sourceOptions: string[] = []
+      
+      if (region === '国内') {
+        sourceOptions = ['全部', 'BOSS直聘', '智联招聘', '电鸭', '拉勾招聘']
+      } else {
+        // 国外和web3暂时不显示来源筛选
+        sourceOptions = []
+      }
+      
+      this.setData({ sourceOptions })
+      this.syncLanguageFromApp()
+    },
+    
     syncLanguageFromApp() {
       const app = getApp<IAppOption>() as any
       const lang = normalizeLanguage(app?.globalData?.language)
 
       const displaySalaryOptions = (this.data.salaryOptions as SalaryKey[]).map((k) => (lang === 'English' ? EN_SALARY[k] : k))
       const displayExperienceOptions = (this.data.experienceOptions as ExpKey[]).map((k) => (lang === 'English' ? EN_EXP[k] : k))
+      const displaySourceOptions = (this.data.sourceOptions || []).map((k) => k) // 来源暂时只有中文
 
       this.setData({
         displaySalaryOptions,
         displayExperienceOptions,
+        displaySourceOptions,
         ui: {
           salaryTitle: t('drawer.salary', lang),
           experienceTitle: t('drawer.experience', lang),
+          sourceTitle: '来源',
           clear: t('drawer.clear', lang),
           confirm: t('drawer.confirm', lang),
         },
@@ -137,7 +195,7 @@ Component({
     stopPropagation() {},
 
     onClose() {
-      this.triggerEvent('close')
+      (this as any).closeDrawer()
     },
 
     onPickSalary(e: any) {
@@ -150,8 +208,13 @@ Component({
       this.setData({ tempValue: { ...this.data.tempValue, experience: value } })
     },
 
+    onPickSource(e: any) {
+      const value = (e && e.currentTarget && e.currentTarget.dataset && e.currentTarget.dataset.value) || '全部'
+      this.setData({ tempValue: { ...this.data.tempValue, source: value } })
+    },
+
     onReset() {
-      const value = { salary: '全部', experience: '全部' }
+      const value = { salary: '全部', experience: '全部', source: '全部' }
       this.setData({ tempValue: value })
       this.triggerEvent('reset', { value })
     },

@@ -206,7 +206,7 @@ page::-webkit-scrollbar {
   left: 8rpx;
   width: calc((100% - 16rpx) / 3); /* (100% - 2 * 8rpx gap) / 3 tabs */
   height: calc(100% - 16rpx);
-  background: #eef2ff;
+  background: #e5f0ff; /* 主题蓝色背景，与工作标签tag和筛选按钮一致 */
   border-radius: 8rpx;
   transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   z-index: 0;

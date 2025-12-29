@@ -12,7 +12,6 @@ App<IAppOption>({
 
   async onLaunch() {
     if (!wx.cloud) {
-      console.error('请使用 2.2.3 或以上的基础库以使用云能力')
       return
     }
 
@@ -21,14 +20,10 @@ App<IAppOption>({
       traceUser: true,
     })
 
-    // Apply default language immediately to set nav title ASAP (avoid first onShow flash)
     this.applyLanguage()
 
-    await this.refreshUser().catch((err: any) => {
-      console.warn('[app] initUser failed', err)
-    })
+    await this.refreshUser().catch(() => {})
 
-    // Ensure any pages/components that attached early get the final language.
     const lang = ((this as any).globalData.language || 'Chinese') as AppLanguage
     this.applyLanguage()
     this.emitLanguageChange(lang)
@@ -68,7 +63,7 @@ App<IAppOption>({
       try {
         fn(lang)
       } catch (e) {
-        console.warn('[app] language listener error', e)
+        // ignore
       }
     })
   },
@@ -88,7 +83,7 @@ App<IAppOption>({
         ;(this as any).globalData.user = updatedUser
       }
     } catch (err) {
-      console.warn('[app] updateUserLanguage failed', err)
+      // ignore
     }
   },
 

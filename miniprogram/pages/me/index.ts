@@ -148,7 +148,6 @@ Page({
       this.syncUserFromApp()
       wx.showToast({ title: '登录成功', icon: 'success' })
     } catch (err) {
-      console.error('[me] realtime phone auth failed', err)
       wx.showToast({ title: '手机号授权失败', icon: 'none' })
     } finally {
       this.setData({ phoneAuthBusy: false })
@@ -186,7 +185,6 @@ Page({
       this.syncUserFromApp()
       wx.showToast({ title: '登录成功', icon: 'success' })
     } catch (err) {
-      console.error('[me] phone auth failed', err)
       wx.showToast({ title: '手机号授权失败', icon: 'none' })
     } finally {
       this.setData({ phoneAuthBusy: false })
@@ -251,7 +249,7 @@ Page({
       const groups = new Map<string, string[]>()
       for (const row of collected) {
         const t = row?.type
-        const id = row?.jobId
+        const id = row?.jobId // 从 collected_jobs 集合读取的 jobId 字段（实际是岗位的 _id）
         if (!t || !id) continue
         const list = groups.get(t) || []
         list.push(id)
@@ -285,16 +283,16 @@ Page({
       const merged: ResolvedSavedJob[] = []
       for (const row of collected) {
         const type = row?.type
-        const jobId = row?.jobId
-        if (!type || !jobId) continue
+        const _id = row?.jobId // 从 collected_jobs 集合读取的 jobId 字段（实际是岗位的 _id）
+        if (!type || !_id) continue
 
-        const key = `${type}:${jobId}`
+        const key = `${type}:${_id}`
         const job = jobByKey.get(key)
         if (!job) continue
 
         merged.push({
           ...(job as any),
-          jobId,
+          _id,
           sourceCollection: job.sourceCollection,
         })
       }
@@ -303,7 +301,6 @@ Page({
       const normalized = mapJobs(merged) as any
       this.setData({ savedJobs: normalized })
     } catch (err) {
-      console.error('[me] loadSavedJobs failed', err)
       wx.showToast({ title: '加载收藏失败', icon: 'none' })
     } finally {
       this.setData({ savedLoading: false })
@@ -316,17 +313,17 @@ Page({
 
   onSavedJobTap(e: any) {
     const job = e?.detail?.job
-    const jobId = (job?.jobId || job?._id || e?.currentTarget?.dataset?._id) as string
+    const _id = (job?._id || e?.currentTarget?.dataset?._id) as string
     const collection = (job?.sourceCollection || e?.currentTarget?.dataset?.collection || '') as string
 
-    if (!jobId || !collection) {
+    if (!_id || !collection) {
       wx.showToast({ title: '无法打开详情', icon: 'none' })
       return
     }
 
     // Keep favorites sheet open; just show detail over it.
     this.setData({
-      selectedJobId: jobId,
+      selectedJobId: _id,
       selectedCollection: collection,
       showJobDetail: true,
     })
@@ -399,7 +396,6 @@ Page({
       await Promise.all([minDuration, action])
       wx.hideLoading()
     } catch (err) {
-      console.warn('[me] setLanguage failed, keep loading until settled', err)
       try {
         await action
       } finally {
@@ -458,7 +454,6 @@ Page({
         }
       }
     } catch (err) {
-      console.error('[me] loadInviteCode failed:', err)
       wx.showToast({ title: '加载邀请码失败', icon: 'none' })
     }
   },
@@ -503,7 +498,6 @@ Page({
         wx.showToast({ title: result.result?.message || '应用失败', icon: 'none' })
       }
     } catch (err) {
-      console.error('[me] applyInviteCode failed:', err)
       wx.showToast({ title: '应用失败', icon: 'none' })
     }
   },

@@ -1,4 +1,18 @@
 /**app.wxss**/
+
+/**
+ * 主题颜色定义（统一使用以下颜色）
+ * Theme Colors:
+ * - 主题蓝色文字/边框: #1d4ed8
+ * - 主题蓝色背景: #e5f0ff
+ * 
+ * 使用场景：
+ * - 工作标签tag: 背景 #e5f0ff, 文字 #1d4ed8
+ * - 筛选按钮: 背景 #e5f0ff, 文字 #1d4ed8
+ * - Tab选中状态: 背景 #e5f0ff, 文字 #1d4ed8
+ * - 其他需要强调的元素
+ */
+
 .container {
   height: 100%;
   display: flex;

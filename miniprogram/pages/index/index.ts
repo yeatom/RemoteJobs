@@ -1,5 +1,3 @@
-// index.ts - remote jobs list
-
 import type { JobItem, ResolvedSavedJob } from '../../utils/job'
 import { mapJobs, typeCollectionMap } from '../../utils/job'
 import { normalizeLanguage, t } from '../../utils/i18n'
@@ -11,26 +9,24 @@ type FilterType = '国内' | '国外' | 'web3'
 type DrawerFilterValue = {
   salary: string
   experience: string
+  source?: string
 }
 
 const DEFAULT_DRAWER_FILTER: DrawerFilterValue = {
   salary: '全部',
   experience: '全部',
+  source: '全部',
 }
 
 Page({
   data: {
     jobs: <JobItem[]>[],
     filteredJobs: <JobItem[]>[],
-    // Tab state
     currentTab: 0,
     tabLabels: ['公开', '精选', '收藏'],
-    // Preloaded data per tab (index -> JobItem[])
     jobsByTab: [<JobItem[]>[], <JobItem[]>[], <JobItem[]>[]] as JobItem[][],
     hasLoadedTab: [false, false, false] as boolean[],
-    // Memory cache for region data (region -> JobItem[])
     regionCache: {} as Record<FilterType, JobItem[]>,
-    // Subscription status for 精选 tab
     isFeaturedUnlocked: false,
     featuredScrollEnabled: true,
     filterOptions: ['国内', '国外', 'web3'] as FilterType[],
@@ -38,12 +34,11 @@ Page({
     loading: false,
     hasMore: true,
     lowerThreshold: 100,
-    scrollViewHeight: 0, // scroll-view 的可视高度（px）
-    lastLoadTime: 0, // 上次分页加载的时间戳，用于防抖
-    showJobDetail: false, // Controls the visibility of the job detail drawer
-    selectedJobData: null as any, // The selected job data (includes displayTags)
+    scrollViewHeight: 0,
+    lastLoadTime: 0,
+    showJobDetail: false,
+    selectedJobData: null as any,
 
-    // Per-tab state (index -> state)
     tabState: [
       {
         showFilter: false,
@@ -95,12 +90,10 @@ Page({
       filterLabel: '筛选',
     } as Record<string, string>,
   },
-  // Helper to get current tab state
   getCurrentTabState() {
     return this.data.tabState[this.data.currentTab]
   },
 
-  // Helper to update current tab state
   updateCurrentTabState(updates: Partial<typeof this.data.tabState[0]>, callback?: () => void) {
     const tabState = [...this.data.tabState]
     tabState[this.data.currentTab] = { ...tabState[this.data.currentTab], ...updates }
@@ -108,11 +101,9 @@ Page({
   },
 
   onLoad() {
-      // attach language-aware behavior (nav title + UI strings)
       ;(this as any)._langDetach = attachLanguageAware(this, {
         onLanguageRevive: () => {
           this.syncLanguageFromApp()
-        // Immediately set navigation bar title when language changes
         const app = getApp<IAppOption>() as any
         const lang = normalizeLanguage(app?.globalData?.language)
         wx.setNavigationBarTitle({ title: t('app.navTitle', lang) })
@@ -120,16 +111,13 @@ Page({
       })
 
       this.getSystemAndUIInfo()
-    // Load primary tab immediately, then preload others in background
     this.loadJobsForTab(0, true).then(() => {
-      // store primary tab data into cache
       try {
         const tabs = this.data.jobsByTab as JobItem[][]
         const primary = tabs[0] || []
         const loaded = this.data.hasLoadedTab as boolean[]
         loaded[0] = true
         
-        // Also store in region cache
         const cache = (this.data as any).regionCache as Record<FilterType, JobItem[]>
         const currentState = this.getCurrentTabState()
         cache[currentState.currentFilter] = primary
@@ -143,7 +131,6 @@ Page({
       } catch {
         // ignore
       }
-      // preload other tabs
       this.preloadTabs()
     })
   },
@@ -155,16 +142,13 @@ Page({
     },
 
   onShow() {
-    // Set navigation bar title when page becomes visible
     const app = getApp<IAppOption>() as any
     const lang = normalizeLanguage(app?.globalData?.language)
     wx.setNavigationBarTitle({ title: t('app.navTitle', lang) })
-    // Check subscription status for 精选 tab
     this.checkFeaturedSubscription()
   },
 
   onPullDownRefresh() {
-    // Handle pull down to refresh
     const currentState = this.getCurrentTabState()
     if (this.data.currentTab === 0) {
       this.loadJobsForTab(0, true).finally(() => {
@@ -184,21 +168,17 @@ Page({
   },
 
   onReachBottom() {
-    // Handle reach bottom to load more
     this.maybeLoadMore()
   },
 
   onScrollLower() {
-    // Handle scroll to lower from job-list component
     this.maybeLoadMore()
   },
 
   onSwiperChange(e: any) {
-    // Handle swiper change (swipe gesture)
     const idx = e.detail.current || 0
-    if (idx === this.data.currentTab) return // No change
+    if (idx === this.data.currentTab) return
     
-    // Close filter dropdown and drawer when switching tabs
     const currentState = this.getCurrentTabState()
     if (currentState.showFilter) {
       this.updateCurrentTabState({ showFilter: false })
@@ -207,38 +187,31 @@ Page({
       this.updateCurrentTabState({ showDrawer: false })
     }
     
-    // switch tab visually — load from cache if available
     const tabs = (this.data as any).jobsByTab as JobItem[][]
     const loaded = (this.data as any).hasLoadedTab as boolean[]
     this.setData({ currentTab: idx })
     
     if (idx === 1) {
-      // 精选 tab - check subscription and load jobs (even if locked, show preview)
       this.checkFeaturedSubscription()
       if (!loaded[idx]) {
-        // Load jobs even if locked (for preview)
         this.loadJobsForTab(idx, true).catch(() => {})
       } else {
         this.setData({ jobs: tabs[idx], filteredJobs: tabs[idx] })
       }
     } else if (idx === 2) {
-      // 收藏 tab - load saved jobs
       if (!loaded[idx]) {
         this.loadSavedJobsForTab()
       } else {
         this.setData({ jobs: tabs[idx], filteredJobs: tabs[idx] })
       }
       } else {
-      // 公开 tab
       const currentState = this.getCurrentTabState()
       if (loaded[idx]) {
         this.setData({ jobs: tabs[idx], filteredJobs: tabs[idx], loading: false })
       } else {
-        // Check cache first
         const cache = (this.data as any).regionCache as Record<FilterType, JobItem[]>
         const cachedJobs = cache[currentState.currentFilter]
         if (cachedJobs && cachedJobs.length > 0) {
-          // Show cached data immediately
           const updatedTabs = this.data.jobsByTab as JobItem[][]
           updatedTabs[idx] = cachedJobs
           const updatedLoaded = this.data.hasLoadedTab as boolean[]
@@ -251,7 +224,6 @@ Page({
             loading: false,
           })
         } else {
-          // No cache, show loading
           this.setData({ loading: true })
         }
         // Load fresh data in background
@@ -276,7 +248,6 @@ Page({
   onTabTap(e: any) {
     const idx = Number(e.currentTarget.dataset.idx || 0)
     
-    // Close filter dropdown and drawer when switching tabs
     const currentState = this.getCurrentTabState()
     if (currentState.showFilter) {
       this.updateCurrentTabState({ showFilter: false })
@@ -285,38 +256,31 @@ Page({
       this.updateCurrentTabState({ showDrawer: false })
     }
     
-    // switch tab visually — load from cache if available
     const tabs = (this.data as any).jobsByTab as JobItem[][]
     const loaded = (this.data as any).hasLoadedTab as boolean[]
     this.setData({ currentTab: idx })
     
     if (idx === 1) {
-      // 精选 tab - check subscription and load jobs (even if locked, show preview)
       this.checkFeaturedSubscription()
       if (!loaded[idx]) {
-        // Load jobs even if locked (for preview)
         this.loadJobsForTab(idx, true).catch(() => {})
       } else {
         this.setData({ jobs: tabs[idx], filteredJobs: tabs[idx] })
       }
     } else if (idx === 2) {
-      // 收藏 tab - load saved jobs
       if (!loaded[idx]) {
         this.loadSavedJobsForTab()
       } else {
         this.setData({ jobs: tabs[idx], filteredJobs: tabs[idx] })
       }
       } else {
-      // 公开 tab
       const currentState = this.getCurrentTabState()
       if (loaded[idx]) {
         this.setData({ jobs: tabs[idx], filteredJobs: tabs[idx], loading: false })
       } else {
-        // Check cache first
         const cache = (this.data as any).regionCache as Record<FilterType, JobItem[]>
         const cachedJobs = cache[currentState.currentFilter]
         if (cachedJobs && cachedJobs.length > 0) {
-          // Show cached data immediately
           const updatedTabs = this.data.jobsByTab as JobItem[][]
           updatedTabs[idx] = cachedJobs
           const updatedLoaded = this.data.hasLoadedTab as boolean[]
@@ -329,7 +293,6 @@ Page({
             loading: false,
           })
         } else {
-          // No cache, show loading
           this.setData({ loading: true })
         }
         // Load fresh data in background
@@ -383,12 +346,10 @@ Page({
     async getSystemAndUIInfo() {
       try {
         const windowInfo = wx.getWindowInfo()
-        // const deviceInfo = wx.getDeviceInfo()
-
         const lowerThreshold = windowInfo.windowHeight / 2
         this.setData({ lowerThreshold })
       } catch (err) {
-        console.error('[jobs] getSystemInfo failed', err)
+        // ignore
       }
     },
 
@@ -405,7 +366,6 @@ Page({
       const keyword = (e.detail.value || '').trim()
       this.updateCurrentTabState({ searchKeyword: keyword })
 
-      // Debounce search
       const self = this as any
       if (self._searchTimer) {
         clearTimeout(self._searchTimer)
@@ -415,9 +375,7 @@ Page({
         if (currentKeyword) {
           this.performCollectionSearch(currentKeyword, true)
         } else {
-          // When search is cleared, revert to the category view
           this.updateCurrentTabState({ isSearching: false })
-          // Reset hasMore to enable pagination after clearing search
           this.setData({ hasMore: true, loading: true })
           if (this.data.currentTab === 0) {
             this.loadJobsForTab(0, true).then(() => {
@@ -462,13 +420,9 @@ Page({
         const currentState = this.getCurrentTabState()
         const collectionName = typeCollectionMap[currentState.currentFilter] || 'domestic_remote_jobs'
 
-        // Escape special regex characters for safe search
         const escapedKeyword = keyword.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
-        
-        // Create a regex for case-insensitive search
         const searchRegex = db.RegExp({ regexp: escapedKeyword, options: 'i' })
 
-        // Use pageSize for pagination, support loading more results
         const existingJobs = reset ? [] : (this.data.jobsByTab[this.data.currentTab] || [])
         const skip = existingJobs.length
         const res = await db.collection(collectionName).where({
@@ -478,7 +432,6 @@ Page({
         const mappedJobs = mapJobs(res.data || []) as JobItem[]
         const mergedJobs = reset ? mappedJobs : [...existingJobs, ...mappedJobs]
 
-        // Update jobs for current tab
         const tabs = this.data.jobsByTab as JobItem[][]
         tabs[this.data.currentTab] = mergedJobs
         if (reset) {
@@ -488,14 +441,10 @@ Page({
           jobsByTab: tabs,
           jobs: mergedJobs,
           filteredJobs: mergedJobs,
-          hasMore: mappedJobs.length >= this.data.pageSize, // Enable pagination if we got full pageSize
-        }, () => {
-          // this.checkScrollability()
+          hasMore: mappedJobs.length >= this.data.pageSize,
         })
       } catch (err) {
-        console.error('[jobs] Collection search error', err)
         wx.showToast({ title: '搜索失败', icon: 'none' })
-        // Reset search state on error
         if (reset) {
           this.updateCurrentTabState({ isSearching: false })
         }
@@ -504,11 +453,9 @@ Page({
       }
     },
 
-    // Load jobs for a specific tab index (for preloading).
     async loadJobsForTab(tabIndex: number, reset = false) {
       try {
         if (tabIndex === 1) {
-          // 精选 tab: load from all collections
           const collections = Object.values(typeCollectionMap)
           
           const res = await wx.cloud.callFunction({
@@ -529,11 +476,8 @@ Page({
             loaded[tabIndex] = true
             const hasMore = mapped.length >= this.data.pageSize
             this.setData({ jobsByTab: tabs, hasLoadedTab: loaded, hasMore })
-          } else {
-            console.error('[jobs] loadJobsForTab getJobList failed:', (res.result as any)?.error)
           }
         } else {
-          // 公开 tab: use current filter collection
           const currentState = this.getCurrentTabState()
           const collectionName = typeCollectionMap[currentState.currentFilter] || 'domestic_remote_jobs'
           const skip = reset ? 0 : (this.data.jobsByTab[tabIndex] || []).length
@@ -553,7 +497,6 @@ Page({
             const existing = (this.data.jobsByTab[tabIndex] || []) as JobItem[]
             const merged = reset ? newJobs : [...existing, ...newJobs]
 
-            // Update cache for current region
             const cache = (this.data as any).regionCache as Record<FilterType, JobItem[]>
             cache[currentState.currentFilter] = merged
             this.setData({ regionCache: cache })
@@ -562,22 +505,17 @@ Page({
             tabs[tabIndex] = merged
             const loaded = this.data.hasLoadedTab as boolean[]
             loaded[tabIndex] = true
-            // Set hasMore based on whether we got full pageSize
             const hasMore = newJobs.length >= this.data.pageSize
             this.setData({ jobsByTab: tabs, hasLoadedTab: loaded, hasMore })
-          } else {
-            console.error('[jobs] loadJobsForTab getJobList failed:', (res.result as any)?.error)
           }
         }
       } catch (err) {
-        console.error('[jobs] loadJobsForTab error', err)
+        // ignore
       }
     },
 
     preloadTabs() {
-      // preload tab 1 (精选) - load even if locked (for preview)
       this.loadJobsForTab(1, true).catch(() => {})
-      // preload tab 2 (收藏) in background
       this.loadSavedJobsForTab().catch(() => {})
     },
 
@@ -670,16 +608,16 @@ Page({
         const merged: ResolvedSavedJob[] = []
         for (const row of collected) {
           const type = row?.type
-          const jobId = row?.jobId
-          if (!type || !jobId) continue
+          const _id = row?.jobId // 从 collected_jobs 集合读取的 jobId 字段（实际是岗位的 _id）
+          if (!type || !_id) continue
 
-          const key = `${type}:${jobId}`
+          const key = `${type}:${_id}`
           const job = jobByKey.get(key)
           if (!job) continue
 
           merged.push({
             ...(job as any),
-            jobId,
+            _id,
             sourceCollection: job.sourceCollection,
           })
         }
@@ -689,9 +627,14 @@ Page({
         tabs[2] = normalized
         const loaded = this.data.hasLoadedTab as boolean[]
         loaded[2] = true
-        this.setData({ jobsByTab: tabs, hasLoadedTab: loaded, jobs: normalized, filteredJobs: normalized })
+        
+        const updateData: any = { jobsByTab: tabs, hasLoadedTab: loaded }
+        if (this.data.currentTab === 2) {
+          updateData.jobs = normalized
+          updateData.filteredJobs = normalized
+        }
+        this.setData(updateData)
       } catch (err) {
-        console.error('[index] loadSavedJobsForTab failed', err)
         wx.showToast({ title: '加载收藏失败', icon: 'none' })
       } finally {
         this.setData({ loading: false })
@@ -699,7 +642,6 @@ Page({
     },
 
     onFeaturedSubscribeTap() {
-      // Trigger payment popup (same as in me/index.ts)
       wx.showModal({
         title: '精选岗位 🔒',
         content: '该功能需要付费解锁。',
@@ -707,7 +649,6 @@ Page({
         cancelText: '取消',
         success: (res) => {
           if (res.confirm) {
-            // TODO: replace with real payment flow.
             wx.showToast({ title: '暂未接入付费流程', icon: 'none' })
           }
         },
@@ -780,7 +721,6 @@ Page({
           loading: false,
         })
       } else {
-        // Not on tab 0, just reset cache flag
         const tabs = this.data.jobsByTab as JobItem[][]
         tabs[0] = cachedJobs || []
         const loaded = this.data.hasLoadedTab as boolean[]
@@ -789,8 +729,6 @@ Page({
       }
     },
 
-    // This function is now only for local filtering when not in search mode.
-    // The search logic is handled by performCollectionSearch
     filterJobs() {
       const currentState = this.getCurrentTabState()
       if (currentState.isSearching) return
@@ -839,11 +777,8 @@ Page({
           jobs: allJobs,
           filteredJobs: allJobs,
           hasMore: newJobs.length === pageSize,
-        }, () => {
-          // this.checkScrollability()
         })
       } catch (e) {
-        console.error('[jobs] loadJobs error', e)
         wx.showToast({ title: '加载失败', icon: 'none' })
       } finally {
         this.setData({ loading: false })
@@ -858,13 +793,11 @@ Page({
 
       this.setData({ lastLoadTime: now })
       
-      // If searching, load more search results
       if (currentState.isSearching && currentState.searchKeyword) {
         this.performCollectionSearch(currentState.searchKeyword, false)
         return
       }
 
-      // Otherwise, load more jobs for the current tab
       if (this.data.currentTab === 0) {
         this.loadJobsForTab(0, false)
       } else if (this.data.currentTab === 1) {
@@ -873,7 +806,6 @@ Page({
     },
 
     onScroll() {
-      // no-op (no-more hint removed)
     },
 
     onTouchStart() {
@@ -899,17 +831,16 @@ Page({
 
     // 处理职位收藏状态变化事件
     onJobCollectChange(e: any) {
-      const { jobId, isSaved } = e.detail || {}
-      if (!jobId) return
+      const { _id, isSaved } = e.detail || {}
+      if (!_id) return
 
-      // 更新所有 tabs 中对应职位的 isSaved 状态
       const tabs = this.data.jobsByTab as JobItem[][]
       let updated = false
 
-      for (let tabIndex = 0; tabIndex < tabs.length; tabIndex++) {
+      for (let tabIndex = 0; tabIndex < 2; tabIndex++) {
         const jobs = tabs[tabIndex]
         const updatedJobs = jobs.map(job => {
-          if (job._id === jobId) {
+          if (job._id === _id) {
             updated = true
             return { ...job, isSaved }
           }
@@ -920,13 +851,12 @@ Page({
         }
       }
 
-      // 更新 regionCache
       const cache = (this.data as any).regionCache as Record<FilterType, JobItem[]>
       for (const region in cache) {
         const jobs = cache[region as FilterType]
         if (jobs) {
           const updatedJobs = jobs.map(job => {
-            if (job._id === jobId) {
+            if (job._id === _id) {
               return { ...job, isSaved }
             }
             return job
@@ -935,25 +865,26 @@ Page({
         }
       }
 
-      // 更新 filteredJobs（当前显示的列表）
-      const filteredJobs = (this.data.filteredJobs || []).map(job => {
-        if (job._id === jobId) {
-          return { ...job, isSaved }
-        }
-        return job
-      })
+      const currentTab = this.data.currentTab
+      let filteredJobs = this.data.filteredJobs || []
+      if (currentTab !== 2) {
+        filteredJobs = filteredJobs.map(job => {
+          if (job._id === _id) {
+            return { ...job, isSaved }
+          }
+          return job
+        })
+      }
 
-      // 更新 selectedJobData（如果当前显示的详情就是这个职位）
-      // 注意：不需要更新 selectedJobData，因为 job-detail 组件内部状态已经更新
-      // 如果更新 selectedJobData，会触发 observers 导致重新渲染造成抖动
-      // 组件内部已经通过 setData 更新了 collected 状态，状态是同步的
-      
-      // 批量更新状态（不更新 selectedJobData，避免触发组件重新渲染）
+      const loaded = this.data.hasLoadedTab as boolean[]
+      if (loaded[2]) {
+        this.loadSavedJobsForTab().catch(() => {})
+      }
+
       this.setData({
         jobsByTab: tabs,
         regionCache: cache,
         filteredJobs,
-        // selectedJobData 不更新，组件内部状态已经是最新的
       })
     },
 
@@ -979,7 +910,6 @@ Page({
 
     applyDrawerFilters() {
       const currentState = this.getCurrentTabState()
-      // keep search behavior: if searching, don't re-filter result set here
       if (currentState.isSearching) return
 
       const { jobs } = this.data
@@ -1017,16 +947,22 @@ Page({
 
     onJobTap(e: any) {
       const job = e?.detail?.job || e?.detail
-      const _id = (job?._id || job?.jobId || e?.currentTarget?.dataset?._id) as string
+      const _id = (job?._id || e?.currentTarget?.dataset?._id) as string
 
       if (!_id || !job) return
+
+      // 如果从收藏tab打开，确保isSaved为true，避免UI闪烁
+      let jobData = { ...job }
+      if (this.data.currentTab === 2) {
+        jobData.isSaved = true
+      }
 
       this.setData({ 
         showJobDetail: false,
         selectedJobData: null,
       }, () => {
         this.setData({
-          selectedJobData: job,
+          selectedJobData: jobData,
           showJobDetail: true,
         })
       })

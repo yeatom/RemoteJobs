@@ -62,7 +62,6 @@ Page({
         loading: false,
       })
     } catch (err) {
-      console.error('[article-list] loadArticles failed', err)
       wx.showToast({ title: '加载失败', icon: 'none' })
       this.setData({ loading: false })
     }

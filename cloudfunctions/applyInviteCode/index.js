@@ -1,4 +1,3 @@
-// 云函数入口文件
 const cloud = require('wx-server-sdk')
 
 cloud.init({
@@ -7,7 +6,6 @@ cloud.init({
 
 const db = cloud.database()
 
-// 云函数入口函数
 exports.main = async (event, context) => {
   const wxContext = cloud.getWXContext()
   const openid = wxContext.OPENID
@@ -28,7 +26,6 @@ exports.main = async (event, context) => {
   }
 
   try {
-    // 检查邀请码是否存在且不属于自己
     const inviteUserResult = await db.collection('users').where({
       inviteCode: inviteCode
     }).get()
@@ -48,7 +45,6 @@ exports.main = async (event, context) => {
       }
     }
 
-    // 检查当前用户是否已经使用过邀请码
     const currentUserResult = await db.collection('users').where({
       openid: openid
     }).get()
@@ -62,7 +58,6 @@ exports.main = async (event, context) => {
         }
       }
 
-      // 更新当前用户记录
       await db.collection('users').doc(currentUser._id).update({
         data: {
           invitedBy: inviteUser.openid,
@@ -71,7 +66,6 @@ exports.main = async (event, context) => {
         }
       })
 
-      // 更新邀请者记录（增加邀请计数）
       const inviteCount = inviteUser.inviteCount || 0
       await db.collection('users').doc(inviteUser._id).update({
         data: {
@@ -92,7 +86,6 @@ exports.main = async (event, context) => {
     }
 
   } catch (err) {
-    console.error('applyInviteCode error:', err)
     return {
       success: false,
       message: '应用邀请码失败'
