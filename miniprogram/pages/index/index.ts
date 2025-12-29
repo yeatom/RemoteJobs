@@ -44,8 +44,7 @@ Page({
     lastLoadTime: 0, // 上次分页加载的时间戳，用于防抖
     showDrawer: false, // Controls the visibility of the drawer
     showJobDetail: false, // Controls the visibility of the job detail drawer
-    selectedJobId: '', // The ID of the selected job
-    selectedCollection: '', // The collection name for the selected job
+    selectedJobData: null as any, // The selected job data (includes displayTags)
 
     isSearching: false, // Flag to differentiate between paginated loading and search
 
@@ -627,7 +626,10 @@ Page({
 
 
     closeJobDetail() {
-      this.setData({ showJobDetail: false })
+      this.setData({ 
+        showJobDetail: false,
+        selectedJobData: null,
+      })
     },
 
     onDrawerConfirm(e: WechatMiniprogram.CustomEvent) {
@@ -683,25 +685,17 @@ Page({
     onJobTap(e: any) {
       const job = e?.detail?.job || e?.detail
       const _id = (job?._id || job?.jobId || e?.currentTarget?.dataset?._id) as string
-      
-      // For saved jobs (收藏 tab), use sourceCollection if available
-      let collectionName = ''
-      if (this.data.currentTab === 2 && job?.sourceCollection) {
-        collectionName = job.sourceCollection
-      } else if (this.data.currentTab === 1) {
-        // For 精选 tab, try to determine collection from job type or use all collections
-        // For now, use the first available collection or fallback
-        collectionName = job?.sourceCollection || typeCollectionMap[this.data.currentFilter] || 'domestic_remote_jobs'
-      } else {
-        collectionName = typeCollectionMap[this.data.currentFilter] || 'domestic_remote_jobs'
-      }
 
-      if (!_id) return
+      if (!_id || !job) return
 
-      this.setData({
-        selectedJobId: _id,
-        selectedCollection: collectionName,
-        showJobDetail: true,
+      this.setData({ 
+        showJobDetail: false,
+        selectedJobData: null,
+      }, () => {
+        this.setData({
+          selectedJobData: job,
+          showJobDetail: true,
+        })
       })
   },
 })

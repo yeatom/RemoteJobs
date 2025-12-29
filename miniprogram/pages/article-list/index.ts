@@ -25,7 +25,7 @@ Page({
     title: '',
     loading: true,
     showArticleDetail: false,
-    selectedArticleId: '',
+    selectedArticleData: null as any,
   },
 
   async onLoad(options: any) {
@@ -52,10 +52,12 @@ Page({
       this.setData({
         articles: (res.data || []).map((item: any) => ({
           id: item._id,
+          _id: item._id,
           image: item.image,
           title: item.title,
           description: item.description,
           status: item.status === 'active' || item.status === 'ended' ? item.status : undefined,
+          richText: item.richText,
         })),
         loading: false,
       })
@@ -67,18 +69,24 @@ Page({
   },
 
   onItemTap(e: any) {
-    const articleId = e?.currentTarget?.dataset?.id
-    if (!articleId) return
+    const item = e?.currentTarget?.dataset?.item
+    if (!item) return
+    
     this.setData({
-      showArticleDetail: true,
-      selectedArticleId: articleId,
+      showArticleDetail: false,
+      selectedArticleData: null,
+    }, () => {
+      this.setData({
+        selectedArticleData: item,
+        showArticleDetail: true,
+      })
     })
   },
 
   closeArticleDetail() {
     this.setData({
       showArticleDetail: false,
-      selectedArticleId: '',
+      selectedArticleData: null,
     })
   },
 })

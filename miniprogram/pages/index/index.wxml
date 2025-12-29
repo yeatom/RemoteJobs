@@ -33,7 +33,7 @@
   </view>
 
   <!-- Swiper for animated tab switch; enable touch for swipe -->
-  <swiper current="{{currentTab}}" class="jobs-swiper" indicator-dots="{{false}}" autoplay="{{false}}" circular="{{false}}" duration="300" disable-touch="{{false}}" bindchange="onSwiperChange">
+  <swiper current="{{currentTab}}" class="jobs-swiper" indicator-dots="{{false}}" autoplay="{{false}}" circular="{{false}}" duration="300" easing-function="easeOutCubic" disable-touch="{{false}}" bindchange="onSwiperChange">
     <!-- 公开 tab -->
     <swiper-item>
       <view class="job-list-wrapper">
@@ -138,8 +138,7 @@
   <job-detail
     id="jobDetail"
     show="{{showJobDetail}}"
-    job-id="{{selectedJobId}}"
-    collection="{{selectedCollection}}"
+    job-data="{{selectedJobData}}"
     bind:close="closeJobDetail"
   />
 

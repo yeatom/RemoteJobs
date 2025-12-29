@@ -9,9 +9,9 @@ Component({
       type: Boolean,
       value: false,
     },
-    articleId: {
-      type: String,
-      value: '',
+    articleData: {
+      type: Object,
+      value: undefined,
     },
   },
 
@@ -22,79 +22,73 @@ Component({
   },
 
   observers: {
-    'show, articleId'(show: boolean, articleId: string) {
-      if (show && articleId) {
-        this.fetchArticleDetails(articleId)
+    'show, articleData'(show: boolean, articleData: any) {
+      if (show && articleData && (articleData._id || articleData.id)) {
+        if ((this as any)._animation && typeof (this as any)._animation.stop === 'function') {
+          ;(this as any)._animation.stop()
+          ;(this as any)._animation = null
+        }
+        
+        const windowInfo = wx.getWindowInfo()
+        const screenWidth = windowInfo.windowWidth
+        
+        this.setData({ 
+          animationData: null,
+          drawerTranslateX: screenWidth,
+        })
+        
+        setTimeout(() => {
+          if (this.data.show && this.data.articleData) {
+            this.setData({ drawerTranslateX: 0 })
+          }
+        }, 50)
+        this.setArticleFromData(articleData)
       } else if (!show) {
-        // Reset when closing
+        if ((this as any)._animation && typeof (this as any)._animation.stop === 'function') {
+          ;(this as any)._animation.stop()
+          ;(this as any)._animation = null
+        }
+        
+        const windowInfo = wx.getWindowInfo()
+        const screenWidth = windowInfo.windowWidth
         this.setData({
           article: null,
           htmlNodes: [],
           loading: false,
+          drawerTranslateX: screenWidth,
+          animationData: null,
         })
       }
     },
   },
 
   methods: {
-    open(articleId: string) {
-      if (!articleId) return
-      // Keep API consistent with existing observer setup.
-      this.setData({
-        articleId,
-        show: true,
-      })
-    },
-
     onClose() {
-      this.triggerEvent('close')
+      (this as any).closeDrawer()
     },
 
-    async fetchArticleDetails(id: string) {
-      this.setData({
-        loading: true,
-        article: null,
-      })
-      try {
-        const db = wx.cloud.database()
-        const res = await db.collection('articles').doc(id).get()
-        
-        if (!res.data) {
-          wx.showToast({ title: '内容不存在', icon: 'none' })
-          this.setData({ loading: false })
-          return
+    setArticleFromData(articleData: any) {
+      if (!articleData) return
+
+      let htmlNodes: any = null
+      if (articleData.richText) {
+        htmlNodes = articleData.richText
+      } else {
+        let html = ''
+        if (articleData.title) {
+          html += `<h3 style="margin:0 0 8px 0;font-size:40rpx;font-weight:600;color:#111827;">${articleData.title}</h3>`
         }
-
-        const article = res.data
-
-        // Process richText field
-        // rich-text component supports both HTML string and nodes array
-        let htmlNodes: any = null
-        if (article.richText) {
-          // If richText exists, use it directly (can be string or array)
-          htmlNodes = article.richText
-        } else {
-          // Fallback: build HTML from title and description
-          let html = ''
-          if (article.title) {
-            html += `<h3 style="margin:0 0 8px 0;font-size:40rpx;font-weight:600;color:#111827;">${article.title}</h3>`
-          }
-          if (article.description) {
-            html += `<div style="margin:0 0 16px 0;font-size:28rpx;color:#374151;line-height:1.6;">${article.description}</div>`
-          }
-          htmlNodes = html || null
+        if (articleData.description) {
+          html += `<div style="margin:0 0 16px 0;font-size:28rpx;color:#374151;line-height:1.6;">${articleData.description}</div>`
         }
-
-        this.setData({
-          article,
-          htmlNodes,
-          loading: false,
-        })
-      } catch (err) {
-        console.error('[article-detail] fetchArticleDetails failed', err)
-        wx.showToast({ title: '加载失败', icon: 'none' })
-        this.setData({ loading: false })
+        htmlNodes = html || null
       }
+
+      this.setData({
+        article: articleData,
+        htmlNodes,
+        loading: false,
+      })
     },
   },
 })

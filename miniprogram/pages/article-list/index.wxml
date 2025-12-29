@@ -2,7 +2,7 @@
   <view class="content">
     <view wx:if="{{loading}}" class="loading">加载中...</view>
     <view wx:else class="article-list">
-      <view wx:for="{{articles}}" wx:key="id" class="article-card" bindtap="onItemTap" data-id="{{item.id}}">
+      <view wx:for="{{articles}}" wx:key="id" class="article-card" bindtap="onItemTap" data-item="{{item}}">
         <view wx:if="{{item.status}}" class="article-badge {{'article-badge-' + item.status}}">
           <text class="article-badge-text">{{item.status === 'active' ? '报名中' : '已结束'}}</text>
         </view>
@@ -19,7 +19,7 @@
   <article-detail
     id="articleDetail"
     show="{{showArticleDetail}}"
-    article-id="{{selectedArticleId}}"
+    article-data="{{selectedArticleData}}"
     bind:close="closeArticleDetail"
   />
 </view>

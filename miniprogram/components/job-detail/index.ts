@@ -46,13 +46,9 @@ Component({
       type: Boolean,
       value: false,
     },
-    jobId: {
-      type: String,
-      value: '',
-    },
-    collection: {
-      type: String,
-      value: '',
+    jobData: {
+      type: Object,
+      value: undefined,
     },
   },
 
@@ -65,35 +61,90 @@ Component({
   },
 
   observers: {
-    'show, jobId, collection'(show: boolean, jobId: string, collection: string) {
-      if (show && jobId && collection) {
-        this.fetchJobDetails(jobId, collection)
+    'show, jobData'(show: boolean, jobData: any) {
+      if (show && jobData && jobData._id) {
+        if ((this as any)._animation && typeof (this as any)._animation.stop === 'function') {
+          ;(this as any)._animation.stop()
+          ;(this as any)._animation = null
+        }
+        
+        const windowInfo = wx.getWindowInfo()
+        const screenWidth = windowInfo.windowWidth
+        
+        this.setData({ 
+          animationData: null,
+          drawerTranslateX: screenWidth,
+        })
+        
+        setTimeout(() => {
+          if (this.data.show && this.data.jobData) {
+            this.setData({ drawerTranslateX: 0 } as any)
+          }
+        }, 50)
+        this.setJobFromData(jobData)
       } else if (!show) {
-        // Reset when closing
+        if ((this as any)._animation && typeof (this as any)._animation.stop === 'function') {
+          ;(this as any)._animation.stop()
+          ;(this as any)._animation = null
+        }
+        
+        const windowInfo = wx.getWindowInfo()
+        const screenWidth = windowInfo.windowWidth
         this.setData({
           job: null,
           loading: false,
           collected: false,
           collectBusy: false,
           collectDocId: '',
+          drawerTranslateX: screenWidth,
+          animationData: null,
         })
       }
     },
   },
 
   methods: {
-    open(jobId: string, collection: string) {
-      if (!jobId || !collection) return
-      // Keep API consistent with existing observer setup.
+    async setJobFromData(jobData: any) {
+      const jobId = jobData._id || jobData.jobId
+      if (!jobId) return
+      
+      let displayTags = jobData.displayTags
+      if (!displayTags || !Array.isArray(displayTags) || displayTags.length === 0) {
+        const tags = (jobData.summary || '')
+          .split(/[,，]/)
+          .map((t: string) => t.trim().replace(/[。！!.,，、；;]+$/g, '').trim())
+          .filter((t: string) => t && t.length > 1)
+
+        displayTags = [...tags]
+        if (jobData.source_name && typeof jobData.source_name === 'string' && jobData.source_name.trim()) {
+          const sourceTag = jobData.source_name.trim()
+          if (displayTags.length >= 1) {
+            displayTags.splice(1, 0, sourceTag)
+          } else {
+            displayTags.push(sourceTag)
+          }
+        }
+      }
+
       this.setData({
-        jobId,
-        collection,
-        show: true,
+        job: {
+          ...jobData,
+          displayTags,
+          richDescription: formatDescription(jobData.description),
+        } as JobDetailItem & { richDescription: string },
+        loading: false,
       })
+
+      try {
+        const isCollected = await this.checkCollectState(jobId, true)
+        this.setData({ collected: isCollected })
+      } catch (err) {
+        this.setData({ collected: false })
+      }
     },
 
     onClose() {
-      this.triggerEvent('close')
+      (this as any).closeDrawer()
     },
 
     async toggleCollect() {
@@ -125,7 +176,6 @@ Component({
           icon: 'none',
         })
       } catch (err) {
-        console.error('[job-detail] toggleCollect failed', err)
         wx.showToast({ title: '操作失败', icon: 'none' })
       } finally {
         setTimeout(() => {
@@ -134,50 +184,6 @@ Component({
       }
     },
 
-    async fetchJobDetails(id: string, collection: string) {
-      this.setData({
-        loading: true,
-        job: null,
-      })
-      try {
-        const db = wx.cloud.database()
-        const collectStatePromise = this.checkCollectState(id, true)
-        const res = await db.collection(collection).doc(id).get()
-
-        // Process tags similar to index page
-        const job = res.data as any
-        const tags = (job.summary || '')
-          .split(/[,，]/)
-          .map((t: string) => t.trim().replace(/[。！!.,，、；;]+$/g, '').trim())
-          .filter((t: string) => t && t.length > 1)
-
-        const displayTags = [...tags]
-        if (job.source_name && typeof job.source_name === 'string' && job.source_name.trim()) {
-          const sourceTag = job.source_name.trim()
-          if (displayTags.length >= 1) {
-            displayTags.splice(1, 0, sourceTag)
-          } else {
-            displayTags.push(sourceTag)
-          }
-        }
-
-        const isCollected = await collectStatePromise
-        this.setData({
-          job: {
-            ...job,
-            tags,
-            displayTags,
-            richDescription: formatDescription(job.description),
-          } as JobDetailItem & { richDescription: string },
-          loading: false,
-          collected: isCollected,
-        })
-      } catch (err) {
-        console.error('[job-detail] fetchJobDetails failed', err)
-        wx.showToast({ title: '加载失败', icon: 'none' })
-        this.setData({ loading: false })
-      }
-    },
 
     onCopyLink() {
       if (!this.data.job?.source_url) return
@@ -253,7 +259,6 @@ Component({
         } else {
           this.setData({ collectDocId: '' })
         }
-        console.warn('[job-detail] checkCollectState failed', err)
         return false
       }
     },

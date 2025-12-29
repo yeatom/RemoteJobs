@@ -1,38 +1,32 @@
 /* miniprogram/components/article-detail/index.wxss */
-.detail-mask {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background-color: rgba(0, 0, 0, 0.4);
-  z-index: 2999;
-}
-
 .detail-drawer {
   position: fixed;
   top: 0;
-  right: -100%; /* Start off-screen from right */
+  right: 0;
   width: 100%;
   height: 100%;
   background-color: #ffffff;
   z-index: 3000;
-  transition: right 0.3s ease;
   box-shadow: -2rpx 0 10rpx rgba(0, 0, 0, 0.1);
   display: flex;
   flex-direction: column;
   /* Enable hardware acceleration for smooth animation */
   will-change: transform;
-  transform: translate3d(0, 0, 0);
-  -webkit-transform: translate3d(0, 0, 0);
+  /* Transform is controlled by inline style */
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .detail-drawer-open {
-  right: 0; /* Slide in from right */
+  /* Class is used for state tracking, transform is controlled by inline style */
 }
 
 .detail-drawer-swiping {
-  transition: none; /* Disable transition during swipe for smooth dragging */
+  transition: none !important; /* Disable transition during swipe for smooth dragging */
+}
+
+/* When not swiping, enable smooth transition for transform */
+.detail-drawer:not(.detail-drawer-swiping) {
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .detail-header {

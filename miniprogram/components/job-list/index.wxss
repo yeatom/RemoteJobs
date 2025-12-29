@@ -28,7 +28,7 @@
 }
 
 .job-main {
-  margin-bottom: 20rpx;
+  margin-bottom: 0;
 }
 
 .job-title-row {
@@ -69,7 +69,8 @@
 }
 
 .job-tags {
-  margin: 10rpx 0;
+  margin-top: 15rpx;
+  margin-bottom: 5rpx;
   white-space: nowrap;
   -ms-overflow-style: none;
   scrollbar-width: none;

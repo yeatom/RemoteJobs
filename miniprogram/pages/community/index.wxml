@@ -19,8 +19,7 @@
             wx:key="id"
             class="article-card"
             bindtap="onArticleTap"
-            data-article-id="{{article.id}}"
-            data-item-id="{{item.id}}"
+            data-item="{{item}}"
           >
             <view wx:if="{{item.status}}" class="article-badge {{'article-badge-' + item.status}}">
               <text class="article-badge-text">{{item.status === 'active' ? ui.statusActive : ui.statusEnded}}</text>
@@ -40,7 +39,7 @@
   <article-detail
     id="articleDetail"
     show="{{showArticleDetail}}"
-    article-id="{{selectedArticleId}}"
+    article-data="{{selectedArticleData}}"
     bind:close="closeArticleDetail"
   />
 </view>

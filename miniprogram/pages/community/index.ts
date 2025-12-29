@@ -34,7 +34,7 @@ Page({
     articles: [] as Article[],
     loading: true,
     showArticleDetail: false,
-    selectedArticleId: '',
+    selectedArticleData: null as any,
   },
 
   onLoad: function () {
@@ -138,10 +138,10 @@ Page({
           title: i18nKey ? t(i18nKey as any, lang) : type,
           items: items.map((item: any) => ({
             id: item._id,
+            _id: item._id,
             image: item.image,
             title: item.title,
             description: item.description,
-            // Only use status field from database ('active' or 'ended')
             status: item.status === 'active' || item.status === 'ended' ? item.status : undefined,
             richText: item.richText,
           }))
@@ -227,20 +227,22 @@ Page({
     wx.navigateTo({ url: `/pages/article-list/index?id=${id}` })
   },
 
-  // Open specific article (opens article detail drawer)
   onArticleTap(e: any) {
-    const itemId = e?.currentTarget?.dataset?.itemId
-    if (!itemId) return // itemId is now the article _id from database
+    const item = e?.currentTarget?.dataset?.item
+    if (!item) return
     
-    // Open article detail drawer
-    const articleDetail = this.selectComponent('#articleDetail')
-    if (articleDetail) {
-      articleDetail.open(itemId)
-      this.setData({ showArticleDetail: true, selectedArticleId: itemId })
-    }
+    this.setData({ 
+      showArticleDetail: false,
+      selectedArticleData: null,
+    }, () => {
+      this.setData({
+        selectedArticleData: item,
+        showArticleDetail: true,
+      })
+    })
   },
 
   closeArticleDetail() {
-    this.setData({ showArticleDetail: false, selectedArticleId: '' })
+    this.setData({ showArticleDetail: false, selectedArticleData: null })
   },
 })
