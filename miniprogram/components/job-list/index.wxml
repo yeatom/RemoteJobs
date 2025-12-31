@@ -24,9 +24,10 @@
             <text class="job-title">{{item.title}}</text>
             <text class="job-time">{{item.createdAt}}</text>
           </view>
-          <view class="job-meta" wx:if="{{(item.team && item.team !== '未知公司') || item.salary}}">
-            <text wx:if="{{item.team && item.team !== '未知公司'}}" class="job-meta-item">{{item.team}}</text>
-            <text wx:if="{{(item.team && item.team !== '未知公司') && item.salary}}" class="job-meta-dot">·</text>
+          <view class="job-meta" wx:if="{{(isAIEnglish && item.source_name) || (!isAIEnglish && item.team && item.team !== '未知公司') || item.salary}}">
+            <text wx:if="{{isAIEnglish && item.source_name}}" class="job-meta-item">From {{item.source_name}}</text>
+            <text wx:if="{{!isAIEnglish && item.team && item.team !== '未知公司'}}" class="job-meta-item">{{item.team}}</text>
+            <text wx:if="{{((isAIEnglish && item.source_name) || (!isAIEnglish && item.team && item.team !== '未知公司')) && item.salary}}" class="job-meta-dot">·</text>
             <text wx:if="{{item.salary}}" class="job-meta-item">{{item.salary}}</text>
           </view>
           <scroll-view enhanced="true" class="job-tags" scroll-x="true" show-scrollbar="{{false}}">

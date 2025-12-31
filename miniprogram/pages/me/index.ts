@@ -2,7 +2,7 @@
 
 import { isAiChineseUnlocked } from '../../utils/subscription'
 import type { ResolvedSavedJob } from '../../utils/job'
-import { mapJobs } from '../../utils/job'
+import { mapJobs, getJobFieldsByLanguage, mapJobFieldsToStandard } from '../../utils/job'
 import { normalizeLanguage, t, type AppLanguage } from '../../utils/i18n'
 import { attachLanguageAware } from '../../utils/languageAware'
 import { toDateMs } from '../../utils/time'
@@ -54,6 +54,11 @@ Page({
         const app = getApp<IAppOption>() as any
         const lang = normalizeLanguage(app?.globalData?.language)
         wx.setNavigationBarTitle({ title: t('app.navTitle', lang) })
+        
+        // 如果收藏列表是打开的，重新加载收藏数据
+        if (this.data.showSavedSheet && this.data.savedSheetOpen) {
+          this.loadSavedJobs()
+        }
       },
     })
   },
@@ -123,13 +128,24 @@ Page({
       emptyFavorites: t('me.emptyFavorites', lang),
       comingSoon: t('me.comingSoon', lang),
       langDefault: t('me.langDefault', lang),
+      langEnglish: t('me.langEnglish', lang),
       langAIChinese: t('me.langAIChinese', lang),
       langAIEnglish: t('me.langAIEnglish', lang),
+      memberBadge: t('me.memberBadge', lang),
+      uploadAvatar: t('me.uploadAvatar', lang),
+      editNickname: t('me.editNickname', lang),
+      memberExpiredDate: t('me.memberExpiredDate', lang),
     }
 
+    // Chinese 表示中文（使用原始字段）
+    // English 表示英文
+    // AIChinese 表示AI翻译岗位-中文（使用翻译字段）
+    // AIEnglish 表示AI翻译岗位-英文（使用翻译字段）
     this.setData({
       currentLanguage: lang === 'AIChinese' ? 'AIChinese' :
-                      lang === 'AIEnglish' ? 'AIEnglish' : 'Chinese',
+                      lang === 'AIEnglish' ? 'AIEnglish' :
+                      lang === 'English' ? 'English' :
+                      'Chinese',  // 默认显示为中文选项
       ui,
     })
 
@@ -274,12 +290,60 @@ Page({
         return
       }
 
+      // 获取用户语言设置并确定字段名
+      const app = getApp<IAppOption>() as any
+      const userLanguage = normalizeLanguage(app?.globalData?.language || 'Chinese')
+      const { titleField, summaryField, descriptionField, salaryField, sourceNameField } = getJobFieldsByLanguage(userLanguage)
+
       // 从 remote_jobs collection 查询所有收藏的职位
       const results = await Promise.all(
         jobIds.map(async (id) => {
-          try {
-            const res = await db.collection('remote_jobs').doc(id).get()
-            return { id, data: res.data }
+            try {
+              let query: any = db.collection('remote_jobs').doc(id)
+              
+              // 根据语言选择字段，只查询需要的字段
+              const fieldSelection: any = {
+                _id: true,
+                createdAt: true,
+                source_url: true,
+                team: true,
+                type: true,
+                tags: true,
+                [titleField]: true,
+                [summaryField]: true,
+                [descriptionField]: true,
+              }
+              
+              // 根据语言选择 salary 和 source_name 字段
+              if (salaryField) {
+                fieldSelection[salaryField] = true
+                if (userLanguage === 'AIEnglish' && salaryField !== 'salary') {
+                  fieldSelection.salary = true
+                }
+              } else {
+                fieldSelection.salary = true
+              }
+              
+              if (sourceNameField) {
+                fieldSelection[sourceNameField] = true
+                if (userLanguage === 'AIEnglish' && sourceNameField !== 'source_name') {
+                  fieldSelection.source_name = true
+                }
+              } else {
+                fieldSelection.source_name = true
+              }
+              
+              query = query.field(fieldSelection)
+              
+            const res = await query.get()
+            let jobData = res.data
+            
+            // 将查询的字段名映射回标准字段名
+            if (jobData) {
+              jobData = mapJobFieldsToStandard(jobData, titleField, summaryField, descriptionField, salaryField, sourceNameField)
+            }
+            
+            return { id, data: jobData }
           } catch {
             return null
           }
@@ -309,7 +373,7 @@ Page({
       }
 
       // normalize tags/displayTags
-      const normalized = mapJobs(merged) as any
+      const normalized = mapJobs(merged, userLanguage) as any
       this.setData({ savedJobs: normalized })
     } catch (err) {
       wx.showToast({ title: '加载收藏失败', icon: 'none' })
@@ -367,12 +431,18 @@ Page({
     const value = (e.currentTarget.dataset.value || '') as string
     if (!value) return
 
+    // 中文选项（value='Chinese'）→ 设置为 'Chinese'（使用 title 等原始字段）
+    // 英文选项（value='English'）→ 设置为 'English'
+    // AI翻译岗位-中文选项（value='AIChinese'）→ 设置为 'AIChinese'（使用 title_chinese 等翻译字段）
+    // AI翻译岗位-英文选项（value='AIEnglish'）→ 设置为 'AIEnglish'（使用 title_english 等翻译字段）
     const lang: AppLanguage = value === 'AIChinese' ? 'AIChinese' :
-                             value === 'AIEnglish' ? 'AIEnglish' : 'Chinese'
+                             value === 'AIEnglish' ? 'AIEnglish' :
+                             value === 'English' ? 'English' :
+                             'Chinese'  // 默认使用原始字段
     const app = getApp<IAppOption>() as any
 
     // Check if AI features are unlocked
-    if ((lang === 'AIChinese' || lang === 'AIEnglish') && !this.data.isAiChineseUnlocked) {
+    if ((value === 'AIChinese' || value === 'AIEnglish') && !this.data.isAiChineseUnlocked) {
       this.closeLanguageSheetImmediate()
       wx.showModal({
         title: 'AI翻译功能 🔒',
@@ -407,6 +477,11 @@ Page({
     try {
       await Promise.all([minDuration, action])
       wx.hideLoading()
+      wx.showToast({ 
+        title: '语言已切换', 
+        icon: 'success',
+        duration: 1500
+      })
     } catch (err) {
       try {
         await action

@@ -1,5 +1,5 @@
 import type { JobItem, ResolvedSavedJob } from '../../utils/job'
-import { mapJobs } from '../../utils/job'
+import { mapJobs, getJobFieldsByLanguage, mapJobFieldsToStandard } from '../../utils/job'
 import { normalizeLanguage, t } from '../../utils/i18n'
 import { attachLanguageAware } from '../../utils/languageAware'
 import { toDateMs } from '../../utils/time'
@@ -76,6 +76,11 @@ Page({
     }>,
 
     ui: {
+      tabPublic: '公开',
+      tabFeatured: '精选',
+      tabSaved: '收藏',
+      featuredSubscribeText: '订阅后查看精选岗位',
+      featuredLockedTitle: '精选岗位 🔒',
       searchPlaceholder: '搜索职位名称..',
       filterLabel: '筛选',
       saveMenuLabel: '功能',
@@ -112,6 +117,25 @@ Page({
         const app = getApp<IAppOption>() as any
         const lang = normalizeLanguage(app?.globalData?.language)
         wx.setNavigationBarTitle({ title: t('app.navTitle', lang) })
+        // 语言变化时刷新当前显示的 tab 的岗位数据
+        const currentTab = this.data.currentTab
+        if (currentTab !== undefined) {
+          // 标记所有 tab 为未加载，强制重新加载
+          const loaded = this.data.hasLoadedTab as boolean[]
+          loaded[0] = false
+          loaded[1] = false
+          loaded[2] = false
+          this.setData({ hasLoadedTab: loaded })
+          
+          // 重新加载当前 tab 的数据
+          if (currentTab === 2) {
+            // 收藏 tab
+            this.loadSavedJobsForTab(true, true).catch(() => {})
+          } else {
+            // 公开或精选 tab
+            this.loadJobsForTab(currentTab, true).catch(() => {})
+          }
+        }
         },
       })
 
@@ -379,6 +403,11 @@ Page({
 
       this.setData({
         ui: {
+          tabPublic: t('jobs.tabPublic', lang),
+          tabFeatured: t('jobs.tabFeatured', lang),
+          tabSaved: t('jobs.tabSaved', lang),
+          featuredSubscribeText: t('jobs.featuredSubscribeText', lang),
+          featuredLockedTitle: t('jobs.featuredLockedTitle', lang),
           searchPlaceholder: t('jobs.searchPlaceholder', lang),
           filterLabel: t('jobs.filterLabel', lang),
           emptyFavorites: t('me.emptyFavorites', lang),
@@ -463,12 +492,17 @@ Page({
         const db = wx.cloud.database()
         const currentState = this.getCurrentTabState()
 
+        // 获取用户语言设置并确定字段名
+        const app = getApp<IAppOption>() as any
+        const userLanguage = normalizeLanguage(app?.globalData?.language || 'Chinese')
+        const { titleField, summaryField, descriptionField, salaryField, sourceNameField } = getJobFieldsByLanguage(userLanguage)
+
         const escapedKeyword = keyword.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
         const searchRegex = db.RegExp({ regexp: escapedKeyword, options: 'i' })
 
         // 构建 where 条件，同时包含搜索关键词和筛选条件
         const whereCondition: any = {
-          title: searchRegex,
+          [titleField]: searchRegex,
         }
         
         // 应用区域筛选（单选）
@@ -498,11 +532,48 @@ Page({
           query = query.where(whereCondition)
         }
         
+        // 根据语言选择字段，只查询需要的字段
+        const fieldSelection: any = {
+          _id: true,
+          createdAt: true,
+          source_url: true,
+          team: true,
+          type: true,
+          tags: true,
+          [titleField]: true,
+          [summaryField]: true,
+          [descriptionField]: true,
+        }
+        
+        // 根据语言选择 salary 和 source_name 字段
+        if (salaryField) {
+          fieldSelection[salaryField] = true
+          if (userLanguage === 'AIEnglish' && salaryField !== 'salary') {
+            fieldSelection.salary = true
+          }
+        } else {
+          fieldSelection.salary = true
+        }
+        
+        if (sourceNameField) {
+          fieldSelection[sourceNameField] = true
+          if (userLanguage === 'AIEnglish' && sourceNameField !== 'source_name') {
+            fieldSelection.source_name = true
+          }
+        } else {
+          fieldSelection.source_name = true
+        }
+        
+        query = query.field(fieldSelection)
+        
         const res = await query
           .orderBy('createdAt', 'desc')
           .get()
 
         let allJobs = res.data || []
+        
+        // 将查询的字段名映射回标准字段名
+        allJobs = allJobs.map((job: any) => mapJobFieldsToStandard(job, titleField, summaryField, descriptionField, salaryField, sourceNameField))
         
         // 应用薪资筛选（如果指定了薪资条件）
         const salary = currentState.drawerFilter?.salary || '全部'
@@ -515,7 +586,7 @@ Page({
         
         // 分页处理（在薪资筛选之后）
         const paginatedJobs = allJobs.slice(skip, skip + this.data.pageSize)
-        const mappedJobs = mapJobs(paginatedJobs) as JobItem[]
+        const mappedJobs = mapJobs(paginatedJobs, userLanguage) as JobItem[]
         const mergedJobs = reset ? mappedJobs : [...existingJobs, ...mappedJobs]
 
         const tabs = this.data.jobsByTab as JobItem[][]
@@ -581,6 +652,11 @@ Page({
           filterParams.salary = salary
         }
         
+        // 获取当前语言设置并传递给云函数
+        const app = getApp<IAppOption>() as any
+        const currentLang = normalizeLanguage(app?.globalData?.language || 'Chinese')
+        filterParams.language = currentLang
+        
         const res = await wx.cloud.callFunction({
           name: 'getJobList',
           data: {
@@ -592,7 +668,7 @@ Page({
         
         if (res.result && (res.result as any).ok) {
           const jobs = (res.result as any).jobs || []
-          const newJobs = mapJobs(jobs) as JobItem[]
+          const newJobs = mapJobs(jobs, currentLang) as JobItem[]
           const existing = (this.data.jobsByTab[tabIndex] || []) as JobItem[]
           const merged = reset ? newJobs : [...existing, ...newJobs]
 
@@ -719,12 +795,59 @@ Page({
           return
         }
 
+        // 获取用户语言设置并确定字段名
+        const userLanguage = normalizeLanguage(app?.globalData?.language || 'Chinese')
+        const { titleField, summaryField, descriptionField, salaryField, sourceNameField } = getJobFieldsByLanguage(userLanguage)
+
         // 从 remote_jobs collection 查询所有收藏的职位
         const results = await Promise.all(
           jobIds.map(async (id) => {
             try {
-              const res = await db.collection('remote_jobs').doc(id).get()
-              return { id, data: res.data }
+              let query: any = db.collection('remote_jobs').doc(id)
+              
+              // 根据语言选择字段，只查询需要的字段
+              const fieldSelection: any = {
+                _id: true,
+                createdAt: true,
+                source_url: true,
+                team: true,
+                type: true,
+                tags: true,
+                [titleField]: true,
+                [summaryField]: true,
+                [descriptionField]: true,
+              }
+              
+              // 根据语言选择 salary 和 source_name 字段
+              if (salaryField) {
+                fieldSelection[salaryField] = true
+                if (userLanguage === 'AIEnglish' && salaryField !== 'salary') {
+                  fieldSelection.salary = true
+                }
+              } else {
+                fieldSelection.salary = true
+              }
+              
+              if (sourceNameField) {
+                fieldSelection[sourceNameField] = true
+                if (userLanguage === 'AIEnglish' && sourceNameField !== 'source_name') {
+                  fieldSelection.source_name = true
+                }
+              } else {
+                fieldSelection.source_name = true
+              }
+              
+              query = query.field(fieldSelection)
+              
+              const res = await query.get()
+              let jobData = res.data
+              
+              // 将查询的字段名映射回标准字段名
+              if (jobData) {
+                jobData = mapJobFieldsToStandard(jobData, titleField, summaryField, descriptionField, salaryField, sourceNameField)
+              }
+              
+              return { id, data: jobData }
             } catch {
               return null
             }
@@ -752,7 +875,7 @@ Page({
           })
         }
 
-        const normalized = mapJobs(merged) as JobItem[]
+        const normalized = mapJobs(merged, userLanguage) as JobItem[]
         const tabs = this.data.jobsByTab as JobItem[][]
         tabs[2] = reset ? normalized : [...existingJobs, ...normalized]
         const loaded = this.data.hasLoadedTab as boolean[]
@@ -780,7 +903,7 @@ Page({
 
     onFeaturedSubscribeTap() {
       wx.showModal({
-        title: '精选岗位 🔒',
+        title: this.data.ui.featuredLockedTitle || '精选岗位 🔒',
         content: '该功能需要付费解锁。',
         confirmText: '去付费',
         cancelText: '取消',

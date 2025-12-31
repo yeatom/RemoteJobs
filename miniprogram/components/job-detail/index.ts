@@ -1,4 +1,5 @@
 // miniprogram/components/job-detail/index.ts
+import { normalizeLanguage } from '../../utils/i18n'
 const swipeToClose = require('../../behaviors/swipe-to-close')
 
 const SAVED_COLLECTION = 'saved_jobs'
@@ -58,6 +59,30 @@ Component({
     saved: false,
     saveBusy: false,
     saveDocId: '',
+    isAIEnglish: false, // 是否为 AIEnglish 语言
+  },
+
+  lifetimes: {
+    attached() {
+      const app = getApp<IAppOption>() as any
+      const updateLanguage = () => {
+        const lang = normalizeLanguage(app?.globalData?.language)
+        this.setData({ isAIEnglish: lang === 'AIEnglish' })
+      }
+      
+      ;(this as any)._langListener = updateLanguage
+      if (app?.onLanguageChange) app.onLanguageChange(updateLanguage)
+      
+      // 初始化
+      updateLanguage()
+    },
+
+    detached() {
+      const app = getApp<IAppOption>() as any
+      const listener = (this as any)._langListener
+      if (listener && app?.offLanguageChange) app.offLanguageChange(listener)
+      ;(this as any)._langListener = null
+    },
   },
 
   observers: {
@@ -126,7 +151,8 @@ Component({
           .filter((t: string) => t && t.length > 1)
 
         displayTags = [...tags]
-        if (jobData.source_name && typeof jobData.source_name === 'string' && jobData.source_name.trim()) {
+        // AIEnglish 时不插入 source_name 到 tags
+        if (!this.data.isAIEnglish && jobData.source_name && typeof jobData.source_name === 'string' && jobData.source_name.trim()) {
           const sourceTag = jobData.source_name.trim()
           if (displayTags.length >= 1) {
             displayTags.splice(1, 0, sourceTag)

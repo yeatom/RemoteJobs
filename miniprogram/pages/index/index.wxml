@@ -3,9 +3,9 @@
   <!-- Internal tabs for job list (公开 / 精选 / 收藏) -->
   <view class="jobs-tabs">
     <view class="tab-slider tab-slider-{{currentTab}}"></view>
-    <view class="tab {{currentTab === 0 ? 'tab-active' : ''}}" data-idx="0" bindtap="onTabTap">公开</view>
-    <view class="tab {{currentTab === 1 ? 'tab-active' : ''}}" data-idx="1" bindtap="onTabTap">精选</view>
-    <view class="tab {{currentTab === 2 ? 'tab-active' : ''}}" data-idx="2" bindtap="onTabTap">收藏</view>
+    <view class="tab {{currentTab === 0 ? 'tab-active' : ''}}" data-idx="0" bindtap="onTabTap">{{ui.tabPublic}}</view>
+    <view class="tab {{currentTab === 1 ? 'tab-active' : ''}}" data-idx="1" bindtap="onTabTap">{{ui.tabFeatured}}</view>
+    <view class="tab {{currentTab === 2 ? 'tab-active' : ''}}" data-idx="2" bindtap="onTabTap">{{ui.tabSaved}}</view>
   </view>
 
   <!-- Swiper for animated tab switch; enable touch for swipe -->
@@ -144,7 +144,7 @@
         </view>
         <!-- Subscription overlay for 精选 tab when expired - covers search-bar + job-list -->
         <view wx:if="{{currentTab === 1 && !isFeaturedUnlocked}}" class="featured-overlay">
-          <view class="featured-overlay-text" bindtap="onFeaturedSubscribeTap">订阅后查看精选岗位</view>
+          <view class="featured-overlay-text" bindtap="onFeaturedSubscribeTap">{{ui.featuredSubscribeText}}</view>
         </view>
       </view>
     </swiper-item>

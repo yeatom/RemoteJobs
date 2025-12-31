@@ -1,5 +1,6 @@
 // Article list page - shows list of articles for a given type
 import { normalizeLanguage, t } from '../../utils/i18n'
+import { attachLanguageAware } from '../../utils/languageAware'
 import type { Article } from '../../utils/article'
 
 // Map article id to database type
@@ -32,12 +33,26 @@ Page({
     const id = options.id || ''
     this.setData({ articleId: id })
 
-    const app: any = getApp()
-    const lang = normalizeLanguage(app?.globalData?.language)
-    const i18nKey = articleIdToI18nKey[id]
-    const title = i18nKey ? t(i18nKey as any, lang) : id
-    this.setData({ title })
-    wx.setNavigationBarTitle({ title })
+    // 设置导航栏标题的辅助函数
+    const updateTitle = () => {
+      const app: any = getApp()
+      const lang = normalizeLanguage(app?.globalData?.language)
+      const i18nKey = articleIdToI18nKey[id]
+      const title = i18nKey ? t(i18nKey as any, lang) : id
+      this.setData({ title })
+      wx.setNavigationBarTitle({ title })
+    }
+
+    // 初始化标题
+    updateTitle()
+
+    // 添加语言监听
+    ;(this as any)._langDetach = attachLanguageAware(this, {
+      onLanguageRevive: () => {
+        // 语言变化时更新导航栏标题
+        updateTitle()
+      },
+    })
 
     const type = articleIdToType[id]
     if (!type) {
@@ -65,6 +80,12 @@ Page({
       wx.showToast({ title: '加载失败', icon: 'none' })
       this.setData({ loading: false })
     }
+  },
+
+  onUnload() {
+    const fn = (this as any)._langDetach
+    if (typeof fn === 'function') fn()
+    ;(this as any)._langDetach = null
   },
 
   onItemTap(e: any) {

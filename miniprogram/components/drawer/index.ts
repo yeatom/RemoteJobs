@@ -308,10 +308,12 @@ Component({
       const app = getApp<IAppOption>() as any
       const lang = normalizeLanguage(app?.globalData?.language)
 
-      const displaySalaryOptions = (this.data.salaryOptions as SalaryKey[]).map((k) => (lang === 'English' ? EN_SALARY[k] : k))
-      const displayExperienceOptions = (this.data.experienceOptions as ExpKey[]).map((k) => (lang === 'English' ? EN_EXP[k] : k))
+      // AIEnglish 和 English 都使用英文翻译
+      const useEnglish = lang === 'English' || lang === 'AIEnglish'
+      const displaySalaryOptions = (this.data.salaryOptions as SalaryKey[]).map((k) => (useEnglish ? EN_SALARY[k] : k))
+      const displayExperienceOptions = (this.data.experienceOptions as ExpKey[]).map((k) => (useEnglish ? EN_EXP[k] : k))
       const displayRegionOptions = (this.data.regionOptions || []).map((k) => {
-        if (lang === 'English') {
+        if (useEnglish) {
           const map: Record<string, string> = { '全部': 'All', '国内': 'Domestic', '国外': 'Abroad', 'web3': 'Web3' }
           return map[k] || k
         }
@@ -319,16 +321,25 @@ Component({
       })
       const displaySourceOptions = (this.data.sourceOptions || []).map((k) => k) // 来源暂时只有中文
 
+      // 更新导航 tab 的 label
+      const navTabs = [
+        { key: 'salary', label: t('drawer.salary', lang) },
+        { key: 'experience', label: t('drawer.experience', lang) },
+        { key: 'region', label: t('drawer.regionTitle', lang) },
+        { key: 'source', label: t('drawer.sourceTitle', lang) },
+      ]
+
       this.setData({
         displaySalaryOptions,
         displayExperienceOptions,
         displayRegionOptions,
         displaySourceOptions,
+        navTabs,
         ui: {
           salaryTitle: t('drawer.salary', lang),
           experienceTitle: t('drawer.experience', lang),
-          regionTitle: '工作类型',
-          sourceTitle: '招聘软件',
+          regionTitle: t('drawer.regionTitle', lang),
+          sourceTitle: t('drawer.sourceTitle', lang),
           clear: t('drawer.clear', lang),
           confirm: t('drawer.confirm', lang),
         },

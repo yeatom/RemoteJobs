@@ -23,7 +23,7 @@
           <view class="nickname-container">
           <text class="nickname">{{userInfo ? userInfo.nickName : '已登录'}}</text>
             <view wx:if="{{isMember}}" class="member-badge">
-              <text class="member-text">丈月尺会员</text>
+              <text class="member-text">{{ui.memberBadge}}</text>
             </view>
           </view>
         </block>
@@ -81,12 +81,22 @@
         <view class="language-item {{currentLanguage === 'Chinese' ? 'language-item-active' : ''}}" data-value="Chinese" bindtap="onLanguageSelect">
           <text class="language-item-text">{{ui.langDefault}}</text>
         </view>
-        <view class="language-item {{currentLanguage === 'AIChinese' ? 'language-item-active' : ''}}" data-value="AIChinese" bindtap="onLanguageSelect">
-          <text class="language-item-text">{{ui.langAIChinese}}<text wx:if="{{!isAiChineseUnlocked}}"> 🔒</text></text>
+        <view class="language-item {{currentLanguage === 'English' ? 'language-item-active' : ''}}" data-value="English" bindtap="onLanguageSelect">
+          <text class="language-item-text">{{ui.langEnglish}}</text>
         </view>
-        <!-- AI岗位全英文功能暂时隐藏，后续开发 -->
-        <view wx:if="{{false}}" class="language-item {{currentLanguage === 'AIEnglish' ? 'language-item-active' : ''}}" data-value="AIEnglish" bindtap="onLanguageSelect">
-          <text class="language-item-text">{{ui.langAIEnglish}}<text wx:if="{{!isAiChineseUnlocked}}"> 🔒</text></text>
+        <view class="language-item {{currentLanguage === 'AIChinese' ? 'language-item-active' : ''}}" data-value="AIChinese" bindtap="onLanguageSelect">
+          <view class="language-item-text">
+            <text>{{ui.langAIChinese}}</text>
+            <image class="member-star-icon" src="/assets/icons/four-pointed-start.png" mode="aspectFit" />
+            <text wx:if="{{!isAiChineseUnlocked}}"> 🔒</text>
+          </view>
+        </view>
+        <view class="language-item {{currentLanguage === 'AIEnglish' ? 'language-item-active' : ''}}" data-value="AIEnglish" bindtap="onLanguageSelect">
+          <view class="language-item-text">
+            <text>{{ui.langAIEnglish}}</text>
+            <image class="member-star-icon" src="/assets/icons/four-pointed-start.png" mode="aspectFit" />
+            <text wx:if="{{!isAiChineseUnlocked}}"> 🔒</text>
+          </view>
         </view>
       </view>
     </view>
@@ -133,7 +143,7 @@
         <!-- Upload Avatar -->
         <view class="profile-item" catchtap="onUploadAvatar">
           <view class="profile-item-left">
-            <text class="profile-item-label">上传头像</text>
+            <text class="profile-item-label">{{ui.uploadAvatar}}</text>
           </view>
           <view class="profile-item-right">
             <block wx:if="{{userInfo}}">
@@ -148,7 +158,7 @@
         <!-- Edit Nickname -->
         <view class="profile-item">
           <view class="profile-item-left">
-            <text class="profile-item-label">修改用户名</text>
+            <text class="profile-item-label">{{ui.editNickname}}</text>
           </view>
           <view class="profile-item-right">
             <block wx:if="{{editingNickname}}">
@@ -176,7 +186,7 @@
         <!-- Member Expired Date -->
         <view class="profile-item" catchtap="onRenewMember">
           <view class="profile-item-left">
-            <text class="profile-item-label">会员到期日期</text>
+            <text class="profile-item-label">{{ui.memberExpiredDate}}</text>
           </view>
           <view class="profile-item-right profile-item-right-center">
             <view class="profile-item-value {{isMember ? 'profile-member-active' : 'profile-member-expired'}}">

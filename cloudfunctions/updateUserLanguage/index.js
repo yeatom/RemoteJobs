@@ -10,7 +10,7 @@ exports.main = async (event, context) => {
   const { OPENID } = cloud.getWXContext()
 
   const language = event?.language
-  if (language !== 'Chinese' && language !== 'English' && language !== 'AIChinese') {
+  if (language !== 'Chinese' && language !== 'English' && language !== 'AIChinese' && language !== 'AIEnglish') {
     return { ok: false, error: 'invalid_language' }
   }
 

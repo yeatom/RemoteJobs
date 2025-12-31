@@ -26,9 +26,10 @@
             <text class="collect-icon {{saved ? 'collect-icon-active' : ''}}">{{saved ? '★' : '☆'}}</text>
           </view>
         </view>
-        <view class="detail-meta" wx:if="{{job.team || job.salary}}">
-          <text wx:if="{{job.team && job.team !== '未知公司'}}" class="detail-meta-item">{{job.team}}</text>
-          <text wx:if="{{(job.team && job.team !== '未知公司') && job.salary}}" class="detail-meta-dot">·</text>
+        <view class="detail-meta" wx:if="{{(isAIEnglish && job.source_name) || (!isAIEnglish && job.team && job.team !== '未知公司') || job.salary}}">
+          <text wx:if="{{isAIEnglish && job.source_name}}" class="detail-meta-item">From {{job.source_name}}</text>
+          <text wx:if="{{!isAIEnglish && job.team && job.team !== '未知公司'}}" class="detail-meta-item">{{job.team}}</text>
+          <text wx:if="{{((isAIEnglish && job.source_name) || (!isAIEnglish && job.team && job.team !== '未知公司')) && job.salary}}" class="detail-meta-dot">·</text>
           <text wx:if="{{job.salary}}" class="detail-meta-item">{{job.salary}}</text>
         </view>
         <view class="detail-tags" wx:if="{{job.displayTags && job.displayTags.length > 0}}">

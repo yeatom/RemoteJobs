@@ -1,4 +1,5 @@
 // miniprogram/components/job-list/index.ts
+import { normalizeLanguage } from '../../utils/i18n'
 
 Component({
   properties: {
@@ -72,6 +73,30 @@ Component({
     noMoreVisible: false,
     _prevLoading: true,
     _prevHasMore: true,
+    isAIEnglish: false, // 是否为 AIEnglish 语言
+  },
+
+  lifetimes: {
+    attached() {
+      const app = getApp<IAppOption>() as any
+      const updateLanguage = () => {
+        const lang = normalizeLanguage(app?.globalData?.language)
+        this.setData({ isAIEnglish: lang === 'AIEnglish' })
+      }
+      
+      ;(this as any)._langListener = updateLanguage
+      if (app?.onLanguageChange) app.onLanguageChange(updateLanguage)
+      
+      // 初始化
+      updateLanguage()
+    },
+
+    detached() {
+      const app = getApp<IAppOption>() as any
+      const listener = (this as any)._langListener
+      if (listener && app?.offLanguageChange) app.offLanguageChange(listener)
+      ;(this as any)._langListener = null
+    },
   },
 
   observers: {
