@@ -536,56 +536,11 @@ job-list {
 }
 
 /* --- Restore Search Condition Bottom Sheet --- */
-.restore-sheet-mask {
-  position: fixed;
-  left: 0;
-  top: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.35);
-  z-index: 2499;
-  opacity: 0;
-  transition: opacity 0.25s ease;
-  will-change: opacity;
-  backface-visibility: hidden;
-  -webkit-backface-visibility: hidden;
-}
-
-.restore-sheet-mask-open {
-  opacity: 1;
-}
-
-.restore-sheet {
-  position: fixed;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  max-height: 80vh;
-  background: #ffffff;
-  border-top-left-radius: 24rpx;
-  border-top-right-radius: 24rpx;
-  transform: translate3d(0, 100%, 0);
-  transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-  z-index: 2500;
-  display: flex;
-  flex-direction: column;
-  will-change: transform;
-  backface-visibility: hidden;
-  -webkit-backface-visibility: hidden;
-  -webkit-transform: translate3d(0, 100%, 0);
-}
-
-.restore-sheet-open {
-  transform: translate3d(0, 0, 0);
-  -webkit-transform: translate3d(0, 0, 0);
-}
+/* 使用公共样式 bottom-sheet, bottom-sheet-mask, bottom-sheet-header, bottom-sheet-content */
+/* 只保留特定样式 */
 
 .restore-sheet-header {
-  display: flex;
   justify-content: space-between;
-  align-items: center;
-  padding: 16rpx 32rpx;
-  border-bottom: 1rpx solid #e5e7eb;
 }
 
 .restore-sheet-header-left {
@@ -615,12 +570,7 @@ job-list {
   font-weight: 500;
 }
 
-.restore-sheet-content {
-  flex: 1;
-  overflow-y: auto;
-  padding: 32rpx;
-  padding-top: 24rpx;
-}
+/* restore-sheet-content 使用公共样式 bottom-sheet-content */
 
 .empty-restore {
   padding: 120rpx 0;

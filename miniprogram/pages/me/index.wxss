@@ -26,6 +26,9 @@
   border-radius: 24rpx;
   padding: 28rpx;
   box-shadow: 0 8rpx 20rpx rgba(15, 23, 42, 0.04);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  tap-highlight-color: transparent;
 }
 
 .user-row {
@@ -40,10 +43,16 @@
   border-radius: 50%;
   margin-right: 18rpx;
   overflow: hidden;
+  cursor: pointer;
+}
+
+.avatar {
+  display: block;
 }
 
 .avatar-placeholder {
   background-color: #e0e0e0;
+  cursor: pointer;
 }
 
 .user-text {
@@ -68,34 +77,20 @@
   padding: 0;
 }
 
-.verification-badge {
+.member-badge {
   padding: 4rpx 12rpx;
   border-radius: 12rpx;
   font-size: 20rpx;
   font-weight: 600;
   display: flex;
   align-items: center;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
 }
 
-.verification-badge.verified {
-  background-color: #dbeafe; /* Light blue background */
-}
-
-.verification-badge.verified .verification-text {
-  color: #1d4ed8; /* Theme blue text */
-}
-
-.verification-badge.unverified {
-  background-color: #f3f4f6; /* Light gray background */
-}
-
-.verification-badge.unverified .verification-text {
-  color: #6b7280; /* Gray text */
-}
-
-.verification-text {
+.member-text {
   font-size: 20rpx;
   font-weight: 600;
+  color: #ffffff;
 }
 
 .nickname-login {
@@ -392,4 +387,162 @@
 
 .invite-apply-btn:active {
   background: #1e40af;
+}
+
+/* --- User Profile Sheet (from bottom, same as restore-sheet) --- */
+/* 使用公共样式 bottom-sheet, bottom-sheet-mask, bottom-sheet-header, bottom-sheet-content */
+/* 只保留特定样式 */
+
+.profile-sheet-header {
+  justify-content: center;
+  padding: 24rpx 32rpx;
+}
+
+.profile-sheet-title {
+  font-size: 32rpx;
+  font-weight: 600;
+  color: #1f2933;
+}
+
+/* profile-sheet-content 使用公共样式 bottom-sheet-content */
+.profile-sheet-content {
+  padding-top: 24rpx;
+}
+
+.profile-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 32rpx 0;
+  border-bottom: 1rpx solid #f3f4f6;
+  position: relative;
+}
+
+.profile-item:last-child {
+  border-bottom: none;
+}
+
+.profile-item:active {
+  background-color: #f9fafb;
+  margin: 0 -32rpx;
+  padding-left: 32rpx;
+  padding-right: 32rpx;
+}
+
+.profile-item-left {
+  flex: 1;
+  display: flex;
+  align-items: center;
+}
+
+.profile-item-label {
+  font-size: 30rpx;
+  color: #1f2933;
+  font-weight: 500;
+  line-height: 1.5;
+}
+
+.profile-item-right {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+}
+
+.profile-item-right-center {
+  justify-content: flex-end;
+  flex: 1;
+  align-items: center;
+  display: flex;
+}
+
+.profile-item-value-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+}
+
+.profile-item-value {
+  font-size: 28rpx;
+  color: #6b7280;
+  line-height: 1.5;
+  display: flex;
+  align-items: center;
+}
+
+.profile-member-active {
+  color: #1d4ed8;
+  font-weight: 500;
+}
+
+.profile-member-expired {
+  color: #9ca3af;
+}
+
+.profile-item-arrow {
+  font-size: 32rpx;
+  color: #9ca3af;
+  font-weight: 300;
+}
+
+.profile-avatar-preview {
+  width: 80rpx;
+  height: 80rpx;
+  border-radius: 50%;
+  border: 2rpx solid #e5e7eb;
+}
+
+.profile-avatar-placeholder {
+  width: 80rpx;
+  height: 80rpx;
+  border-radius: 50%;
+  background-color: #e0e0e0;
+}
+
+.profile-edit-icon {
+  font-size: 26rpx;
+  color: #1d4ed8;
+  padding: 8rpx 16rpx;
+  border-radius: 8rpx;
+  background-color: #e5f0ff;
+}
+
+.profile-nickname-input {
+  flex: 1;
+  padding: 12rpx 16rpx;
+  background: #f3f4f6;
+  border-radius: 8rpx;
+  font-size: 28rpx;
+  color: #1f2933;
+  min-width: 300rpx;
+}
+
+.profile-edit-actions {
+  display: flex;
+  gap: 16rpx;
+  margin-left: 16rpx;
+}
+
+.profile-edit-btn {
+  padding: 8rpx 20rpx;
+  border-radius: 8rpx;
+  font-size: 26rpx;
+  font-weight: 500;
+}
+
+.profile-edit-cancel {
+  color: #6b7280;
+  background-color: #f3f4f6;
+}
+
+.profile-edit-save {
+  color: #ffffff;
+  background-color: #1d4ed8;
+}
+
+.profile-edit-cancel:active {
+  background-color: #e5e7eb;
+}
+
+.profile-edit-save:active {
+  background-color: #1e40af;
 }

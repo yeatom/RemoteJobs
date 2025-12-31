@@ -260,10 +260,10 @@
 
   <!-- Restore Search Condition Bottom Sheet -->
   <block wx:if="{{showRestoreSheet}}">
-    <view class="restore-sheet-mask {{restoreSheetOpen ? 'restore-sheet-mask-open' : ''}}" bindtap="closeRestoreSheet"></view>
-    <view class="restore-sheet {{restoreSheetOpen ? 'restore-sheet-open' : ''}}">
+    <view class="bottom-sheet-mask {{restoreSheetOpen ? 'bottom-sheet-mask-open' : ''}}" bindtap="closeRestoreSheet"></view>
+    <view class="bottom-sheet restore-sheet {{restoreSheetOpen ? 'bottom-sheet-open' : ''}}">
       <!-- Header with buttons -->
-      <view class="restore-sheet-header">
+      <view class="bottom-sheet-header restore-sheet-header">
         <view class="restore-sheet-header-left">
           <view wx:if="{{isRestoreEditing}}" class="restore-header-btn" bindtap="onClearAllRestoreConditions">
             <text class="restore-header-btn-text">{{ui.clearAllLabel}}</text>
@@ -276,7 +276,7 @@
         </view>
       </view>
       
-      <view class="restore-sheet-content">
+      <view class="bottom-sheet-content restore-sheet-content">
         <view wx:if="{{savedSearchConditions.length === 0}}" class="empty-restore">
           <text class="empty-restore-text">暂无保存的搜索条件</text>
         </view>

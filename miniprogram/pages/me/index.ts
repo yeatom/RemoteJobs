@@ -5,6 +5,7 @@ import type { ResolvedSavedJob } from '../../utils/job'
 import { mapJobs } from '../../utils/job'
 import { normalizeLanguage, t, type AppLanguage } from '../../utils/i18n'
 import { attachLanguageAware } from '../../utils/languageAware'
+import { toDateMs } from '../../utils/time'
 
 Page({
   data: {
@@ -32,6 +33,14 @@ Page({
     inputInviteCode: '',
 
     isVerified: false, // User verification status
+    isMember: false, // Member status based on expiredDate
+    expiredDate: null as any, // Member expired date
+    expiredDateText: '', // Formatted expired date text
+
+    showProfileSheet: false,
+    profileSheetOpen: false,
+    editingNickname: false,
+    newNickname: '',
 
     ui: {} as Record<string, string>,
   },
@@ -70,6 +79,13 @@ Page({
     const isLoggedIn = !!(user && (user.isAuthed || user.phone))
     const isVerified = !!(user && (user.isAuthed || user.phone)) // 认证状态：有手机号或已认证
 
+    // 判断是否是会员：expiredDate 在未来
+    const expired = user?.expiredDate
+    const isMember = expired ? (() => {
+      const ms = toDateMs(expired)
+      return ms ? ms > Date.now() : false
+    })() : false
+
     const hasCloudProfile = user && typeof user.avatar === 'string' && typeof user.nickname === 'string' && user.avatar && user.nickname
     const userInfo = hasCloudProfile
       ? ({ avatarUrl: user.avatar, nickName: user.nickname } as WechatMiniprogram.UserInfo)
@@ -80,7 +96,11 @@ Page({
     // Sync invite code if available
     const myInviteCode = user?.inviteCode || ''
 
-    this.setData({ isLoggedIn, isVerified, userInfo, isAiChineseUnlocked: isAiUnlocked, myInviteCode })
+    // Sync expired date
+    const expiredDate = user?.expiredDate || null
+    const expiredDateText = this.formatExpiredDate(expiredDate)
+
+    this.setData({ isLoggedIn, isVerified, isMember, userInfo, isAiChineseUnlocked: isAiUnlocked, myInviteCode, expiredDate, expiredDateText })
   },
 
   syncLanguageFromApp() {
@@ -492,5 +512,148 @@ Page({
     } catch (err) {
       wx.showToast({ title: '应用失败', icon: 'none' })
     }
+  },
+
+  onAvatarTap() {
+    if (!this.data.isLoggedIn) {
+      wx.showToast({ title: '请先登录', icon: 'none' })
+      return
+    }
+    this.openProfileSheet()
+  },
+
+  openProfileSheet() {
+    const app = getApp<IAppOption>() as any
+    const user = app?.globalData?.user
+    const currentNickname = user?.nickname || ''
+    
+    this.setData({ 
+      showProfileSheet: true, 
+      profileSheetOpen: false,
+      newNickname: currentNickname,
+      editingNickname: false,
+    })
+
+    setTimeout(() => {
+      this.setData({ profileSheetOpen: true })
+    }, 30)
+  },
+
+  closeProfileSheet() {
+    this.setData({ profileSheetOpen: false })
+    setTimeout(() => {
+      this.setData({ showProfileSheet: false, editingNickname: false, newNickname: '' })
+    }, 260)
+  },
+
+  async onUploadAvatar() {
+    try {
+      const res = await wx.chooseMedia({
+        count: 1,
+        mediaType: ['image'],
+        sourceType: ['album', 'camera'],
+      })
+
+      if (!res.tempFiles || res.tempFiles.length === 0) return
+
+      const tempFilePath = res.tempFiles[0].tempFilePath
+      
+      wx.showLoading({ title: '上传中...', mask: true })
+
+      // Upload to cloud storage
+      const cloudPath = `avatars/${Date.now()}-${Math.random().toString(36).substr(2, 9)}.jpg`
+      const uploadRes = await wx.cloud.uploadFile({
+        cloudPath,
+        filePath: tempFilePath,
+      })
+
+      const fileID = uploadRes.fileID
+
+      // Update user profile
+      const updateRes: any = await wx.cloud.callFunction({
+        name: 'updateUserProfile',
+        data: { avatar: fileID },
+      })
+
+      const updatedUser = updateRes?.result?.user
+      const app = getApp<IAppOption>() as any
+      if (app?.globalData) app.globalData.user = updatedUser
+
+      this.syncUserFromApp()
+      wx.hideLoading()
+      wx.showToast({ title: '头像更新成功', icon: 'success' })
+    } catch (err: any) {
+      wx.hideLoading()
+      if (err.errMsg && err.errMsg.includes('cancel')) {
+        // User cancelled, do nothing
+        return
+      }
+      wx.showToast({ title: '上传失败', icon: 'none' })
+    }
+  },
+
+  onEditNickname() {
+    this.setData({ editingNickname: true })
+  },
+
+  onNicknameInput(e: any) {
+    this.setData({ newNickname: e.detail.value })
+  },
+
+  async onSaveNickname() {
+    const { newNickname } = this.data
+    if (!newNickname || newNickname.trim().length === 0) {
+      wx.showToast({ title: '用户名不能为空', icon: 'none' })
+      return
+    }
+
+    if (newNickname.length > 20) {
+      wx.showToast({ title: '用户名不能超过20个字符', icon: 'none' })
+      return
+    }
+
+    try {
+      wx.showLoading({ title: '保存中...', mask: true })
+      const updateRes: any = await wx.cloud.callFunction({
+        name: 'updateUserProfile',
+        data: { nickname: newNickname.trim() },
+      })
+
+      const updatedUser = updateRes?.result?.user
+      const app = getApp<IAppOption>() as any
+      if (app?.globalData) app.globalData.user = updatedUser
+
+      this.syncUserFromApp()
+      this.setData({ editingNickname: false })
+      wx.hideLoading()
+      wx.showToast({ title: '用户名更新成功', icon: 'success' })
+    } catch (err) {
+      wx.hideLoading()
+      wx.showToast({ title: '更新失败', icon: 'none' })
+    }
+  },
+
+  onCancelEditNickname() {
+    const app = getApp<IAppOption>() as any
+    const user = app?.globalData?.user
+    const currentNickname = user?.nickname || ''
+    this.setData({ editingNickname: false, newNickname: currentNickname })
+  },
+
+  onRenewMember() {
+    this.closeProfileSheet()
+    // TODO: 跳转到续费页面
+    wx.showToast({ title: '暂未接入付费流程', icon: 'none' })
+  },
+
+  formatExpiredDate(expired: any): string {
+    if (!expired) return '未开通'
+    const ms = toDateMs(expired)
+    if (!ms) return '未开通'
+    const date = new Date(ms)
+    const year = date.getFullYear()
+    const month = String(date.getMonth() + 1).padStart(2, '0')
+    const day = String(date.getDate()).padStart(2, '0')
+    return `${year}-${month}-${day}`
   },
 })
