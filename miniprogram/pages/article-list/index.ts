@@ -25,6 +25,7 @@ Page({
     articles: [] as any[],
     title: '',
     loading: true,
+    loadingText: '加载中...',
     showArticleDetail: false,
     selectedArticleData: null as any,
   },
@@ -48,11 +49,18 @@ Page({
 
     // 添加语言监听
     ;(this as any)._langDetach = attachLanguageAware(this, {
-      onLanguageRevive: () => {
+      onLanguageRevive: (lang) => {
         // 语言变化时更新导航栏标题
         updateTitle()
+        // 更新 loading 文本
+        this.setData({ loadingText: t('jobs.loading', lang) })
       },
     })
+    
+    // 初始化 loading 文本
+    const app: any = getApp()
+    const lang = normalizeLanguage(app?.globalData?.language)
+    this.setData({ loadingText: t('jobs.loading', lang) })
 
     const type = articleIdToType[id]
     if (!type) {

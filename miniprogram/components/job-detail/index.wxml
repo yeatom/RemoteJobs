@@ -41,15 +41,15 @@
           <rich-text class="detail-description-rich" nodes="{{job.richDescription}}"></rich-text>
         </view>
         <view class="detail-link" wx:if="{{job.source_url}}">
-          <button class="link-button" bindtap="onCopyLink">复制链接</button>
+          <button class="link-button" bindtap="onCopyLink">{{copyLinkText}}</button>
         </view>
       </view>
     </block>
     <block wx:elif="{{loading}}">
-      <view class="loading">加载中...</view>
+      <view class="loading">{{loadingText}}</view>
     </block>
     <block wx:else>
-      <view class="error">加载失败</view>
+      <view class="error">{{loadFailedText}}</view>
     </block>
   </scroll-view>
 </view>

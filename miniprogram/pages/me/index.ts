@@ -7,6 +7,7 @@ import { normalizeLanguage, t, type AppLanguage } from '../../utils/i18n'
 import { attachLanguageAware } from '../../utils/languageAware'
 import { toDateMs } from '../../utils/time'
 
+
 Page({
   data: {
     userInfo: null as WechatMiniprogram.UserInfo | null,
@@ -440,6 +441,13 @@ Page({
                              value === 'English' ? 'English' :
                              'Chinese'  // 默认使用原始字段
     const app = getApp<IAppOption>() as any
+    
+    // 如果选择的语言和当前语言相同，只关闭弹窗，不做任何操作
+    const currentLang = normalizeLanguage(app?.globalData?.language)
+    if (currentLang === lang) {
+      this.closeLanguageSheetImmediate()
+      return
+    }
 
     // Check if AI features are unlocked
     if ((value === 'AIChinese' || value === 'AIEnglish') && !this.data.isAiChineseUnlocked) {

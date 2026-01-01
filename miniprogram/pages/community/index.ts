@@ -26,6 +26,7 @@ Page({
       statusActive: '报名中',
       statusEnded: '已结束',
       desc: '敬请期待',
+      loading: '加载中...',
     },
     articles: [] as Article[],
     loading: true,
@@ -60,6 +61,7 @@ Page({
             desc: t('community.desc', lang),
             statusActive: t('community.statusActive', lang),
             statusEnded: t('community.statusEnded', lang),
+            loading: t('jobs.loading', lang),
           },
           articles: updatedArticles,
         })

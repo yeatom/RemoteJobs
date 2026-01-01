@@ -44,12 +44,12 @@
     <!-- Loading indicator: show spinner when loading -->
     <view wx:if="{{loading}}" class="list-loading-container">
       <view class="loading-spinner"></view>
-      <text class="loading-text">加载中...</text>
+      <text class="loading-text">{{loadingText}}</text>
     </view>
 
     <!-- No more data indicator: show when not loading and no more data -->
     <view wx:if="{{!loading && showNoMore}}" class="no-more-container {{noMoreVisible ? 'no-more-visible' : ''}}">
-      <text class="no-more-text">已加载全部数据</text>
+      <text class="no-more-text">{{allDataLoadedText}}</text>
     </view>
   </view>
 </scroll-view>

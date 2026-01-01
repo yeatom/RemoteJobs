@@ -1,0 +1,8 @@
+{
+  "component": true,
+  "usingComponents": {
+    "job-list": "../job-list/index",
+    "drawer": "../drawer/index"
+  }
+}
+

@@ -26,11 +26,12 @@ Page({
     currentTab: 0,
     jobsByTab: [<JobItem[]>[], <JobItem[]>[], <JobItem[]>[]] as JobItem[][],
     hasLoadedTab: [false, false, false] as boolean[],
+    hasMoreByTab: [true, true, true] as boolean[], // 为每个tab单独存储hasMore状态
     isFeaturedUnlocked: false,
     featuredScrollEnabled: true,
     pageSize: 15,
     loading: false,
-    hasMore: true,
+    hasMore: true, // 当前显示的tab的hasMore状态
     lowerThreshold: 100,
     lastLoadTime: 0,
     showJobDetail: false,
@@ -92,6 +93,12 @@ Page({
       clearAllLabel: '一键清空',
       trySaveSearchHint: '试着保存搜索条件吧',
       tryAddFilterHint: '试着加入筛选条件吧',
+      filterKeywordLabel: '关键词',
+      filterRegionLabel: '区域',
+      filterSourceLabel: '来源',
+      filterSalaryLabel: '薪资',
+      noFilterConditions: '无筛选条件',
+      noSavedSearchConditions: '暂无保存的搜索条件',
     } as Record<string, string>,
   },
   getCurrentTabState() {
@@ -125,11 +132,29 @@ Page({
           loaded[0] = false
           loaded[1] = false
           loaded[2] = false
-          this.setData({ hasLoadedTab: loaded })
+          
+          // 先清空所有 tab 的数据，避免显示旧语言的数据
+          const tabs = this.data.jobsByTab as JobItem[][]
+          tabs[0] = []
+          tabs[1] = []
+          tabs[2] = []
+          
+          // 重置所有tab的hasMore状态
+          const hasMoreByTab = [true, true, true]
+          
+          this.setData({ 
+            hasLoadedTab: loaded,
+            jobsByTab: tabs,
+            hasMoreByTab: hasMoreByTab,
+            jobs: [],
+            filteredJobs: [],
+            loading: true, // 显示 loading，避免显示旧数据
+            hasMore: true, // 重置 hasMore，确保可以加载更多数据
+          })
           
           // 重新加载当前 tab 的数据
           if (currentTab === 2) {
-            // 收藏 tab
+            // 收藏 tab - 强制重置并重新加载
             this.loadSavedJobsForTab(true, true).catch(() => {})
           } else {
             // 公开或精选 tab
@@ -147,16 +172,21 @@ Page({
         const loaded = this.data.hasLoadedTab as boolean[]
         loaded[0] = true
         
+        // 确保不覆盖 hasMore，因为 loadJobsForTab 已经设置了正确的值
         this.setData({ 
           jobsByTab: tabs, 
           hasLoadedTab: loaded,
           jobs: primary,
           filteredJobs: primary,
+          // 不设置 hasMore，保持 loadJobsForTab 设置的值
         })
       } catch {
         // ignore
       }
       this.preloadTabs()
+    }).catch(() => {
+      // 如果加载失败，确保 hasMore 为 true，允许重试
+      this.setData({ hasMore: true, loading: false })
     })
   },
 
@@ -263,12 +293,19 @@ Page({
           }
         })
       } else {
-        this.setData({ jobs: tabs[idx], filteredJobs: tabs[idx], loading: false })
+        // 切换tab时，更新hasMore为对应tab的状态
+        const hasMoreByTab = this.data.hasMoreByTab
+        this.setData({ 
+          jobs: tabs[idx], 
+          filteredJobs: tabs[idx], 
+          loading: false,
+          hasMore: hasMoreByTab[idx] !== undefined ? hasMoreByTab[idx] : true
+        })
       }
     } else if (idx === 2) {
       if (!loaded[idx]) {
-        // 未加载过，需要加载
-        this.loadSavedJobsForTab().then(() => {
+        // 未加载过，需要加载（reset = true 确保使用新的语言重新加载）
+        this.loadSavedJobsForTab(true, true).then(() => {
           // 确保加载完成后更新显示
           if (this.data.currentTab === idx) {
             const updatedTabs = this.data.jobsByTab as JobItem[][]
@@ -286,12 +323,25 @@ Page({
       } else {
         // 已加载过，直接显示已有数据，不刷新
         const savedJobs = tabs[idx] || []
-          this.setData({ jobs: savedJobs, filteredJobs: savedJobs, loading: false })
+        const hasMoreByTab = this.data.hasMoreByTab
+        this.setData({ 
+          jobs: savedJobs, 
+          filteredJobs: savedJobs, 
+          loading: false,
+          hasMore: hasMoreByTab[idx] !== undefined ? hasMoreByTab[idx] : true
+        })
       }
       } else {
       // tab 0 (公开)
       if (loaded[idx]) {
-        this.setData({ jobs: tabs[idx], filteredJobs: tabs[idx], loading: false })
+        // 切换tab时，更新hasMore为对应tab的状态
+        const hasMoreByTab = this.data.hasMoreByTab
+        this.setData({ 
+          jobs: tabs[idx], 
+          filteredJobs: tabs[idx], 
+          loading: false,
+          hasMore: hasMoreByTab[idx] !== undefined ? hasMoreByTab[idx] : true
+        })
       } else {
         this.setData({ loading: true })
         // Load fresh data in background
@@ -347,12 +397,19 @@ Page({
           }
         })
       } else {
-        this.setData({ jobs: tabs[idx], filteredJobs: tabs[idx], loading: false })
+        // 切换tab时，更新hasMore为对应tab的状态
+        const hasMoreByTab = this.data.hasMoreByTab
+        this.setData({ 
+          jobs: tabs[idx], 
+          filteredJobs: tabs[idx], 
+          loading: false,
+          hasMore: hasMoreByTab[idx] !== undefined ? hasMoreByTab[idx] : true
+        })
       }
     } else if (idx === 2) {
       if (!loaded[idx]) {
-        // 未加载过，需要加载
-        this.loadSavedJobsForTab().then(() => {
+        // 未加载过，需要加载（reset = true 确保使用新的语言重新加载）
+        this.loadSavedJobsForTab(true, true).then(() => {
           // 确保加载完成后更新显示
           if (this.data.currentTab === idx) {
             const updatedTabs = this.data.jobsByTab as JobItem[][]
@@ -370,12 +427,25 @@ Page({
       } else {
         // 已加载过，直接显示已有数据，不刷新
         const savedJobs = tabs[idx] || []
-          this.setData({ jobs: savedJobs, filteredJobs: savedJobs, loading: false })
+        const hasMoreByTab = this.data.hasMoreByTab
+        this.setData({ 
+          jobs: savedJobs, 
+          filteredJobs: savedJobs, 
+          loading: false,
+          hasMore: hasMoreByTab[idx] !== undefined ? hasMoreByTab[idx] : true
+        })
       }
       } else {
       // tab 0 (公开)
       if (loaded[idx]) {
-        this.setData({ jobs: tabs[idx], filteredJobs: tabs[idx], loading: false })
+        // 切换tab时，更新hasMore为对应tab的状态
+        const hasMoreByTab = this.data.hasMoreByTab
+        this.setData({ 
+          jobs: tabs[idx], 
+          filteredJobs: tabs[idx], 
+          loading: false,
+          hasMore: hasMoreByTab[idx] !== undefined ? hasMoreByTab[idx] : true
+        })
       } else {
         this.setData({ loading: true })
         // Load fresh data in background
@@ -420,6 +490,12 @@ Page({
           clearAllLabel: t('jobs.clearAllLabel', lang),
           trySaveSearchHint: t('jobs.trySaveSearchHint', lang),
           tryAddFilterHint: t('jobs.tryAddFilterHint', lang),
+          filterKeywordLabel: t('jobs.filterKeywordLabel', lang),
+          filterRegionLabel: t('jobs.filterRegionLabel', lang),
+          filterSourceLabel: t('jobs.filterSourceLabel', lang),
+          filterSalaryLabel: t('jobs.filterSalaryLabel', lang),
+          noFilterConditions: t('jobs.noFilterConditions', lang),
+          noSavedSearchConditions: t('jobs.noSavedSearchConditions', lang),
         },
       })
     },
@@ -619,7 +695,9 @@ Page({
       
       try {
         const currentState = this.getCurrentTabState()
-        const skip = reset ? 0 : (this.data.jobsByTab[tabIndex] || []).length
+        // 使用最新的jobsByTab数据计算skip，确保分页正确
+        const existingJobs = this.data.jobsByTab[tabIndex] || []
+        const skip = reset ? 0 : existingJobs.length
         
         // 构建筛选参数
         const filterParams: any = {}
@@ -669,8 +747,9 @@ Page({
         if (res.result && (res.result as any).ok) {
           const jobs = (res.result as any).jobs || []
           const newJobs = mapJobs(jobs, currentLang) as JobItem[]
-          const existing = (this.data.jobsByTab[tabIndex] || []) as JobItem[]
-          const merged = reset ? newJobs : [...existing, ...newJobs]
+          // 重新读取最新的existingJobs，确保使用最新的数据
+          const latestExisting = this.data.jobsByTab[tabIndex] || []
+          const merged = reset ? newJobs : [...latestExisting, ...newJobs]
 
           const tabs = this.data.jobsByTab as JobItem[][]
           tabs[tabIndex] = merged
@@ -678,23 +757,44 @@ Page({
           loaded[tabIndex] = true
           const hasMore = newJobs.length >= this.data.pageSize
           
+          // 更新对应tab的hasMore状态
+          const hasMoreByTab = [...this.data.hasMoreByTab]
+          hasMoreByTab[tabIndex] = hasMore
+          
           // 如果当前正在显示这个 tab，立即更新显示
-          const updateData: any = { jobsByTab: tabs, hasLoadedTab: loaded, hasMore }
+          const updateData: any = { 
+            jobsByTab: tabs, 
+            hasLoadedTab: loaded, 
+            hasMoreByTab: hasMoreByTab,
+            hasMore: isCurrentTab ? hasMore : this.data.hasMore, // 只有当前tab才更新全局hasMore
+            lastLoadTime: Date.now() 
+          }
           if (isCurrentTab) {
             updateData.jobs = merged
             updateData.filteredJobs = merged
             updateData.loading = false
+            updateData.hasMore = hasMore // 当前tab时更新全局hasMore
           }
           this.setData(updateData)
         } else {
+          // 加载失败时，保持 hasMore 为 true，允许重试
+          const hasMoreByTab = [...this.data.hasMoreByTab]
+          hasMoreByTab[tabIndex] = true
           if (isCurrentTab) {
-            this.setData({ loading: false })
+            this.setData({ loading: false, hasMore: true, hasMoreByTab })
+          } else {
+            this.setData({ hasMoreByTab })
           }
         }
       } catch (err) {
         // ignore
+        // 加载失败时，保持 hasMore 为 true，允许重试
+        const hasMoreByTab = [...this.data.hasMoreByTab]
+        hasMoreByTab[tabIndex] = true
         if (isCurrentTab) {
-          this.setData({ loading: false })
+          this.setData({ loading: false, hasMore: true, hasMoreByTab })
+        } else {
+          this.setData({ hasMoreByTab })
         }
       }
     },
@@ -731,7 +831,16 @@ Page({
         tabs[2] = []
         const loaded = this.data.hasLoadedTab as boolean[]
         loaded[2] = true
-        this.setData({ jobsByTab: tabs, hasLoadedTab: loaded, jobs: [], filteredJobs: [], hasMore: false })
+        const hasMoreByTab = [...this.data.hasMoreByTab]
+        hasMoreByTab[2] = false
+        this.setData({ 
+          jobsByTab: tabs, 
+          hasLoadedTab: loaded, 
+          hasMoreByTab: hasMoreByTab,
+          jobs: [], 
+          filteredJobs: [], 
+          hasMore: this.data.currentTab === 2 ? false : this.data.hasMore 
+        })
         return
       }
 
@@ -766,11 +875,19 @@ Page({
           }
           const loaded = this.data.hasLoadedTab as boolean[]
           loaded[2] = true
-          const updateData: any = { jobsByTab: tabs, hasLoadedTab: loaded, hasMore: false }
+          const hasMoreByTab = [...this.data.hasMoreByTab]
+          hasMoreByTab[2] = false
+          const updateData: any = { 
+            jobsByTab: tabs, 
+            hasLoadedTab: loaded, 
+            hasMoreByTab: hasMoreByTab,
+            hasMore: this.data.currentTab === 2 ? false : this.data.hasMore 
+          }
           if (this.data.currentTab === 2) {
             updateData.jobs = tabs[2] || []
             updateData.filteredJobs = tabs[2] || []
             updateData.loading = false // 确保loading状态被清除
+            updateData.hasMore = false // 当前tab时更新全局hasMore
           }
           this.setData(updateData)
           return
@@ -785,11 +902,19 @@ Page({
           }
           const loaded = this.data.hasLoadedTab as boolean[]
           loaded[2] = true
-          const updateData: any = { jobsByTab: tabs, hasLoadedTab: loaded, hasMore: false }
+          const hasMoreByTab = [...this.data.hasMoreByTab]
+          hasMoreByTab[2] = false
+          const updateData: any = { 
+            jobsByTab: tabs, 
+            hasLoadedTab: loaded, 
+            hasMoreByTab: hasMoreByTab,
+            hasMore: this.data.currentTab === 2 ? false : this.data.hasMore 
+          }
           if (this.data.currentTab === 2) {
             updateData.jobs = tabs[2] || []
             updateData.filteredJobs = tabs[2] || []
             updateData.loading = false // 确保loading状态被清除
+            updateData.hasMore = false // 当前tab时更新全局hasMore
           }
           this.setData(updateData)
           return
@@ -877,21 +1002,42 @@ Page({
 
         const normalized = mapJobs(merged, userLanguage) as JobItem[]
         const tabs = this.data.jobsByTab as JobItem[][]
-        tabs[2] = reset ? normalized : [...existingJobs, ...normalized]
+        // 重新读取最新的existingJobs，确保使用最新的数据
+        const latestExistingJobs = reset ? [] : (this.data.jobsByTab[2] || [])
+        tabs[2] = reset ? normalized : [...latestExistingJobs, ...normalized]
         const loaded = this.data.hasLoadedTab as boolean[]
         loaded[2] = true
         
-        const updateData: any = { jobsByTab: tabs, hasLoadedTab: loaded, hasMore }
+        // 更新对应tab的hasMore状态
+        const hasMoreByTab = [...this.data.hasMoreByTab]
+        hasMoreByTab[2] = hasMore
+        
+        const updateData: any = { 
+          jobsByTab: tabs, 
+          hasLoadedTab: loaded, 
+          hasMoreByTab: hasMoreByTab,
+          hasMore: this.data.currentTab === 2 ? hasMore : this.data.hasMore, // 只有当前tab才更新全局hasMore
+          lastLoadTime: Date.now() 
+        }
         // 如果当前在收藏 tab，立即更新显示
         if (this.data.currentTab === 2) {
           updateData.jobs = tabs[2]
           updateData.filteredJobs = tabs[2]
           updateData.loading = false // 确保loading状态被清除
+          updateData.hasMore = hasMore // 当前tab时更新全局hasMore
         }
         this.setData(updateData)
       } catch (err) {
         if (showLoading && this.data.currentTab === 2) {
         wx.showToast({ title: '加载收藏失败', icon: 'none' })
+        }
+        // 加载失败时，保持 hasMore 为 true，允许重试
+        const hasMoreByTab = [...this.data.hasMoreByTab]
+        hasMoreByTab[2] = true
+        if (this.data.currentTab === 2) {
+          this.setData({ hasMore: true, hasMoreByTab })
+        } else {
+          this.setData({ hasMoreByTab })
         }
       } finally {
         // 确保loading状态被清除（无论是否设置了showLoading）
@@ -918,7 +1064,7 @@ Page({
     stopPropagation() {},
 
 
-    maybeLoadMore() {
+    async maybeLoadMore() {
       const currentState = this.getCurrentTabState()
       const { loading, hasMore, lastLoadTime } = this.data
       const now = Date.now()
@@ -933,12 +1079,12 @@ Page({
       }
 
       if (this.data.currentTab === 0) {
-        this.loadJobsForTab(0, false)
+        await this.loadJobsForTab(0, false)
       } else if (this.data.currentTab === 1) {
-        this.loadJobsForTab(1, false)
+        await this.loadJobsForTab(1, false)
       } else if (this.data.currentTab === 2) {
         // 收藏tab的分页加载
-        this.loadSavedJobsForTab(true, false)
+        await this.loadSavedJobsForTab(true, false)
       }
     },
 
@@ -1223,28 +1369,63 @@ Page({
         }
         
         // 格式化数据用于显示
+        const lang = normalizeLanguage(app?.globalData?.language)
+        const useEnglish = lang === 'English' || lang === 'AIEnglish'
+        const EN_SOURCE: Record<string, string> = {
+          '全部': 'All',
+          'BOSS直聘': 'BOSS Zhipin',
+          '智联招聘': 'Zhilian Zhaopin',
+        }
+        
+        // 翻译 tab 名称
+        const tabNames = useEnglish 
+          ? ['Public', 'Featured', 'Saved']
+          : ['公开', '精选', '收藏']
+        
         const formattedConditions = savedConditions.map((condition) => {
           const keyword = condition.searchKeyword || ''
           const filter = condition.drawerFilter || {}
-          const tabNames = ['公开', '精选', '收藏']
-          const tabName = tabNames[condition.tabIndex] || '公开'
+          const tabName = tabNames[condition.tabIndex] || tabNames[0]
           
           // 构建描述文本
+          const keywordLabel = t('jobs.filterKeywordLabel', lang)
+          const regionLabel = t('jobs.filterRegionLabel', lang)
+          const sourceLabel = t('jobs.filterSourceLabel', lang)
+          const salaryLabel = t('jobs.filterSalaryLabel', lang)
+          const noFilterText = t('jobs.noFilterConditions', lang)
+          
           const parts: string[] = []
           if (keyword) {
-            parts.push(`关键词: ${keyword}`)
+            parts.push(`${keywordLabel}: ${keyword}`)
           }
           if (filter.region && filter.region !== '全部') {
-            parts.push(`区域: ${filter.region}`)
+            const regionText = useEnglish 
+              ? (filter.region === '国内' ? 'Domestic' : filter.region === '国外' ? 'Abroad' : filter.region === 'web3' ? 'Web3' : filter.region)
+              : filter.region
+            parts.push(`${regionLabel}: ${regionText}`)
           }
           if (filter.source_name && Array.isArray(filter.source_name) && filter.source_name.length > 0) {
-            parts.push(`来源: ${filter.source_name.join(',')}`)
+            // 过滤掉不支持的选项，并翻译
+            const validSources = filter.source_name.filter((s: string) => ['BOSS直聘', '智联招聘'].includes(s))
+            if (validSources.length > 0) {
+              const sourceTexts = validSources.map((s: string) => (useEnglish ? (EN_SOURCE[s] || s) : s))
+              parts.push(`${sourceLabel}: ${sourceTexts.join(',')}`)
+            }
           }
           if (filter.salary && filter.salary !== '全部') {
-            parts.push(`薪资: ${filter.salary}`)
+            const EN_SALARY: Record<string, string> = {
+              '全部': 'All',
+              '10k以下': '< 10K',
+              '10-20K': '10–20K',
+              '20-50K': '20–50K',
+              '50K以上': '50K+',
+              '项目制/兼职': 'Project/Part-time',
+            }
+            const salaryText = useEnglish ? (EN_SALARY[filter.salary] || filter.salary) : filter.salary
+            parts.push(`${salaryLabel}: ${salaryText}`)
           }
           
-          const desc = parts.length > 0 ? parts.join(' | ') : '无筛选条件'
+          const desc = parts.length > 0 ? parts.join(' | ') : noFilterText
           return {
             ...condition,
             title: tabName,
@@ -1379,7 +1560,16 @@ Page({
 
       // 应用搜索条件
       const searchKeyword = selectedCondition.searchKeyword || ''
-      const drawerFilter = selectedCondition.drawerFilter || { ...DEFAULT_DRAWER_FILTER }
+      const rawDrawerFilter = selectedCondition.drawerFilter || { ...DEFAULT_DRAWER_FILTER }
+      
+      // 过滤掉不支持的 source_name 选项（只保留 BOSS直聘 和 智联招聘）
+      const drawerFilter = {
+        ...rawDrawerFilter,
+        source_name: Array.isArray(rawDrawerFilter.source_name) 
+          ? rawDrawerFilter.source_name.filter((s: string) => ['BOSS直聘', '智联招聘'].includes(s))
+          : [],
+      }
+      
       const tabIndex = selectedCondition.tabIndex ?? this.data.currentTab
 
       // 如果保存的搜索条件对应的tab与当前tab不同，先切换到对应tab

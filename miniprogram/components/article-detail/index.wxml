@@ -22,15 +22,15 @@
       <view class="detail-body">
         <view class="article-detail-content">
           <rich-text wx:if="{{htmlNodes}}" nodes="{{htmlNodes}}" />
-          <view wx:else class="error">内容为空</view>
+          <view wx:else class="error">{{contentEmptyText}}</view>
         </view>
       </view>
     </block>
     <block wx:elif="{{loading}}">
-      <view class="loading">加载中...</view>
+      <view class="loading">{{loadingText}}</view>
     </block>
     <block wx:else>
-      <view class="error">加载失败</view>
+      <view class="error">{{loadFailedText}}</view>
     </block>
   </scroll-view>
 </view>

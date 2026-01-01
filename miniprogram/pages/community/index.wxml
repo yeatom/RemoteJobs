@@ -1,6 +1,6 @@
 <view class="page">
   <view class="content">
-    <view wx:if="{{loading}}" class="loading">加载中...</view>
+    <view wx:if="{{loading}}" class="loading">{{ui.loading}}</view>
     <!-- Articles -->
     <block wx:else>
       <view

@@ -1,5 +1,5 @@
 // miniprogram/components/job-list/index.ts
-import { normalizeLanguage } from '../../utils/i18n'
+import { normalizeLanguage, t } from '../../utils/i18n'
 
 Component({
   properties: {
@@ -74,6 +74,8 @@ Component({
     _prevLoading: true,
     _prevHasMore: true,
     isAIEnglish: false, // 是否为 AIEnglish 语言
+    loadingText: '加载中...',
+    allDataLoadedText: '已加载全部数据',
   },
 
   lifetimes: {
@@ -81,7 +83,11 @@ Component({
       const app = getApp<IAppOption>() as any
       const updateLanguage = () => {
         const lang = normalizeLanguage(app?.globalData?.language)
-        this.setData({ isAIEnglish: lang === 'AIEnglish' })
+        this.setData({ 
+          isAIEnglish: lang === 'AIEnglish',
+          loadingText: t('jobs.loading', lang),
+          allDataLoadedText: t('jobs.allDataLoaded', lang),
+        })
       }
       
       ;(this as any)._langListener = updateLanguage
@@ -142,9 +148,19 @@ Component({
           }, 2000) // Show for 2 seconds
         })
       } else {
-        // Hide immediately when loading starts or hasMore becomes true
-        if (loading || hasMore) {
-          this.setData({ showNoMore: false, noMoreVisible: false })
+        // Hide immediately when loading starts, hasMore becomes true, or jobs become empty
+        if (loading || hasMore || !jobs || jobs.length === 0) {
+          // If currently visible, fade out first, then remove
+          if (this.data.noMoreVisible) {
+            this.setData({ noMoreVisible: false }, () => {
+              self._noMoreRemoveTimer = setTimeout(() => {
+                this.setData({ showNoMore: false })
+              }, 300) // Match CSS transition duration
+            })
+          } else {
+            // Not visible, remove immediately
+            this.setData({ showNoMore: false })
+          }
         }
       }
 

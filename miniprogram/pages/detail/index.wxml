@@ -5,7 +5,7 @@
     <!-- More job details will be added here later -->
   </block>
   <block wx:else>
-    <text>Loading...</text>
+    <text>{{loadingText}}</text>
   </block>
 </view>
 

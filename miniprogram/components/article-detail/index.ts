@@ -1,4 +1,5 @@
 // miniprogram/components/article-detail/index.ts
+import { normalizeLanguage, t } from '../../utils/i18n'
 const swipeToCloseBehavior = require('../../behaviors/swipe-to-close')
 
 Component({
@@ -19,6 +20,36 @@ Component({
     article: null as any,
     htmlNodes: [] as any[],
     loading: false,
+    loadingText: '加载中...',
+    loadFailedText: '加载失败',
+    contentEmptyText: '内容为空',
+  },
+
+  lifetimes: {
+    attached() {
+      const app = getApp<IAppOption>() as any
+      const updateLanguage = () => {
+        const lang = normalizeLanguage(app?.globalData?.language)
+        this.setData({ 
+          loadingText: t('jobs.loading', lang),
+          loadFailedText: t('jobs.loadFailed', lang),
+          contentEmptyText: t('jobs.contentEmpty', lang),
+        })
+      }
+      
+      ;(this as any)._langListener = updateLanguage
+      if (app?.onLanguageChange) app.onLanguageChange(updateLanguage)
+      
+      // 初始化
+      updateLanguage()
+    },
+
+    detached() {
+      const app = getApp<IAppOption>() as any
+      const listener = (this as any)._langListener
+      if (listener && app?.offLanguageChange) app.offLanguageChange(listener)
+      ;(this as any)._langListener = null
+    },
   },
 
   observers: {

@@ -278,7 +278,7 @@
       
       <view class="bottom-sheet-content restore-sheet-content">
         <view wx:if="{{savedSearchConditions.length === 0}}" class="empty-restore">
-          <text class="empty-restore-text">暂无保存的搜索条件</text>
+          <text class="empty-restore-text">{{ui.noSavedSearchConditions}}</text>
         </view>
         <view wx:for="{{savedSearchConditions}}" wx:key="_id" wx:for-item="item" wx:for-index="idx" class="restore-item {{isRestoreEditing ? 'restore-item-editing' : ''}} {{item.deleting ? 'restore-item-deleting' : ''}} {{item.collapsing ? 'restore-item-collapsing' : ''}}" data-index="{{idx}}" bindtap="{{isRestoreEditing ? '' : 'onSelectRestoreCondition'}}">
           <view class="restore-item-content">

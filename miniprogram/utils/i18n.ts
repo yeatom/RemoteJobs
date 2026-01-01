@@ -78,6 +78,17 @@ const dict = {
     clearAllLabel: { Chinese: '一键清空', English: 'Clear All' },
     trySaveSearchHint: { Chinese: '试着保存搜索条件吧', English: 'Try saving a search condition' },
     tryAddFilterHint: { Chinese: '试着加入筛选条件吧', English: 'Try adding filter conditions' },
+    filterKeywordLabel: { Chinese: '关键词', English: 'Keyword' },
+    filterRegionLabel: { Chinese: '区域', English: 'Region' },
+    filterSourceLabel: { Chinese: '来源', English: 'Source' },
+    filterSalaryLabel: { Chinese: '薪资', English: 'Salary' },
+    noFilterConditions: { Chinese: '无筛选条件', English: 'No filter conditions' },
+    noSavedSearchConditions: { Chinese: '暂无保存的搜索条件', English: 'No saved search conditions' },
+    loading: { Chinese: '加载中...', English: 'Loading...' },
+    loadFailed: { Chinese: '加载失败', English: 'Load failed' },
+    allDataLoaded: { Chinese: '已加载全部数据', English: 'All data loaded' },
+    copyLink: { Chinese: '复制链接', English: 'Copy Link' },
+    contentEmpty: { Chinese: '内容为空', English: 'Content is empty' },
   },
   drawer: {
     salary: { Chinese: '薪资', English: 'Salary' },
@@ -155,6 +166,17 @@ export type I18nKey =
   | 'jobs.clearAllLabel'
   | 'jobs.trySaveSearchHint'
   | 'jobs.tryAddFilterHint'
+  | 'jobs.filterKeywordLabel'
+  | 'jobs.filterRegionLabel'
+  | 'jobs.filterSourceLabel'
+  | 'jobs.filterSalaryLabel'
+  | 'jobs.noFilterConditions'
+  | 'jobs.noSavedSearchConditions'
+  | 'jobs.loading'
+  | 'jobs.loadFailed'
+  | 'jobs.allDataLoaded'
+  | 'jobs.copyLink'
+  | 'jobs.contentEmpty'
   | 'drawer.salary'
   | 'drawer.experience'
   | 'drawer.regionTitle'

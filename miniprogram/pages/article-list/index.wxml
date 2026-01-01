@@ -1,6 +1,6 @@
 <view class="page">
   <view class="content">
-    <view wx:if="{{loading}}" class="loading">加载中...</view>
+    <view wx:if="{{loading}}" class="loading">{{loadingText}}</view>
     <view wx:else class="article-list">
       <view wx:for="{{articles}}" wx:key="id" class="article-card" bindtap="onItemTap" data-item="{{item}}">
         <view wx:if="{{item.status}}" class="article-badge {{'article-badge-' + item.status}}">

@@ -8,6 +8,7 @@ Page({
     job: null as any,
     jobId: '' as string,
     collection: '' as string,
+    loadingText: 'Loading...',
   },
 
   onLoad(options) {
@@ -25,12 +26,20 @@ Page({
         const lang = normalizeLanguage(app?.globalData?.language)
         wx.setNavigationBarTitle({ title: t('app.navTitle', lang) })
         
+        // 更新 loading 文本
+        this.setData({ loadingText: t('jobs.loading', lang) })
+        
         // 语言变化时重新加载职位详情
         if (this.data.jobId && this.data.collection) {
           this.fetchJobDetails(this.data.jobId, this.data.collection)
         }
       },
     })
+    
+    // 初始化 loading 文本
+    const app = getApp() as any
+    const lang = normalizeLanguage(app?.globalData?.language)
+    this.setData({ loadingText: t('jobs.loading', lang) })
 
     if (jobId && collection) {
       this.fetchJobDetails(jobId, collection)

@@ -97,11 +97,12 @@
           <view
             wx:for="{{sourceOptions}}"
             wx:key="*this"
+            wx:for-index="idx"
             class="drawer-chip {{sourceSelected[item] ? 'drawer-chip-active' : ''}}"
             data-value="{{item}}"
             bindtap="onPickSource"
           >
-            <text class="drawer-chip-text">{{item}}</text>
+            <text class="drawer-chip-text">{{displaySourceOptions[idx]}}</text>
           </view>
         </view>
       </view>

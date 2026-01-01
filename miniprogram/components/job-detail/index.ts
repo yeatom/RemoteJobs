@@ -1,5 +1,5 @@
 // miniprogram/components/job-detail/index.ts
-import { normalizeLanguage } from '../../utils/i18n'
+import { normalizeLanguage, t } from '../../utils/i18n'
 const swipeToClose = require('../../behaviors/swipe-to-close')
 
 const SAVED_COLLECTION = 'saved_jobs'
@@ -60,6 +60,9 @@ Component({
     saveBusy: false,
     saveDocId: '',
     isAIEnglish: false, // 是否为 AIEnglish 语言
+    loadingText: '加载中...',
+    loadFailedText: '加载失败',
+    copyLinkText: '复制链接',
   },
 
   lifetimes: {
@@ -67,7 +70,12 @@ Component({
       const app = getApp<IAppOption>() as any
       const updateLanguage = () => {
         const lang = normalizeLanguage(app?.globalData?.language)
-        this.setData({ isAIEnglish: lang === 'AIEnglish' })
+        this.setData({ 
+          isAIEnglish: lang === 'AIEnglish',
+          loadingText: t('jobs.loading', lang),
+          loadFailedText: t('jobs.loadFailed', lang),
+          copyLinkText: t('jobs.copyLink', lang),
+        })
       }
       
       ;(this as any)._langListener = updateLanguage

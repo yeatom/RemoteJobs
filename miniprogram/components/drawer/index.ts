@@ -16,7 +16,7 @@ const EXP_KEYS: ExpKey[] = ['全部', '在校生', '应届生', '1年以内', '1
 const REGION_KEYS: string[] = ['全部', '国内', '国外', 'web3']
 
 // 所有来源选项（不再根据区域动态变化）
-const ALL_SOURCE_OPTIONS: string[] = ['全部', 'BOSS直聘', '智联招聘', '电鸭', '拉勾招聘']
+const ALL_SOURCE_OPTIONS: string[] = ['全部', 'BOSS直聘', '智联招聘']
 
 const EN_SALARY: Record<string, string> = {
   '全部': 'All',
@@ -36,6 +36,12 @@ const EN_EXP: Record<string, string> = {
   '3-5年': '3–5y',
   '5-10年': '5–10y',
   '10年以上': '10y+',
+}
+
+const EN_SOURCE: Record<string, string> = {
+  '全部': 'All',
+  'BOSS直聘': 'BOSS Zhipin',
+  '智联招聘': 'Zhilian Zhaopin',
 }
 
 Component({
@@ -100,9 +106,6 @@ Component({
         const region = v.region || '全部'
         const source_name = Array.isArray(v.source_name) ? v.source_name : (v.source_name === '全部' ? [] : (v.source_name ? [v.source_name] : []))
         
-        // 使用固定的所有来源选项
-        const displaySourceOptions = ALL_SOURCE_OPTIONS.map((k) => k)
-        
         // 计算每个来源的选中状态
         const sourceSelected: Record<string, boolean> = {}
         for (const sourceKey of ALL_SOURCE_OPTIONS) {
@@ -121,9 +124,11 @@ Component({
             region: region,
           },
           sourceOptions: ALL_SOURCE_OPTIONS,
-          displaySourceOptions: displaySourceOptions,
           sourceSelected: sourceSelected,
         })
+        
+        // 重新同步语言设置以更新 displaySourceOptions
+        this.syncLanguageFromApp()
         
         // Reset drawer position for swipe-to-close
         const windowInfo = wx.getWindowInfo()
@@ -156,9 +161,6 @@ Component({
         const region = next.region || '全部'
         const source_name = Array.isArray(next.source_name) ? next.source_name : (next.source_name === '全部' ? [] : (next.source_name ? [next.source_name] : []))
         
-        // 使用固定的所有来源选项
-        const displaySourceOptions = ALL_SOURCE_OPTIONS.map((k) => k)
-        
         // 计算每个来源的选中状态
         const sourceSelected: Record<string, boolean> = {}
         for (const sourceKey of ALL_SOURCE_OPTIONS) {
@@ -177,9 +179,11 @@ Component({
             region: region,
           },
           sourceOptions: ALL_SOURCE_OPTIONS,
-          displaySourceOptions: displaySourceOptions,
           sourceSelected: sourceSelected,
         })
+        
+        // 重新同步语言设置以更新 displaySourceOptions
+        this.syncLanguageFromApp()
       }
     },
   },
@@ -319,7 +323,7 @@ Component({
         }
         return k
       })
-      const displaySourceOptions = (this.data.sourceOptions || []).map((k) => k) // 来源暂时只有中文
+      const displaySourceOptions = (this.data.sourceOptions || []).map((k) => (useEnglish ? (EN_SOURCE[k] || k) : k))
 
       // 更新导航 tab 的 label
       const navTabs = [
