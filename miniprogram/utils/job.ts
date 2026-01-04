@@ -37,11 +37,7 @@ export function normalizeJobTags<T extends { summary?: string; source_name?: str
   // AIEnglish 时不插入 source_name 到 tags
   if (language !== 'AIEnglish' && item.source_name && typeof item.source_name === 'string' && item.source_name.trim()) {
     const sourceTag = item.source_name.trim()
-    if (displayTags.length >= 1) {
-      displayTags.splice(1, 0, sourceTag)
-    } else {
-      displayTags.push(sourceTag)
-    }
+    displayTags.push(sourceTag)
   }
 
   return { tags, displayTags }

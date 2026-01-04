@@ -162,11 +162,7 @@ Component({
         // AIEnglish 时不插入 source_name 到 tags
         if (!this.data.isAIEnglish && jobData.source_name && typeof jobData.source_name === 'string' && jobData.source_name.trim()) {
           const sourceTag = jobData.source_name.trim()
-          if (displayTags.length >= 1) {
-            displayTags.splice(1, 0, sourceTag)
-          } else {
-            displayTags.push(sourceTag)
-          }
+          displayTags.push(sourceTag)
         }
       }
 

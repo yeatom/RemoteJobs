@@ -50,9 +50,6 @@
       show-scrollbar="{{false}}"
       enable-back-to-top="{{false}}"
       enable-passive="{{true}}"
-      enable-detail="{{true}}"
-      detail-selector="#jobDetail"
-      detail-collection-fallback="remote_jobs"
       bind:itemtap="onItemTap"
       bind:scrolltolower="onScrollLower"
     />
@@ -68,13 +65,4 @@
     <view class="featured-overlay-text" bindtap="onFeaturedSubscribeTap">{{ui.featuredSubscribeText}}</view>
   </view>
 </view>
-
-<!-- Drawer Component -->
-<drawer
-  show="{{showDrawer}}"
-  value="{{drawerFilter}}"
-  bind:close="toggleDrawer"
-  bind:confirm="onDrawerConfirm"
-  bind:reset="onDrawerReset"
-/>
 

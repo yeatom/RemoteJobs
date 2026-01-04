@@ -15,6 +15,9 @@ Page({
     restoreSheetOpen: false,
     savedSearchConditions: [] as any[],
     isRestoreEditing: false,
+    showFilterDrawer: false,
+    filterDrawerValue: { salary: '全部', experience: '全部', source_name: [], region: '全部' } as any,
+    currentFilterTabIndex: 0, // 当前打开 drawer 的 tab 索引
 
     ui: {
       tabPublic: '公开',
@@ -111,10 +114,14 @@ Page({
   },
 
   onJobTap(e: any) {
-    const job = e?.detail?.job || e?.detail
-    const _id = (job?._id || e?.currentTarget?.dataset?._id) as string
+    // job-tab 传递的事件格式: { job, _id }
+    const job = e?.detail?.job
+    const _id = e?.detail?._id || job?._id
 
-    if (!_id || !job) return
+    if (!_id || !job) {
+      console.warn('onJobTap: missing job or _id', { job, _id, detail: e?.detail })
+      return
+    }
 
     // 如果从收藏tab打开，确保isSaved为true，避免UI闪烁
     let jobData = { ...job }
@@ -421,5 +428,50 @@ Page({
         }
       },
     })
+  },
+
+  onOpenFilterDrawer(e: any) {
+    const tabIndex = e?.detail?.tabIndex ?? this.data.currentTab
+    const currentFilter = e?.detail?.filter || { salary: '全部', experience: '全部', source_name: [], region: '全部' }
+    
+    this.setData({
+      currentFilterTabIndex: tabIndex,
+      filterDrawerValue: currentFilter,
+      showFilterDrawer: true,
+    })
+  },
+
+  onFilterDrawerClose() {
+    this.setData({ showFilterDrawer: false })
+  },
+
+  onFilterDrawerConfirm(e: any) {
+    const filter = e.detail.value || {}
+    const tabIndex = this.data.currentFilterTabIndex
+    
+    this.setData({ showFilterDrawer: false })
+    
+    // 通知对应的 job-tab 组件应用筛选条件
+    setTimeout(() => {
+      const tabComponent = this.selectComponent(`#jobTab${tabIndex}`) as any
+      if (tabComponent && typeof tabComponent.applyFilter === 'function') {
+        tabComponent.applyFilter(filter)
+      }
+    }, 100)
+  },
+
+  onFilterDrawerReset() {
+    const tabIndex = this.data.currentFilterTabIndex
+    const defaultFilter = { salary: '全部', experience: '全部', source_name: [], region: '全部' }
+    
+    this.setData({ showFilterDrawer: false })
+    
+    // 通知对应的 job-tab 组件重置筛选条件
+    setTimeout(() => {
+      const tabComponent = this.selectComponent(`#jobTab${tabIndex}`) as any
+      if (tabComponent && typeof tabComponent.applyFilter === 'function') {
+        tabComponent.applyFilter(defaultFilter)
+      }
+    }, 100)
   },
 })

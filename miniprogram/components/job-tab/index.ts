@@ -43,7 +43,7 @@ Component({
     // 恢复的搜索条件（用于从父组件传递）
     restoreCondition: {
       type: Object,
-      value: null,
+      value: undefined,
     },
   },
 
@@ -58,7 +58,6 @@ Component({
     // tab内部状态
     searchKeyword: '',
     scrollTop: 0,
-    showDrawer: false,
     showSaveMenu: false,
     isSearching: false,
     drawerFilter: { ...DEFAULT_DRAWER_FILTER } as DrawerFilterValue,
@@ -98,7 +97,7 @@ Component({
       }
       
       // 如果激活且未加载，则加载数据
-      if (this.data.active && !this.data.hasLoaded) {
+      if ((this.properties.active as boolean) && !this.data.hasLoaded) {
         this.loadData(true)
       }
     },
@@ -122,7 +121,7 @@ Component({
     },
     'restoreCondition': function(condition: any) {
       // 当收到恢复的搜索条件时，应用它
-      if (condition && condition.tabType === this.data.tabType) {
+      if (condition && condition.tabType === (this.properties.tabType as number)) {
         const searchKeyword = condition.searchKeyword || ''
         const drawerFilter = condition.drawerFilter || { ...DEFAULT_DRAWER_FILTER }
         
@@ -176,7 +175,7 @@ Component({
       this.setData({ loading: true })
       
       try {
-        const tabType = this.data.tabType
+        const tabType = this.properties.tabType as number
         
         // 如果有搜索关键词，执行搜索
         if (this.data.searchKeyword && this.data.searchKeyword.trim()) {
@@ -200,7 +199,7 @@ Component({
     async loadRemoteJobs(reset = false) {
       const existingJobs = reset ? [] : this.data.jobs
       const skip = existingJobs.length
-      const tabType = this.data.tabType
+      const tabType = this.properties.tabType as number
       
       // 构建筛选参数
       const filterParams: any = {}
@@ -573,9 +572,22 @@ Component({
       this.maybeLoadMore()
     },
 
-    onItemTap(e: WechatMiniprogram.TouchEvent) {
-      const job = e.currentTarget.dataset.job
-      const id = e.currentTarget.dataset._id
+    onItemTap(e: any) {
+      // job-list 触发的事件格式: { job, _id }
+      // 数据在 e.detail 中
+      const job = e.detail?.job
+      const id = e.detail?._id
+      
+      if (!job || !id) {
+        console.warn('job-tab onItemTap: missing job or id', { job, id, detail: e.detail })
+        return
+      }
+      
+      // 确保 _id 存在
+      if (!job._id && id) {
+        job._id = id
+      }
+      
       this.triggerEvent('itemtap', { job, _id: id })
     },
 
@@ -603,30 +615,21 @@ Component({
       if (this.data.showSaveMenu) {
         this.setData({ showSaveMenu: false })
       }
-      const showDrawer = !this.data.showDrawer
-      this.setData({ showDrawer })
+      // 通知父组件打开 drawer
+      this.triggerEvent('openfilter', {
+        tabIndex: this.properties.tabType as number,
+        filter: this.data.drawerFilter,
+      })
     },
 
     toggleSaveMenu() {
-      if (this.data.showDrawer) {
-        this.setData({ showDrawer: false })
-      }
       const showSaveMenu = !this.data.showSaveMenu
       this.setData({ showSaveMenu })
     },
 
-    onDrawerConfirm(e: any) {
-      const filter = e.detail.value || {}
-      this.setData({ drawerFilter: filter, showDrawer: false })
-      // 重新加载数据
-      this.loadData(true)
-    },
-
-    onDrawerReset() {
-      this.setData({ 
-        drawerFilter: { ...DEFAULT_DRAWER_FILTER },
-        showDrawer: false 
-      })
+    // 应用筛选条件（由父组件调用）
+    applyFilter(filter: DrawerFilterValue) {
+      this.setData({ drawerFilter: filter })
       // 重新加载数据
       this.loadData(true)
     },
@@ -809,7 +812,7 @@ Component({
       const searchCondition = {
         searchKeyword,
         drawerFilter,
-        tabIndex: this.data.tabType,
+        tabIndex: this.properties.tabType as number,
       }
       
       try {
@@ -845,7 +848,7 @@ Component({
       }
       
       // 通知父组件显示恢复搜索条件的弹窗
-      this.triggerEvent('restoresearch', { tabType: this.data.tabType })
+      this.triggerEvent('restoresearch', { tabType: this.properties.tabType as number })
     },
 
     onFeaturedSubscribeTap() {
