@@ -59,24 +59,6 @@
     </swiper-item>
   </swiper>
 
-  <!-- Job Detail Drawer Component -->
-  <job-detail
-    id="jobDetail"
-    show="{{showJobDetail}}"
-    job-data="{{selectedJobData}}"
-    bind:close="closeJobDetail"
-    bind:savechange="onJobSaveChange"
-  />
-
-  <!-- Filter Drawer Component (moved from job-tab to page level for full-screen coverage) -->
-  <drawer
-    id="filterDrawer"
-    show="{{showFilterDrawer}}"
-    value="{{filterDrawerValue}}"
-    bind:close="onFilterDrawerClose"
-    bind:confirm="onFilterDrawerConfirm"
-    bind:reset="onFilterDrawerReset"
-  />
 
   <!-- Restore Search Condition Bottom Sheet -->
   <block wx:if="{{showRestoreSheet}}">

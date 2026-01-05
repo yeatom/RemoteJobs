@@ -24,7 +24,7 @@ Page({
         // Immediately set navigation bar title when language changes
         const app = getApp() as any
         const lang = normalizeLanguage(app?.globalData?.language)
-        wx.setNavigationBarTitle({ title: t('app.navTitle', lang) })
+        wx.setNavigationBarTitle({ title: '' })
         
         // 更新 loading 文本
         this.setData({ loadingText: t('jobs.loading', lang) })
@@ -56,7 +56,7 @@ Page({
     // Set navigation bar title when page becomes visible
     const app = getApp() as any
     const lang = normalizeLanguage(app?.globalData?.language)
-    wx.setNavigationBarTitle({ title: t('app.navTitle', lang) })
+    wx.setNavigationBarTitle({ title: '' })
   },
 
   async fetchJobDetails(id: string, collection: string) {

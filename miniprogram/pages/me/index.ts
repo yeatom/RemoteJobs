@@ -12,9 +12,6 @@ Page({
     isLoggedIn: false,
     phoneAuthBusy: false,
 
-    showJobDetail: false,
-    selectedJobId: '',
-    selectedCollection: '',
 
     showLanguageSheet: false,
     languageSheetOpen: false,
@@ -45,9 +42,7 @@ Page({
       onLanguageRevive: () => {
         this.syncLanguageFromApp()
         // Immediately set navigation bar title when language changes
-        const app = getApp<IAppOption>() as any
-        const lang = normalizeLanguage(app?.globalData?.language)
-        wx.setNavigationBarTitle({ title: t('app.navTitle', lang) })
+        wx.setNavigationBarTitle({ title: '' })
         
       },
     })
@@ -114,7 +109,6 @@ Page({
       inviteCodeCopied: t('me.inviteCodeCopied', lang),
       inviteCodeInvalid: t('me.inviteCodeInvalid', lang),
       inviteCodeApplied: t('me.inviteCodeApplied', lang),
-      emptyFavorites: t('me.emptyFavorites', lang),
       comingSoon: t('me.comingSoon', lang),
       langDefault: t('me.langDefault', lang),
       langEnglish: t('me.langEnglish', lang),
@@ -214,10 +208,6 @@ Page({
     } finally {
       this.setData({ phoneAuthBusy: false })
     }
-  },
-
-  closeJobDetail() {
-    this.setData({ showJobDetail: false })
   },
 
   openLanguageSheet() {
@@ -354,11 +344,12 @@ Page({
           data: {}
         })
 
-        if (result.result?.inviteCode) {
-          this.setData({ myInviteCode: result.result.inviteCode })
+        const resultData = result.result as any
+        if (resultData?.inviteCode) {
+          this.setData({ myInviteCode: resultData.inviteCode })
           // Update global user data
           if (app?.globalData?.user) {
-            app.globalData.user.inviteCode = result.result.inviteCode
+            app.globalData.user.inviteCode = resultData.inviteCode
           }
         }
       }
@@ -399,12 +390,13 @@ Page({
         data: { inviteCode: inputInviteCode }
       })
 
-      if (result.result?.success) {
+      const resultData = result.result as any
+      if (resultData?.success) {
         wx.showToast({ title: ui.inviteCodeApplied, icon: 'success' })
         this.setData({ inputInviteCode: '' })
         this.closeInviteSheet()
       } else {
-        wx.showToast({ title: result.result?.message || '应用失败', icon: 'none' })
+        wx.showToast({ title: resultData?.message || '应用失败', icon: 'none' })
       }
     } catch (err) {
       wx.showToast({ title: '应用失败', icon: 'none' })

@@ -8,16 +8,11 @@ Page({
     currentTab: 0,
     isFeaturedUnlocked: false,
     featuredScrollEnabled: true,
-    showJobDetail: false,
-    selectedJobData: null as any,
     selectedCollection: 'remote_jobs',
     showRestoreSheet: false,
     restoreSheetOpen: false,
     savedSearchConditions: [] as any[],
     isRestoreEditing: false,
-    showFilterDrawer: false,
-    filterDrawerValue: { salary: '全部', experience: '全部', source_name: [], region: '全部' } as any,
-    currentFilterTabIndex: 0, // 当前打开 drawer 的 tab 索引
 
     ui: {
       tabPublic: '公开',
@@ -36,7 +31,7 @@ Page({
           this.syncLanguageFromApp()
         const app = getApp<IAppOption>() as any
         const lang = normalizeLanguage(app?.globalData?.language)
-        wx.setNavigationBarTitle({ title: t('app.navTitle', lang) })
+        wx.setNavigationBarTitle({ title: '' })
       },
     })
 
@@ -53,8 +48,33 @@ Page({
   onShow() {
     const app = getApp<IAppOption>() as any
     const lang = normalizeLanguage(app?.globalData?.language)
-    wx.setNavigationBarTitle({ title: t('app.navTitle', lang) })
+    wx.setNavigationBarTitle({ title: '' })
     this.checkFeaturedSubscription()
+    
+    // 检查是否有筛选结果需要应用
+    const pageData = app?.globalData?._pageData
+    if (pageData?.filterResult && pageData?.filterAction) {
+      const filterResult = pageData.filterResult
+      const tabIndex = pageData.filterTabIndex || 0
+      const action = pageData.filterAction
+      
+      // 清除临时数据
+      pageData.filterResult = null
+      pageData.filterTabIndex = 0
+      pageData.filterAction = null
+      
+      // 应用筛选条件
+      setTimeout(() => {
+        const tabComponent = this.selectComponent(`#jobTab${tabIndex}`) as any
+        if (tabComponent && typeof tabComponent.applyFilter === 'function') {
+          if (action === 'reset') {
+            tabComponent.applyFilter({ salary: '全部', experience: '全部', source_name: [], region: '全部' })
+          } else {
+            tabComponent.applyFilter(filterResult)
+          }
+        }
+      }, 100)
+    }
   },
 
     syncLanguageFromApp() {
@@ -123,36 +143,20 @@ Page({
       return
     }
 
+    // 存储到全局状态并跳转
+    const app = getApp<IAppOption>() as any
+    if (app?.globalData?._pageData) {
     // 如果从收藏tab打开，确保isSaved为true，避免UI闪烁
     let jobData = { ...job }
     if (this.data.currentTab === 2) {
       jobData.isSaved = true
     }
-
-    this.setData({ 
-      showJobDetail: false,
-      selectedJobData: null,
-    }, () => {
-      this.setData({
-        selectedJobData: jobData,
-        showJobDetail: true,
-      })
+      app.globalData._pageData.jobData = jobData
+    }
+    
+    wx.navigateTo({
+      url: '/pages/job-detail/index',
     })
-  },
-
-  closeJobDetail() {
-    this.setData({ 
-      showJobDetail: false,
-      selectedJobData: null,
-    })
-  },
-
-  onJobSaveChange(e: any) {
-    const { _id } = e.detail || {}
-    if (!_id) return
-
-    // 通知收藏tab刷新数据
-    this.onRefreshSaved()
   },
 
   onRefreshSaved() {
@@ -434,44 +438,15 @@ Page({
     const tabIndex = e?.detail?.tabIndex ?? this.data.currentTab
     const currentFilter = e?.detail?.filter || { salary: '全部', experience: '全部', source_name: [], region: '全部' }
     
-    this.setData({
-      currentFilterTabIndex: tabIndex,
-      filterDrawerValue: currentFilter,
-      showFilterDrawer: true,
+    // 存储到全局状态并跳转
+    const app = getApp<IAppOption>() as any
+    if (app?.globalData?._pageData) {
+      app.globalData._pageData.filterValue = currentFilter
+      app.globalData._pageData.filterTabIndex = tabIndex
+    }
+    
+    wx.navigateTo({
+      url: '/pages/filter/index',
     })
-  },
-
-  onFilterDrawerClose() {
-    this.setData({ showFilterDrawer: false })
-  },
-
-  onFilterDrawerConfirm(e: any) {
-    const filter = e.detail.value || {}
-    const tabIndex = this.data.currentFilterTabIndex
-    
-    this.setData({ showFilterDrawer: false })
-    
-    // 通知对应的 job-tab 组件应用筛选条件
-    setTimeout(() => {
-      const tabComponent = this.selectComponent(`#jobTab${tabIndex}`) as any
-      if (tabComponent && typeof tabComponent.applyFilter === 'function') {
-        tabComponent.applyFilter(filter)
-      }
-    }, 100)
-  },
-
-  onFilterDrawerReset() {
-    const tabIndex = this.data.currentFilterTabIndex
-    const defaultFilter = { salary: '全部', experience: '全部', source_name: [], region: '全部' }
-    
-    this.setData({ showFilterDrawer: false })
-    
-    // 通知对应的 job-tab 组件重置筛选条件
-    setTimeout(() => {
-      const tabComponent = this.selectComponent(`#jobTab${tabIndex}`) as any
-      if (tabComponent && typeof tabComponent.applyFilter === 'function') {
-        tabComponent.applyFilter(defaultFilter)
-      }
-    }, 100)
   },
 })

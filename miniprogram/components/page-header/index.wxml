@@ -1,7 +1,0 @@
-<!--miniprogram/components/page-header/index.wxml-->
-<view class="page-header">
-  <view class="back-hit" bindtap="onBack">
-    <view class="back-button"></view>
-  </view>
-</view>
-

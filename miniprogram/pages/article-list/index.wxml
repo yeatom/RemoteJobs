@@ -14,14 +14,6 @@
       </view>
     </view>
   </view>
-  
-  <!-- Article Detail Drawer Component -->
-  <article-detail
-    id="articleDetail"
-    show="{{showArticleDetail}}"
-    article-data="{{selectedArticleData}}"
-    bind:close="closeArticleDetail"
-  />
 </view>
 
 

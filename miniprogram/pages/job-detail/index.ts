@@ -1,0 +1,325 @@
+// miniprogram/pages/job-detail/index.ts
+import { normalizeLanguage, t } from '../../utils/i18n'
+import { normalizeJobTags, translateFieldValue } from '../../utils/job'
+import { attachLanguageAware } from '../../utils/languageAware'
+
+const SAVED_COLLECTION = 'saved_jobs'
+const SAVE_DEBOUNCE_DELAY = 300
+
+function formatDescription(description?: string): string {
+  if (!description) return ''
+  const escapeHtml = (text: string) =>
+    text
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;')
+
+  return description
+    .split(/\n+/)
+    .map((line) => {
+      const content = escapeHtml(line.trim())
+      return `<p>${content || '&nbsp;'}</p>`
+    })
+    .join('')
+}
+
+type JobDetailItem = {
+  _id: string
+  createdAt: string
+  source_url: string
+  salary: string
+  source_name: string
+  summary: string
+  description?: string
+  team: string
+  title: string
+  type: string
+  tags: string[]
+  displayTags?: string[]
+}
+
+Page({
+  data: {
+    job: null as (JobDetailItem & { richDescription: string }) | null,
+    loading: false,
+    saved: false,
+    saveBusy: false,
+    saveDocId: '',
+    isAIEnglish: false,
+    loadingText: '加载中...',
+    loadFailedText: '加载失败',
+    saveText: 'Saved',
+    unsaveText: 'Save',
+    oneClickApplyText: 'One-Click Apply',
+    showApplyMenu: false,
+    applyMenuOpen: false,
+  },
+
+  onLoad() {
+    // 从全局状态获取数据
+    const app = getApp<IAppOption>() as any
+    const jobData = app?.globalData?._pageData?.jobData
+
+    if (jobData && jobData._id) {
+      this.setJobFromData(jobData)
+      // 清除临时数据
+      if (app?.globalData?._pageData) {
+        app.globalData._pageData.jobData = null
+      }
+    } else {
+      this.setData({ loading: false })
+      wx.showToast({ title: '数据加载失败', icon: 'none' })
+      setTimeout(() => {
+        wx.navigateBack()
+      }, 1500)
+    }
+
+    // attach language-aware behavior
+    ;(this as any)._langDetach = attachLanguageAware(this, {
+      onLanguageRevive: () => {
+        const app = getApp<IAppOption>() as any
+        const lang = normalizeLanguage(app?.globalData?.language)
+        wx.setNavigationBarTitle({ title: '' })
+        this.updateLanguage()
+        // 如果已有数据，重新处理显示
+        if (this.data.job) {
+          const app = getApp<IAppOption>() as any
+          const lang = normalizeLanguage(app?.globalData?.language)
+          const job = this.data.job
+          const experience = (job as any).experience && typeof (job as any).experience === 'string' ? (job as any).experience.trim() : ''
+          const { displayTags } = normalizeJobTags(job, lang, experience)
+          const salary = job.salary && typeof job.salary === 'string' ? job.salary.trim() : ''
+          const translatedSalary = translateFieldValue(salary, 'salary', lang)
+          this.setData({
+            job: {
+              ...job,
+              salary: translatedSalary || salary,
+              displayTags,
+            } as any,
+          })
+        }
+      },
+    })
+
+    this.updateLanguage()
+  },
+
+  onUnload() {
+    const fn = (this as any)._langDetach
+    if (typeof fn === 'function') fn()
+    ;(this as any)._langDetach = null
+  },
+
+  onShow() {
+    const app = getApp<IAppOption>() as any
+    const lang = normalizeLanguage(app?.globalData?.language)
+    wx.setNavigationBarTitle({ title: '' })
+  },
+
+  updateLanguage() {
+    const app = getApp<IAppOption>() as any
+    const lang = normalizeLanguage(app?.globalData?.language)
+    this.setData({
+      isAIEnglish: lang === 'AIEnglish',
+      loadingText: t('jobs.loading', lang),
+      loadFailedText: t('jobs.loadFailed', lang),
+      saveText: lang === 'Chinese' || lang === 'AIChinese' ? '已收藏' : 'Saved',
+      unsaveText: lang === 'Chinese' || lang === 'AIChinese' ? '收藏' : 'Save',
+      oneClickApplyText: lang === 'Chinese' || lang === 'AIChinese' ? '一键申请' : 'One-Click Apply',
+    })
+  },
+
+  async setJobFromData(jobData: any) {
+    const _id = jobData._id
+    if (!_id) return
+
+    let displayTags = jobData.displayTags
+    if (!displayTags || !Array.isArray(displayTags) || displayTags.length === 0) {
+      const app = getApp<IAppOption>() as any
+      const lang = normalizeLanguage(app?.globalData?.language)
+      const experience = jobData.experience && typeof jobData.experience === 'string' ? jobData.experience.trim() : ''
+      
+      const { displayTags: generatedDisplayTags } = normalizeJobTags(jobData, lang, experience)
+      displayTags = generatedDisplayTags
+    }
+
+    const isSaved = jobData.isSaved !== undefined ? jobData.isSaved : null
+    
+    const app = getApp<IAppOption>() as any
+    const lang = normalizeLanguage(app?.globalData?.language)
+    const salary = jobData.salary && typeof jobData.salary === 'string' ? jobData.salary.trim() : ''
+    const translatedSalary = translateFieldValue(salary, 'salary', lang)
+    
+    this.setData({
+      job: {
+        ...jobData,
+        salary: translatedSalary || salary,
+        displayTags,
+        richDescription: formatDescription(jobData.description),
+      } as JobDetailItem & { richDescription: string },
+      loading: false,
+      saved: isSaved !== null ? isSaved : false,
+    })
+
+    if (isSaved === null) {
+      try {
+        const isSavedState = await this.checkSavedState(_id, true)
+        this.setData({ saved: isSavedState })
+      } catch (err) {
+        this.setData({ saved: false })
+      }
+    }
+  },
+
+  async toggleSave() {
+    const job = this.data.job
+    if (!job || this.data.saveBusy) return
+
+    const app = getApp<IAppOption>() as any
+    const user = app?.globalData?.user
+    const isLoggedIn = !!(user && (user.isAuthed || user.phone))
+    if (!isLoggedIn) {
+      wx.showToast({ title: '请先登录/绑定手机号', icon: 'none' })
+      return
+    }
+
+    this.setData({ saveBusy: true })
+    const targetSaved = !this.data.saved
+
+    try {
+      if (targetSaved) {
+        await this.addSavedRecord(job)
+      } else {
+        await this.removeSavedRecord(job._id)
+      }
+
+      this.setData({ saved: targetSaved })
+      
+      wx.showToast({
+        title: targetSaved ? '收藏成功' : '已取消收藏',
+        icon: 'none',
+      })
+    } catch (err) {
+      wx.showToast({ title: '操作失败', icon: 'none' })
+    } finally {
+      setTimeout(() => {
+        this.setData({ saveBusy: false })
+      }, SAVE_DEBOUNCE_DELAY)
+    }
+  },
+
+  onOneClickApply() {
+    // 如果弹窗已打开，则关闭
+    if (this.data.showApplyMenu && this.data.applyMenuOpen) {
+      this.closeApplyMenu()
+      return
+    }
+    // 否则打开弹窗
+    this.setData({ showApplyMenu: true })
+    setTimeout(() => {
+      this.setData({ applyMenuOpen: true })
+    }, 50)
+  },
+
+  closeApplyMenu() {
+    this.setData({ applyMenuOpen: false })
+    setTimeout(() => {
+      this.setData({ showApplyMenu: false })
+    }, 200)
+  },
+
+  onViewSource() {
+    const job = this.data.job
+    if (!job?.source_url) {
+      wx.showToast({ title: '暂无来源链接', icon: 'none' })
+      return
+    }
+    this.closeApplyMenu()
+    // 复制链接或打开链接
+    wx.setClipboardData({
+      data: job.source_url,
+      success: () => {
+        wx.showToast({ title: '链接已复制', icon: 'success' })
+      },
+    })
+  },
+
+  onGenerateResume() {
+    this.closeApplyMenu()
+    // TODO: 实现生成简历功能
+    wx.showToast({ title: '功能开发中', icon: 'none' })
+      },
+
+  onOneClickResumeSubmit() {
+    this.closeApplyMenu()
+    // TODO: 实现一键简历投递功能
+    wx.showToast({ title: '功能开发中', icon: 'none' })
+  },
+
+  async addSavedRecord(job: JobDetailItem) {
+    const app = getApp<IAppOption>() as any
+    const openid = app?.globalData?.user?.openid
+    if (!openid) throw new Error('missing openid')
+
+    const db = wx.cloud.database()
+    const recordData = {
+      openid,
+      jobId: job._id,
+      type: job.type,
+      createdAt: job.createdAt,
+    }
+
+    const result = await db.collection(SAVED_COLLECTION).add({ data: recordData })
+    this.setData({ saveDocId: String((result as any)._id || '') })
+  },
+
+  async removeSavedRecord(_id: string) {
+    const app = getApp<IAppOption>() as any
+    const openid = app?.globalData?.user?.openid
+    if (!openid) return
+
+    const db = wx.cloud.database()
+    let docId = this.data.saveDocId
+    if (!docId) {
+      const lookup = await db.collection(SAVED_COLLECTION).where({ openid, jobId: _id }).limit(1).get()
+      docId = String((lookup.data?.[0] as any)?._id || '')
+    }
+    if (!docId) return
+    await db.collection(SAVED_COLLECTION).doc(docId).remove()
+    this.setData({ saveDocId: '' })
+  },
+
+  async checkSavedState(_id: string, silent = false) {
+    if (!_id) return false
+
+    const app = getApp<IAppOption>() as any
+    const openid = app?.globalData?.user?.openid
+    if (!openid) {
+      if (!silent) this.setData({ saved: false, saveDocId: '' })
+      return false
+    }
+
+    const db = wx.cloud.database()
+    try {
+      const res = await db.collection(SAVED_COLLECTION).where({ openid, jobId: _id }).limit(1).get()
+      const doc = res.data?.[0] as any
+      const exists = !!doc
+      const updates: Partial<typeof this.data> = {
+        saveDocId: String(doc?._id || ''),
+      }
+      if (!silent) updates.saved = exists
+      this.setData(updates)
+      return exists
+    } catch (err) {
+      if (!silent) {
+        this.setData({ saved: false, saveDocId: '' })
+      } else {
+        this.setData({ saveDocId: '' })
+      }
+      return false
+    }
+  },
+})
+

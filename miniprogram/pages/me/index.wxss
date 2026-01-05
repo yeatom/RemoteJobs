@@ -204,8 +204,8 @@
 }
 
 .member-star-icon {
-  width: 63rpx;
-  height: 63rpx;
+  width: 57rpx;
+  height: 57rpx;
   display: inline-block;
   flex-shrink: 0;
   margin: 0 6rpx;

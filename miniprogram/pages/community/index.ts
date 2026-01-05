@@ -30,8 +30,6 @@ Page({
     },
     articles: [] as Article[],
     loading: true,
-    showArticleDetail: false,
-    selectedArticleData: null as any,
   },
 
   onLoad: function () {
@@ -65,7 +63,7 @@ Page({
           },
           articles: updatedArticles,
         })
-        wx.setNavigationBarTitle({ title: t('app.navTitle', lang) })
+        wx.setNavigationBarTitle({ title: '' })
         
         try {
           const app: any = getApp()
@@ -172,7 +170,7 @@ Page({
   onShow: function () {
     const app: any = getApp()
     const lang = normalizeLanguage(app && app.globalData ? app.globalData.language : null)
-    wx.setNavigationBarTitle({ title: t('app.navTitle', lang) })
+    wx.setNavigationBarTitle({ title: '' })
   },
  
   onOpenArticleAll(e: any) {
@@ -185,18 +183,14 @@ Page({
     const item = e?.currentTarget?.dataset?.item
     if (!item) return
     
-    this.setData({ 
-      showArticleDetail: false,
-      selectedArticleData: null,
-    }, () => {
-      this.setData({
-        selectedArticleData: item,
-        showArticleDetail: true,
-      })
+    // 存储到全局状态并跳转
+    const app = getApp<IAppOption>() as any
+    if (app?.globalData?._pageData) {
+      app.globalData._pageData.articleData = item
+    }
+    
+    wx.navigateTo({
+      url: '/pages/article-detail/index',
     })
-  },
-
-  closeArticleDetail() {
-    this.setData({ showArticleDetail: false, selectedArticleData: null })
   },
 })

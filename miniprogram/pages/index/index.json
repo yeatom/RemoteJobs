@@ -1,10 +1,8 @@
 {
   "enablePullDownRefresh": false,
   "onReachBottomDistance": 50,
-  "navigationBarTitleText": "🌍 远程工作机会",
+  "navigationBarTitleText": "",
   "usingComponents": {
-    "job-tab": "../../components/job-tab/index",
-    "job-detail": "../../components/job-detail/index",
-    "drawer": "../../components/drawer/index"
+    "job-tab": "../../components/job-tab/index"
   }
 }

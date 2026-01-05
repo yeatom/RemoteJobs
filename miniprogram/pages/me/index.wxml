@@ -64,14 +64,14 @@
         <view class="language-item {{currentLanguage === 'AIChinese' ? 'language-item-active' : ''}}" data-value="AIChinese" bindtap="onLanguageSelect">
           <view class="language-item-text">
             <text>{{ui.langAIChinese}}</text>
-            <image class="member-star-icon" src="/assets/icons/four-pointed-start.png" mode="aspectFit" />
+            <image class="member-star-icon" src="/assets/icons/four-point-star-twin.png" mode="aspectFit" />
             <text wx:if="{{!isAiChineseUnlocked}}"> 🔒</text>
           </view>
         </view>
         <view class="language-item {{currentLanguage === 'AIEnglish' ? 'language-item-active' : ''}}" data-value="AIEnglish" bindtap="onLanguageSelect">
           <view class="language-item-text">
             <text>{{ui.langAIEnglish}}</text>
-            <image class="member-star-icon" src="/assets/icons/four-pointed-start.png" mode="aspectFit" />
+            <image class="member-star-icon" src="/assets/icons/four-point-star-twin.png" mode="aspectFit" />
             <text wx:if="{{!isAiChineseUnlocked}}"> 🔒</text>
           </view>
         </view>
@@ -174,12 +174,4 @@
       </view>
     </view>
   </block>
-
-  <!-- Job Detail Drawer Component (same as Jobs page) -->
-  <job-detail
-    show="{{showJobDetail}}"
-    job-id="{{selectedJobId}}"
-    collection="{{selectedCollection}}"
-    bind:close="closeJobDetail"
-  />
 </view>

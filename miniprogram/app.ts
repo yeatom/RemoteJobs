@@ -8,6 +8,15 @@ App<IAppOption>({
     user: null as any,
     language: 'Chinese' as AppLanguage,
     _langListeners: new Set<LangListener>(),
+    // 页面跳转临时数据存储
+    _pageData: {
+      articleData: null as any,
+      jobData: null as any,
+      filterValue: null as any,
+      filterTabIndex: 0,
+      filterResult: null as any, // 筛选结果
+      filterAction: null as string | null, // 'confirm' | 'reset' | null
+    },
   } as any,
 
   async onLaunch() {
@@ -42,7 +51,7 @@ App<IAppOption>({
     }
 
     try {
-      wx.setNavigationBarTitle({ title: t('app.navTitle', lang) })
+      wx.setNavigationBarTitle({ title: '' })
     } catch {
       // ignore
     }

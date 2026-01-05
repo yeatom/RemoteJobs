@@ -1,8 +1,5 @@
 {
-  "navigationBarTitleText": "Articles",
-  "usingComponents": {
-    "article-detail": "../../components/article-detail/index"
-  }
+  "navigationBarTitleText": ""
 }
 
 

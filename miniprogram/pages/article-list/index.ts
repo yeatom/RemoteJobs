@@ -26,8 +26,6 @@ Page({
     title: '',
     loading: true,
     loadingText: '加载中...',
-    showArticleDetail: false,
-    selectedArticleData: null as any,
   },
 
   async onLoad(options: any) {
@@ -41,7 +39,7 @@ Page({
       const i18nKey = articleIdToI18nKey[id]
       const title = i18nKey ? t(i18nKey as any, lang) : id
       this.setData({ title })
-      wx.setNavigationBarTitle({ title })
+      wx.setNavigationBarTitle({ title: '' })
     }
 
     // 初始化标题
@@ -100,21 +98,14 @@ Page({
     const item = e?.currentTarget?.dataset?.item
     if (!item) return
     
-    this.setData({
-      showArticleDetail: false,
-      selectedArticleData: null,
-    }, () => {
-      this.setData({
-        selectedArticleData: item,
-        showArticleDetail: true,
-      })
-    })
-  },
-
-  closeArticleDetail() {
-    this.setData({
-      showArticleDetail: false,
-      selectedArticleData: null,
+    // 存储到全局状态并跳转
+    const app = getApp<IAppOption>() as any
+    if (app?.globalData?._pageData) {
+      app.globalData._pageData.articleData = item
+    }
+    
+    wx.navigateTo({
+      url: '/pages/article-detail/index',
     })
   },
 })

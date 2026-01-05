@@ -1,0 +1,86 @@
+<!--miniprogram/pages/job-detail/index.wxml-->
+<view class="page">
+  <scroll-view     
+    class="detail-content" 
+    scroll-y="{{true}}"
+    enhanced="true" 
+    show-scrollbar="{{false}}"
+    upper-threshold="0"
+    bounces="{{false}}"
+  >
+    <block wx:if="{{job}}">
+      <view class="detail-body">
+        <view class="detail-header-section">
+          <view class="detail-title-meta-wrapper">
+        <view class="detail-title-row">
+          <text class="detail-title">{{job.title}}</text>
+        </view>
+        <view class="detail-meta" wx:if="{{(isAIEnglish && job.source_name) || (!isAIEnglish && job.team && job.team !== '未知公司') || job.salary}}">
+          <text wx:if="{{isAIEnglish && job.source_name}}" class="detail-meta-item">From {{job.source_name}}</text>
+          <text wx:if="{{!isAIEnglish && job.team && job.team !== '未知公司'}}" class="detail-meta-item">{{job.team}}</text>
+          <text wx:if="{{((isAIEnglish && job.source_name) || (!isAIEnglish && job.team && job.team !== '未知公司')) && job.salary}}" class="detail-meta-dot">·</text>
+          <text wx:if="{{job.salary}}" class="detail-meta-item">{{job.salary}}</text>
+            </view>
+          </view>
+          <view class="collect-button" bindtap="toggleSave">
+            <view class="collect-icon-wrapper">
+              <text class="collect-icon {{saved ? 'collect-icon-active' : ''}}">🔖</text>
+              <text class="collect-text {{saved ? 'collect-text-active' : ''}}">{{saved ? saveText : unsaveText}}</text>
+            </view>
+          </view>
+        </view>
+        <view class="detail-tags" wx:if="{{job.displayTags && job.displayTags.length > 0}}">
+          <view class="detail-tag" wx:for="{{job.displayTags}}" wx:key="*this">
+            <text class="detail-tag-text">{{item}}</text>
+          </view>
+        </view>
+        <view class="detail-description-wrapper" wx:if="{{job.richDescription}}">
+          <view class="detail-description">
+          <rich-text class="detail-description-rich" nodes="{{job.richDescription}}"></rich-text>
+        </view>
+        </view>
+      </view>
+    </block>
+    <block wx:elif="{{loading}}">
+      <view class="loading">{{loadingText}}</view>
+    </block>
+    <block wx:else>
+      <view class="error">{{loadFailedText}}</view>
+    </block>
+  </scroll-view>
+  <!-- One-Click Apply 悬浮层 -->
+  <view class="apply-overlay" wx:if="{{job}}">
+    <view class="apply-overlay-mask"></view>
+    <view class="apply-button" bindtap="onOneClickApply" hover-class="none">
+      <image class="apply-icon" src="/assets/icons/telegram.png" mode="aspectFit"></image>
+      <text class="apply-text">{{oneClickApplyText}}</text>
+    </view>
+  </view>
+
+  <!-- Apply Options Popover Menu -->
+  <block wx:if="{{showApplyMenu}}">
+    <view class="apply-menu-mask {{applyMenuOpen ? 'apply-menu-mask-open' : ''}}" bindtap="closeApplyMenu"></view>
+    <view class="apply-menu {{applyMenuOpen ? 'apply-menu-open' : ''}}">
+      <view class="apply-menu-spacer"></view>
+      <view class="apply-menu-content">
+        <view class="apply-menu-title">申请岗位</view>
+        <view class="apply-menu-options-container">
+          <view class="apply-menu-item" bindtap="onViewSource">
+            <text class="apply-menu-item-text">复制岗位来源链接</text>
+          </view>
+          <view class="apply-menu-divider"></view>
+          <view class="apply-menu-item" bindtap="onGenerateResume">
+            <text class="apply-menu-item-text">AI简历生成</text>
+            <image class="apply-menu-star-icon" src="/assets/icons/four-point-star-twin.png" mode="aspectFit"></image>
+          </view>
+          <view class="apply-menu-divider"></view>
+          <view class="apply-menu-item" bindtap="onOneClickResumeSubmit">
+            <text class="apply-menu-item-text">一键投递简历</text>
+            <image class="apply-menu-star-icon" src="/assets/icons/four-point-star-twin.png" mode="aspectFit"></image>
+          </view>
+        </view>
+      </view>
+    </view>
+  </block>
+</view>
+

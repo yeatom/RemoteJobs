@@ -4,7 +4,10 @@
     "pages/community/index",
     "pages/me/index",
     "pages/logs/logs",
-    "pages/article-list/index"
+    "pages/article-list/index",
+    "pages/article-detail/index",
+    "pages/job-detail/index",
+    "pages/filter/index"
   ],
   "page": {
     "pages/community/index": {
@@ -13,7 +16,7 @@
   },
   "window": {
     "navigationBarTextStyle": "black",
-    "navigationBarTitleText": "🌍 远程工作机会",
+    "navigationBarTitleText": "",
     "navigationBarBackgroundColor": "#ffffff"
   },
   "tabBar": {

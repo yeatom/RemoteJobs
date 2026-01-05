@@ -1,7 +1,3 @@
 {
-  "navigationBarTitleText": "🌍 远程工作机会",
-  "usingComponents": {
-    "job-detail": "../../components/job-detail/index",
-    "job-list": "../../components/job-list/index"
-  }
+  "navigationBarTitleText": ""
 }
