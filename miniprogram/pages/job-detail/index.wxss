@@ -307,6 +307,18 @@
   text-align: center;
 }
 
+.apply-menu-item-with-icon .apply-menu-item-text {
+  margin-left: 30rpx;
+}
+
+.apply-menu-item-text + .apply-menu-star-icon {
+  margin-left: 0;
+}
+
+.apply-menu-item:has(.apply-menu-star-icon) .apply-menu-item-text {
+  margin-left: 30rpx;
+}
+
 .apply-menu-divider {
   height: 1rpx;
   background-color: rgba(0, 0, 0, 0.06);

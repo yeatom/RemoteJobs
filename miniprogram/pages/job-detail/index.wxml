@@ -68,12 +68,12 @@
             <text class="apply-menu-item-text">{{copySourceLinkText}}</text>
           </view>
           <view class="apply-menu-divider"></view>
-          <view class="apply-menu-item" bindtap="onGenerateResume">
+          <view class="apply-menu-item apply-menu-item-with-icon" bindtap="onGenerateResume">
             <text class="apply-menu-item-text">{{aiResumeGenerateText}}</text>
             <image class="apply-menu-star-icon" src="/assets/icons/four-point-star-twin.png" mode="aspectFit"></image>
           </view>
           <view class="apply-menu-divider"></view>
-          <view class="apply-menu-item" bindtap="onOneClickResumeSubmit">
+          <view class="apply-menu-item apply-menu-item-with-icon" bindtap="onOneClickResumeSubmit">
             <text class="apply-menu-item-text">{{oneClickSubmitResumeText}}</text>
             <image class="apply-menu-star-icon" src="/assets/icons/four-point-star-twin.png" mode="aspectFit"></image>
           </view>

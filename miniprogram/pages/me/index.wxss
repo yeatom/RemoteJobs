@@ -124,11 +124,21 @@
 
 .me-item {
     padding: 28rpx;
-    border-bottom: 1rpx solid #f0f0f0;
+    position: relative;
 }
 
-.me-item:last-child {
-    border-bottom: none;
+.me-item::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 20rpx;
+    right: 20rpx;
+    height: 1rpx;
+    background: #f0f0f0;
+}
+
+.me-item:last-child::after {
+    display: none;
 }
 
 .me-item-text {
@@ -201,6 +211,10 @@
     display: flex;
     align-items: center;
     gap: 8rpx;
+}
+
+.language-item view.language-item-text {
+    margin-left: 30rpx;
 }
 
 .member-star-icon {

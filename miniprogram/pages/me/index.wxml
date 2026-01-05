@@ -32,18 +32,12 @@
   </view>
 
   <view class="me-list">
-    <view class="me-item" bindtap="onLanguageTap">
+    <view class="me-item" bindtap="onAiTranslateTap">
       <text class="me-item-text">{{ui.aiTranslateEntry}}</text>
     </view>
-
-    <view class="me-item">
-      <text class="me-item-text">{{ui.generateResumeEntry}}</text>
+    <view class="me-item" bindtap="onLanguageTap">
+      <text class="me-item-text">{{ui.language}}</text>
     </view>
-
-    <view class="me-item">
-      <text class="me-item-text">{{ui.publishSkillEntry}}</text>
-    </view>
-
     <view class="me-item" bindtap="onInviteTap">
       <text class="me-item-text">{{ui.inviteCodeEntry}}</text>
     </view>
@@ -62,9 +56,34 @@
         </view>
         <view class="language-item {{currentLanguage === 'English' ? 'language-item-active' : ''}}"
               data-value="English" bindtap="onLanguageSelect">
-          <text class="language-item-text">{{ui.langEnglish}}</text>
+          <view class="language-item-text">
+            <text>{{ui.langEnglish}}</text>
+            <image class="member-star-icon" src="/assets/icons/four-point-star-twin.png" mode="aspectFit"/>
+          </view>
         </view>
 
+      </view>
+    </view>
+  </block>
+
+  <!-- AI Translate bottom sheet -->
+  <block wx:if="{{showAiTranslateSheet}}">
+    <view class="language-sheet-mask {{aiTranslateSheetOpen ? 'language-sheet-mask-open' : ''}}"
+          bindtap="closeAiTranslateSheet"></view>
+    <view class="language-sheet {{aiTranslateSheetOpen ? 'language-sheet-open' : ''}}">
+
+      <view class="language-sheet-content">
+        <view class="language-item {{aiTranslateLanguage === 'Default' ? 'language-item-active' : ''}}"
+              data-value="Default" bindtap="onAiTranslateLanguageSelect">
+          <text class="language-item-text">{{ui.aiTranslateDefault}}</text>
+        </view>
+        <view class="language-item {{aiTranslateLanguage === 'AIChinese' ? 'language-item-active' : ''}}"
+              data-value="AIChinese" bindtap="onAiTranslateLanguageSelect">
+          <view class="language-item-text">
+            <text>{{ui.langAI}}</text>
+            <image class="member-star-icon" src="/assets/icons/four-point-star-twin.png" mode="aspectFit"/>
+          </view>
+        </view>
       </view>
     </view>
   </block>
