@@ -36,14 +36,10 @@
 }
 
 .collect-icon {
-  font-size: 36rpx;
+  width: 76rpx;
+  height: 76rpx;
   display: block;
-  line-height: 1;
-  opacity: 0.6;
-}
-
-.collect-icon-active {
-  opacity: 1;
+  flex-shrink: 0;
 }
 
 .collect-text {
@@ -61,6 +57,7 @@
   align-items: flex-start;
   justify-content: space-between;
   gap: 24rpx;
+  margin-top: 5rpx;
   margin-bottom: 24rpx;
 }
 
@@ -182,7 +179,7 @@
   position: relative;
   width: 66.666%;
   height: 80rpx;
-  background: linear-gradient(135deg,rgb(51, 131, 251),rgb(188, 207, 255));
+  background: linear-gradient(135deg,rgb(61, 119, 255),rgb(131, 165, 252));
   color: #ffffff;
   border-radius: 40rpx;
   font-size: 28rpx;
@@ -224,16 +221,15 @@
   top: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.3);
+  background: rgba(0, 0, 0, 0.15); /* 统一背景色，避免闪烁 */
   z-index: 998; /* 比按钮低 */
   opacity: 0;
-  transition: opacity 0.25s ease;
+  transition: opacity 0.25s ease, background-color 0.25s ease; /* 添加背景色过渡 */
   pointer-events: none;
 }
 
 .apply-menu-mask-open {
   opacity: 1;
-  background: rgba(0, 0, 0, 0.15); 
   pointer-events: auto;
 }
 
@@ -291,17 +287,17 @@
 }
 
 .apply-menu-item {
-  padding: 24rpx 32rpx;
+  height: 100rpx; /* 固定高度，确保所有选项高度一致 */
+  padding: 0 32rpx;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 8rpx; /* 文字和图标之间的间距 */
-  transition: background-color 0.15s ease;
   cursor: pointer;
-}
-
-.apply-menu-item:active {
-  background-color: #f9fafb; /* 点击时的轻微反馈，使用浅灰色背景 */
+  -webkit-tap-highlight-color: transparent; /* 移除点击高亮 */
+  user-select: none;
+  -webkit-user-select: none;
+  box-sizing: border-box;
 }
 
 .apply-menu-item-text {
@@ -314,7 +310,7 @@
 .apply-menu-divider {
   height: 1rpx;
   background-color: rgba(0, 0, 0, 0.06);
-  margin: 0 20rpx; /* 分割线与白色背景有margin-horizontal = 10rpx */
+  margin: 0 25rpx; /* 分割线与白色背景有margin-horizontal = 10rpx */
 }
 
 .apply-menu-star-icon {

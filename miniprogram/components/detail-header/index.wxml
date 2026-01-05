@@ -1,7 +1,0 @@
-<!--miniprogram/components/detail-header/index.wxml-->
-<view class="detail-header">
-  <view class="back-hit" bindtap="onClose">
-    <view class="back-button"></view>
-  </view>
-</view>
-

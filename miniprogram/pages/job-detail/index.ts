@@ -53,11 +53,26 @@ Page({
     saveText: 'Saved',
     unsaveText: 'Save',
     oneClickApplyText: 'One-Click Apply',
+    applyMenuTitle: 'Quick Apply',
+    copySourceLinkText: 'Copy Source Link',
+    aiResumeGenerateText: 'AI Resume Builder',
+    oneClickSubmitResumeText: 'One-Click Apply with Resume',
+    noSourceLinkText: 'No source link available',
+    linkCopiedText: 'Link copied',
+    featureDevelopingText: 'Feature under development',
+    dataLoadFailedText: 'Failed to load data',
+    pleaseLoginText: 'Please login/bind phone number first',
+    saveSuccessText: 'Saved successfully',
+    unsaveSuccessText: 'Unsaved successfully',
+    operationFailedText: 'Operation failed',
     showApplyMenu: false,
     applyMenuOpen: false,
   },
 
   onLoad() {
+    // 先更新语言，确保所有文本都已初始化
+    this.updateLanguage()
+    
     // 从全局状态获取数据
     const app = getApp<IAppOption>() as any
     const jobData = app?.globalData?._pageData?.jobData
@@ -70,7 +85,7 @@ Page({
       }
     } else {
       this.setData({ loading: false })
-      wx.showToast({ title: '数据加载失败', icon: 'none' })
+      wx.showToast({ title: this.data.dataLoadFailedText, icon: 'none' })
       setTimeout(() => {
         wx.navigateBack()
       }, 1500)
@@ -128,6 +143,18 @@ Page({
       saveText: lang === 'Chinese' || lang === 'AIChinese' ? '已收藏' : 'Saved',
       unsaveText: lang === 'Chinese' || lang === 'AIChinese' ? '收藏' : 'Save',
       oneClickApplyText: lang === 'Chinese' || lang === 'AIChinese' ? '一键申请' : 'One-Click Apply',
+      applyMenuTitle: t('jobs.applyMenuTitle', lang),
+      copySourceLinkText: t('jobs.copySourceLink', lang),
+      aiResumeGenerateText: t('jobs.aiResumeGenerate', lang),
+      oneClickSubmitResumeText: t('jobs.oneClickSubmitResume', lang),
+      noSourceLinkText: t('jobs.noSourceLink', lang),
+      linkCopiedText: t('jobs.linkCopied', lang),
+      featureDevelopingText: t('jobs.featureDeveloping', lang),
+      dataLoadFailedText: t('jobs.dataLoadFailed', lang),
+      pleaseLoginText: t('jobs.pleaseLogin', lang),
+      saveSuccessText: t('jobs.saveSuccess', lang),
+      unsaveSuccessText: t('jobs.unsaveSuccess', lang),
+      operationFailedText: t('jobs.operationFailed', lang),
     })
   },
 
@@ -181,7 +208,7 @@ Page({
     const user = app?.globalData?.user
     const isLoggedIn = !!(user && (user.isAuthed || user.phone))
     if (!isLoggedIn) {
-      wx.showToast({ title: '请先登录/绑定手机号', icon: 'none' })
+      wx.showToast({ title: this.data.pleaseLoginText, icon: 'none' })
       return
     }
 
@@ -198,11 +225,11 @@ Page({
       this.setData({ saved: targetSaved })
       
       wx.showToast({
-        title: targetSaved ? '收藏成功' : '已取消收藏',
+        title: targetSaved ? this.data.saveSuccessText : this.data.unsaveSuccessText,
         icon: 'none',
       })
     } catch (err) {
-      wx.showToast({ title: '操作失败', icon: 'none' })
+      wx.showToast({ title: this.data.operationFailedText, icon: 'none' })
     } finally {
       setTimeout(() => {
         this.setData({ saveBusy: false })
@@ -233,7 +260,7 @@ Page({
   onViewSource() {
     const job = this.data.job
     if (!job?.source_url) {
-      wx.showToast({ title: '暂无来源链接', icon: 'none' })
+      wx.showToast({ title: this.data.noSourceLinkText, icon: 'none' })
       return
     }
     this.closeApplyMenu()
@@ -241,7 +268,7 @@ Page({
     wx.setClipboardData({
       data: job.source_url,
       success: () => {
-        wx.showToast({ title: '链接已复制', icon: 'success' })
+        wx.showToast({ title: this.data.linkCopiedText, icon: 'success' })
       },
     })
   },
@@ -249,13 +276,13 @@ Page({
   onGenerateResume() {
     this.closeApplyMenu()
     // TODO: 实现生成简历功能
-    wx.showToast({ title: '功能开发中', icon: 'none' })
-      },
+    wx.showToast({ title: this.data.featureDevelopingText, icon: 'none' })
+  },
 
   onOneClickResumeSubmit() {
     this.closeApplyMenu()
     // TODO: 实现一键简历投递功能
-    wx.showToast({ title: '功能开发中', icon: 'none' })
+    wx.showToast({ title: this.data.featureDevelopingText, icon: 'none' })
   },
 
   async addSavedRecord(job: JobDetailItem) {

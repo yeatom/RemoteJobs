@@ -24,8 +24,7 @@
           </view>
           <view class="collect-button" bindtap="toggleSave">
             <view class="collect-icon-wrapper">
-              <text class="collect-icon {{saved ? 'collect-icon-active' : ''}}">🔖</text>
-              <text class="collect-text {{saved ? 'collect-text-active' : ''}}">{{saved ? saveText : unsaveText}}</text>
+              <image class="collect-icon" src="{{saved ? '/assets/icons/save-active-icon.png' : '/assets/icons/save-icon.png'}}" mode="aspectFit"></image>
             </view>
           </view>
         </view>
@@ -63,19 +62,19 @@
     <view class="apply-menu {{applyMenuOpen ? 'apply-menu-open' : ''}}">
       <view class="apply-menu-spacer"></view>
       <view class="apply-menu-content">
-        <view class="apply-menu-title">申请岗位</view>
+        <view class="apply-menu-title">{{applyMenuTitle}}</view>
         <view class="apply-menu-options-container">
           <view class="apply-menu-item" bindtap="onViewSource">
-            <text class="apply-menu-item-text">复制岗位来源链接</text>
+            <text class="apply-menu-item-text">{{copySourceLinkText}}</text>
           </view>
           <view class="apply-menu-divider"></view>
           <view class="apply-menu-item" bindtap="onGenerateResume">
-            <text class="apply-menu-item-text">AI简历生成</text>
+            <text class="apply-menu-item-text">{{aiResumeGenerateText}}</text>
             <image class="apply-menu-star-icon" src="/assets/icons/four-point-star-twin.png" mode="aspectFit"></image>
           </view>
           <view class="apply-menu-divider"></view>
           <view class="apply-menu-item" bindtap="onOneClickResumeSubmit">
-            <text class="apply-menu-item-text">一键投递简历</text>
+            <text class="apply-menu-item-text">{{oneClickSubmitResumeText}}</text>
             <image class="apply-menu-star-icon" src="/assets/icons/four-point-star-twin.png" mode="aspectFit"></image>
           </view>
         </view>
