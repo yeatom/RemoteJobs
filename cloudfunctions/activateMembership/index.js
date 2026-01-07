@@ -87,16 +87,37 @@ exports.main = async (event, context) => {
     }
 
     // 更新用户会员信息
-    // 如果是同等级会员，配额累加；如果是升级，使用新配额
-    let ai_resume_quota = scheme.ai_limit
-    let email_quota = scheme.email_limit
+    // 根据新方案结构初始化配额
+    let total_resume_quota = -1  // 默认-1（按岗位数限制）
+    let total_email_quota = -1   // 默认-1（按岗位数限制）
+    let used_jobs_count = 0      // 已使用的岗位数
+    let email_quota_reset_at = null
 
+    // 如果是高级会员（scheme_id === 3），使用总额度限制
+    if (scheme.scheme_id === 3) {
+      total_resume_quota = scheme.total_resume_limit || 300
+      total_email_quota = scheme.total_email_limit || 300
+      
+      // 计算邮件配额重置时间（下个月1号）
+      const resetDate = new Date(now)
+      resetDate.setMonth(resetDate.getMonth() + 1)
+      resetDate.setDate(1)
+      resetDate.setHours(0, 0, 0, 0)
+      email_quota_reset_at = resetDate
+    }
+
+    // 如果是同等级会员续费
     if (user.member_level === member_level && user.member_expire_at) {
       const currentExpireAt = new Date(user.member_expire_at)
       if (currentExpireAt > now) {
-        // 同等级续费，配额累加
-        ai_resume_quota = (user.ai_resume_quota || 0) + scheme.ai_limit
-        email_quota = (user.email_quota || 0) + scheme.email_limit
+        // 同等级续费，保留已使用的岗位数，但重置配额
+        used_jobs_count = user.used_jobs_count || 0
+        
+        // 高级会员续费，配额累加
+        if (scheme.scheme_id === 3) {
+          total_resume_quota = (user.total_resume_quota || 0) + (scheme.total_resume_limit || 300)
+          total_email_quota = (user.total_email_quota || 0) + (scheme.total_email_limit || 300)
+        }
       }
     }
 
@@ -104,8 +125,10 @@ exports.main = async (event, context) => {
       data: {
         member_level,
         member_expire_at: finalExpireAt,
-        ai_resume_quota,
-        email_quota,
+        total_resume_quota,
+        total_email_quota,
+        email_quota_reset_at,
+        used_jobs_count,
         updatedAt: db.serverDate(),
       },
     })

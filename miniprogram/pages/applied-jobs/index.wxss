@@ -1,0 +1,100 @@
+.page {
+  min-height: 100vh;
+  background: #f5f7fb;
+  padding: 40rpx 32rpx;
+  box-sizing: border-box;
+}
+
+.applied-jobs-list {
+  display: flex;
+  flex-direction: column;
+  gap: 24rpx;
+}
+
+.applied-job-item {
+  background: #ffffff;
+  border-radius: 24rpx;
+  padding: 28rpx;
+  box-shadow: 0 8rpx 20rpx rgba(15, 23, 42, 0.04);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  tap-highlight-color: transparent;
+}
+
+.job-item-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 16rpx;
+}
+
+.job-title {
+  font-size: 32rpx;
+  font-weight: 600;
+  color: #1f2933;
+  flex: 1;
+  line-height: 1.4;
+}
+
+.job-status {
+  margin-left: 16rpx;
+}
+
+.status-text {
+  font-size: 24rpx;
+  padding: 4rpx 12rpx;
+  border-radius: 12rpx;
+  font-weight: 500;
+}
+
+.status-pending {
+  background: #fef3c7;
+  color: #d97706;
+}
+
+.status-processing {
+  background: #dbeafe;
+  color: #2563eb;
+}
+
+.status-completed {
+  background: #d1fae5;
+  color: #059669;
+}
+
+.job-item-meta {
+  display: flex;
+  gap: 16rpx;
+  margin-bottom: 12rpx;
+}
+
+.job-meta-text {
+  font-size: 26rpx;
+  color: #6b7280;
+}
+
+.job-item-time {
+  margin-top: 12rpx;
+  padding-top: 12rpx;
+  border-top: 1rpx solid #f3f4f6;
+}
+
+.time-text {
+  font-size: 24rpx;
+  color: #9ca3af;
+}
+
+.empty-state,
+.loading-state {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 400rpx;
+}
+
+.empty-text,
+.loading-text {
+  font-size: 28rpx;
+  color: #9ca3af;
+}
+

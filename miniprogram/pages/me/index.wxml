@@ -22,14 +22,8 @@
         <block wx:else>
           <view class="nickname-container">
             <text class="nickname">{{userInfo ? userInfo.nickName : '已登录'}}</text>
-            <view wx:if="{{memberLevel === 1}}" class="member-badge member-badge-trial">
-              <text class="member-text">体验会员</text>
-            </view>
-            <view wx:elif="{{memberLevel === 2}}" class="member-badge member-badge-normal">
-              <text class="member-text">会员</text>
-            </view>
-            <view wx:elif="{{memberLevel === 3}}" class="member-badge member-badge-premium">
-              <text class="member-text">高级会员</text>
+            <view wx:if="{{memberLevel > 0 && memberBadgeText}}" class="member-badge {{memberLevel === 1 ? 'member-badge-trial' : (memberLevel === 2 ? 'member-badge-normal' : 'member-badge-premium')}}">
+              <text class="member-text">{{memberBadgeText}}</text>
             </view>
           </view>
         </block>
@@ -40,6 +34,9 @@
   <view class="me-list">
     <view class="me-item" bindtap="onResumeProfileTap">
       <text class="me-item-text">{{ui.resumeProfileEntry}}</text>
+    </view>
+    <view class="me-item" bindtap="onAppliedJobsTap">
+      <text class="me-item-text">{{ui.appliedJobsEntry}}</text>
     </view>
     <view class="me-item" bindtap="onAiTranslateTap">
       <text class="me-item-text">{{ui.aiTranslateEntry}}</text>

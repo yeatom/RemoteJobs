@@ -32,6 +32,7 @@ Page({
         expiredDate: null as any, // Member expired date
         expiredDateText: '', // Formatted expired date text
         memberLevel: 0, // 0:普通用户, 1:3天会员, 2:普通月卡, 3:高级月卡
+        memberBadgeText: '', // 会员徽章文本（从数据库查询）
 
         showProfileSheet: false,
         profileSheetOpen: false,
@@ -65,6 +66,7 @@ Page({
         setTimeout(() => {
             this.syncUserFromApp()
             this.syncLanguageFromApp()
+            // loadMemberBadgeText 会在 syncUserFromApp 和 syncLanguageFromApp 中调用
         }, 0)
     },
 
@@ -114,6 +116,9 @@ Page({
             expiredDate,
             expiredDateText
         })
+
+        // 加载会员徽章文本（传入 memberLevel 确保使用最新值）
+        this.loadMemberBadgeText(memberLevel)
     },
 
     syncLanguageFromApp() {
@@ -143,6 +148,7 @@ Page({
             editNickname: t('me.editNickname', lang),
             memberExpiredDate: t('me.memberExpiredDate', lang),
             resumeProfileEntry: t('me.resumeProfileEntry', lang),
+            appliedJobsEntry: t('me.appliedJobsEntry', lang),
         }
 
         // Chinese 表示中文（使用原始字段）
@@ -159,6 +165,50 @@ Page({
         })
 
         // intentionally do not set navigationBarTitleText
+        
+        // 语言切换时重新加载徽章文本
+        const currentMemberLevel = (this.data as any).memberLevel || 0
+        this.loadMemberBadgeText(currentMemberLevel)
+    },
+
+    async loadMemberBadgeText(memberLevel?: number) {
+        // 如果没有传入 memberLevel，则从 data 或 user 中获取
+        if (memberLevel === undefined) {
+            const app = getApp<IAppOption>() as any
+            const user = app?.globalData?.user
+            memberLevel = (this.data as any).memberLevel || user?.member_level || 0
+        }
+
+        // 如果不是会员，不显示徽章
+        if (memberLevel === 0) {
+            this.setData({ memberBadgeText: '' })
+            return
+        }
+
+        try {
+            // 获取会员方案列表
+            const res: any = await wx.cloud.callFunction({
+                name: 'getMemberSchemes',
+                data: {},
+            })
+
+            if (res?.result?.success && res.result.schemes) {
+                // 根据 memberLevel 找到对应的方案
+                const scheme = res.result.schemes.find((s: any) => s.scheme_id === memberLevel)
+                if (scheme && scheme.displayName) {
+                    this.setData({ memberBadgeText: scheme.displayName })
+                } else {
+                    console.warn('未找到对应的会员方案，memberLevel:', memberLevel, 'schemes:', res.result.schemes)
+                    this.setData({ memberBadgeText: '' })
+                }
+            } else {
+                console.warn('获取会员方案失败:', res?.result)
+                this.setData({ memberBadgeText: '' })
+            }
+        } catch (err) {
+            console.error('加载会员徽章文本失败:', err)
+            this.setData({ memberBadgeText: '' })
+        }
     },
 
     async onGetRealtimePhoneNumber(e: any) {
@@ -693,6 +743,12 @@ Page({
     onResumeProfileTap() {
         wx.navigateTo({
             url: '/pages/resume-profile/index',
+        })
+    },
+
+    onAppliedJobsTap() {
+        wx.navigateTo({
+            url: '/pages/applied-jobs/index',
         })
     },
 })

@@ -44,6 +44,7 @@ const dict = {
         editNickname: { Chinese: '修改用户名', English: 'Edit Username' },
         memberExpiredDate: { Chinese: '会员到期日期', English: 'Expiration Date' },
         resumeProfileEntry: { Chinese: '简历资料', English: 'Resume Profile' },
+        appliedJobsEntry: { Chinese: '投递过的工作', English: 'Applied Jobs' },
     },
     resume: {
         name: { Chinese: '个人姓名', English: 'Name' },
@@ -175,6 +176,7 @@ export type I18nKey =
     | 'me.editNickname'
     | 'me.memberExpiredDate'
     | 'me.resumeProfileEntry'
+    | 'me.appliedJobsEntry'
     | 'community.desc'
     | 'jobs.tabPublic'
     | 'jobs.tabFeatured'

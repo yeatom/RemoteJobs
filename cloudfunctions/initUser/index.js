@@ -47,6 +47,12 @@ exports.main = async (event, context) => {
         language: 'Chinese',
         member_level: 0, // 0:普通用户, 1:3天会员, 2:普通月卡, 3:高级月卡
         member_expire_at: null,
+        // 新的配额字段
+        total_resume_quota: -1,
+        total_email_quota: -1,
+        email_quota_reset_at: null,
+        used_jobs_count: 0,
+        // 保留旧字段以兼容
         ai_resume_quota: 0,
         email_quota: 0,
         createdAt: now,

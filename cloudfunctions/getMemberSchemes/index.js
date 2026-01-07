@@ -24,9 +24,22 @@ exports.main = async (event, context) => {
     // 判断是否为英文（English 或 AIEnglish）
     const isEnglish = userLanguage === 'English' || userLanguage === 'AIEnglish'
 
-    const result = await db.collection('member_schemes')
-      .orderBy('scheme_id', 'asc')
-      .get()
+    let result
+    try {
+      result = await db.collection('member_schemes')
+        .orderBy('scheme_id', 'asc')
+        .get()
+    } catch (err) {
+      // 如果集合不存在，返回空数组
+      if (err.errCode === -502005 || err.message?.includes('not exist')) {
+        console.warn('member_schemes 集合不存在，返回空数组')
+        return {
+          success: true,
+          schemes: [],
+        }
+      }
+      throw err
+    }
 
     // 根据语言返回对应的名称
     const schemes = (result.data || []).map(scheme => {

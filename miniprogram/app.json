@@ -8,7 +8,8 @@
     "pages/article-detail/index",
     "pages/job-detail/index",
     "pages/filter/index",
-    "pages/resume-profile/index"
+    "pages/resume-profile/index",
+    "pages/applied-jobs/index"
   ],
   "page": {
     "pages/community/index": {

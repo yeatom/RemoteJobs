@@ -279,10 +279,89 @@ Page({
     wx.showToast({ title: this.data.featureDevelopingText, icon: 'none' })
   },
 
-  onOneClickResumeSubmit() {
+  async onOneClickResumeSubmit() {
+    const job = this.data.job
+    if (!job) {
+      wx.showToast({ title: this.data.dataLoadFailedText, icon: 'none' })
+      return
+    }
+
+    // 检查登录状态
+    const app = getApp<IAppOption>() as any
+    const user = app?.globalData?.user
+    const isLoggedIn = !!(user && (user.isAuthed || user.phone))
+    if (!isLoggedIn) {
+      this.closeApplyMenu()
+      wx.showToast({ title: this.data.pleaseLoginText, icon: 'none' })
+      return
+    }
+
     this.closeApplyMenu()
-    // TODO: 实现一键简历投递功能
-    wx.showToast({ title: this.data.featureDevelopingText, icon: 'none' })
+
+    try {
+      wx.showLoading({ title: '投递中...', mask: true })
+
+      const res: any = await wx.cloud.callFunction({
+        name: 'submitResume',
+        data: {
+          job_id: job._id,
+          job_title: job.title,
+          job_data: {
+            title: job.title,
+            summary: job.summary,
+            description: job.description,
+            salary: job.salary,
+            source_name: job.source_name,
+            source_url: job.source_url,
+            type: job.type,
+            team: job.team,
+            tags: job.tags,
+          },
+        },
+      })
+
+      wx.hideLoading()
+
+      if (res?.result?.success) {
+        wx.showToast({
+          title: '投递成功',
+          icon: 'success',
+          duration: 2000,
+        })
+      } else if (res?.result?.alreadyApplied) {
+        wx.showModal({
+          title: '提示',
+          content: res.result.message || '您已经投递过该岗位，请耐心等待，可以在"我"的页面查看',
+          showCancel: false,
+          confirmText: '知道了',
+        })
+      } else if (res?.result?.needUpgrade) {
+        wx.showModal({
+          title: '配额不足',
+          content: res.result.message || '您的投递次数已用完，请升级会员',
+          confirmText: '去升级',
+          cancelText: '取消',
+          success: (modalRes) => {
+            if (modalRes.confirm) {
+              // TODO: 跳转到会员购买页面
+              wx.showToast({ title: '暂未接入付费流程', icon: 'none' })
+            }
+          },
+        })
+      } else {
+        wx.showToast({
+          title: res?.result?.message || '投递失败',
+          icon: 'none',
+        })
+      }
+    } catch (err: any) {
+      wx.hideLoading()
+      console.error('投递失败:', err)
+      wx.showToast({
+        title: '投递失败，请重试',
+        icon: 'none',
+      })
+    }
   },
 
   async addSavedRecord(job: JobDetailItem) {

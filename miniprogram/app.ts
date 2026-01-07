@@ -117,6 +117,11 @@ App<IAppOption>({
       if (memberStatusRes?.result?.success && merged) {
         merged.member_level = memberStatusRes.result.member_level
         merged.member_expire_at = memberStatusRes.result.member_expire_at
+        // 新的配额字段
+        merged.total_resume_quota = memberStatusRes.result.total_resume_quota
+        merged.total_email_quota = memberStatusRes.result.total_email_quota
+        merged.used_jobs_count = memberStatusRes.result.used_jobs_count
+        // 保留旧字段以兼容
         merged.ai_resume_quota = memberStatusRes.result.ai_resume_quota
         merged.email_quota = memberStatusRes.result.email_quota
       }
