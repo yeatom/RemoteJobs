@@ -2,3 +2,6 @@
 # Private environment variables
 miniprogram/env.js
 .idea/*
+
+# Cloud functions node_modules
+cloudfunctions/*/node_modules/

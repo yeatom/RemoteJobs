@@ -11,7 +11,7 @@ exports.main = async (event, context) => {
   if (!OPENID) {
     return {
       success: false,
-      message: '无法获取用户身份',
+      message: '无法获取用户身份，请先登录',
     }
   }
 

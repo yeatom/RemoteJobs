@@ -183,6 +183,23 @@
           </view>
         </view>
 
+        <!-- Phone Number -->
+        <view class="profile-item">
+          <view class="profile-item-left">
+            <text class="profile-item-label">{{ui.phoneNumber}}</text>
+          </view>
+          <view class="profile-item-right">
+            <text class="profile-item-value">{{maskedPhone}}</text>
+            <button
+                    class="profile-change-phone-btn"
+                    open-type="getPhoneNumber"
+                    bindgetphonenumber="onChangePhoneNumber"
+            >
+              {{ui.changePhone}}
+            </button>
+          </view>
+        </view>
+
         <!-- Member Expired Date -->
         <view class="profile-item" catchtap="onRenewMember">
           <view class="profile-item-left">

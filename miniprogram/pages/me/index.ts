@@ -4,6 +4,7 @@ import {isAiChineseUnlocked} from '../../utils/subscription'
 import {normalizeLanguage, t, type AppLanguage} from '../../utils/i18n'
 import {attachLanguageAware} from '../../utils/languageAware'
 import {toDateMs} from '../../utils/time'
+import {getPhoneNumberFromAuth, updatePhoneNumber} from '../../utils/phoneAuth'
 
 
 Page({
@@ -38,6 +39,7 @@ Page({
         profileSheetOpen: false,
         editingNickname: false,
         newNickname: '',
+        maskedPhone: '', // 脱敏后的手机号
 
         ui: {} as Record<string, string>,
     },
@@ -105,6 +107,9 @@ Page({
         // Sync expired date
         const expiredDateText = this.formatExpiredDate(expiredDate)
 
+        // Format phone number (前3位+****+后4位)
+        const maskedPhone = this.formatPhoneNumber(user?.phone)
+
         this.setData({
             isLoggedIn,
             isVerified,
@@ -114,7 +119,8 @@ Page({
             isAiChineseUnlocked: isAiUnlocked,
             myInviteCode,
             expiredDate,
-            expiredDateText
+            expiredDateText,
+            maskedPhone
         })
 
         // 加载会员徽章文本（传入 memberLevel 确保使用最新值）
@@ -147,6 +153,8 @@ Page({
             uploadAvatar: t('me.uploadAvatar', lang),
             editNickname: t('me.editNickname', lang),
             memberExpiredDate: t('me.memberExpiredDate', lang),
+            phoneNumber: t('me.phoneNumber', lang),
+            changePhone: t('me.changePhone', lang),
             resumeProfileEntry: t('me.resumeProfileEntry', lang),
             appliedJobsEntry: t('me.appliedJobsEntry', lang),
         }
@@ -738,6 +746,46 @@ Page({
         const month = String(date.getMonth() + 1).padStart(2, '0')
         const day = String(date.getDate()).padStart(2, '0')
         return `${year}-${month}-${day}`
+    },
+
+    formatPhoneNumber(phone: string | null | undefined): string {
+        if (!phone || phone.length < 7) return '未绑定'
+        // 前3位+****+后4位
+        const prefix = phone.substring(0, 3)
+        const suffix = phone.substring(phone.length - 4)
+        return `${prefix}****${suffix}`
+    },
+
+    async onChangePhoneNumber(e: any) {
+        if ((this.data as any).phoneAuthBusy) return
+
+        if (e?.detail?.errMsg && e.detail.errMsg.includes('cancel')) {
+            return
+        }
+
+        this.setData({ phoneAuthBusy: true })
+        try {
+            const phone = await getPhoneNumberFromAuth(e.detail)
+            if (!phone) {
+                throw new Error('未获取到手机号')
+            }
+
+            await updatePhoneNumber(phone)
+            this.syncUserFromApp()
+            wx.showToast({ title: '手机号更新成功', icon: 'success' })
+        }
+        catch (err: any) {
+            console.error('[PhoneAuth] onChangePhoneNumber error:', err)
+            const errorMsg = err?.message || err?.errMsg || '手机号更新失败'
+            wx.showToast({ 
+                title: errorMsg.length > 10 ? '手机号更新失败' : errorMsg, 
+                icon: 'none',
+                duration: 2000
+            })
+        }
+        finally {
+            this.setData({ phoneAuthBusy: false })
+        }
     },
 
     onResumeProfileTap() {

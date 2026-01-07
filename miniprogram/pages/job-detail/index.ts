@@ -296,6 +296,15 @@ Page({
       return
     }
 
+    // 确保用户已初始化（确保有 openid）
+    if (!user?.openid) {
+      try {
+        await app.refreshUser()
+      } catch (err) {
+        console.error('刷新用户信息失败:', err)
+      }
+    }
+
     this.closeApplyMenu()
 
     try {
