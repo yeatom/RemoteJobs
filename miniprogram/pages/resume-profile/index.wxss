@@ -186,11 +186,17 @@
   flex: 1;
 }
 
+.edu-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8rpx;
+}
+
 .edu-school {
   font-size: 30rpx;
   font-weight: 600;
   color: #111827;
-  margin-bottom: 4rpx;
 }
 
 .edu-details {

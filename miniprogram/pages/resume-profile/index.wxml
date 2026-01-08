@@ -89,14 +89,16 @@
           <block wx:if="{{educations && educations.length > 0}}">
             <view class="education-item" wx:for="{{educations}}" wx:key="index" bindtap="onEditEducation" data-index="{{index}}">
               <view class="edu-info">
-                <view class="edu-school">{{item.school || ui.noData}}</view>
+                <view class="edu-header">
+                  <view class="edu-school">{{item.school || ui.noData}}</view>
+                  <view class="edu-date" wx:if="{{item.startDate || item.endDate || item.graduationDate}}">
+                    {{item.startDate || ''}} - {{item.endDate || item.graduationDate || ''}}
+                  </view>
+                </view>
                 <view class="edu-details">
                   <text wx:if="{{item.degree}}">{{item.degree}}</text>
                   <text wx:if="{{item.degree && item.major}}"> · </text>
                   <text wx:if="{{item.major}}">{{item.major}}</text>
-                </view>
-                <view class="edu-date" wx:if="{{item.startDate || item.endDate || item.graduationDate}}">
-                  {{item.startDate || ''}} - {{item.endDate || item.graduationDate || ''}}
                 </view>
               </view>
               <view class="arrow-icon"></view>
@@ -123,15 +125,17 @@
           <block wx:if="{{workExperiences && workExperiences.length > 0}}">
             <view class="education-item" wx:for="{{workExperiences}}" wx:key="index" bindtap="onEditWorkExperience" data-index="{{index}}">
               <view class="edu-info">
-                <view class="edu-school">{{item.company || ui.noData}}</view>
+                <view class="edu-header">
+                  <view class="edu-school">{{item.company || ui.noData}}</view>
+                  <view class="edu-date" wx:if="{{item.startDate || item.endDate}}">
+                    {{item.startDate || ''}} - {{item.endDate || ''}}
+                  </view>
+                </view>
                 <view class="edu-details">
                   <text wx:if="{{item.jobTitle}}">{{item.jobTitle}}</text>
                 </view>
                 <view class="edu-details business-dir" wx:if="{{item.businessDirection}}">
                   <text>{{item.businessDirection}}</text>
-                </view>
-                <view class="edu-date" wx:if="{{item.startDate || item.endDate}}">
-                  {{item.startDate || ''}} - {{item.endDate || ''}}
                 </view>
               </view>
               <view class="arrow-icon"></view>
@@ -139,6 +143,30 @@
           </block>
           <block wx:else>
             <view class="empty-state" bindtap="onAddWorkExperience">
+              <text class="empty-text">{{ui.noData}}</text>
+            </view>
+          </block>
+        </view>
+      </view>
+
+      <!-- 证书 -->
+      <view class="section-group">
+        <view class="section-header-row">
+          <view class="section-group-title">{{ui.skills}}</view>
+          <view class="add-btn" bindtap="onAddSkill">
+            <text class="add-btn-text">{{ui.addSkill}}</text>
+          </view>
+        </view>
+        
+        <view class="tags-wrapper">
+          <block wx:if="{{skills && skills.length > 0}}">
+            <view class="tag-item skill-tag" wx:for="{{skills}}" wx:key="index" bindtap="onEditSkill" data-index="{{index}}">
+              <text class="tag-text">{{item}}</text>
+              <view class="tag-del" catchtap="onDeleteSkill" data-index="{{index}}">×</view>
+            </view>
+          </block>
+          <block wx:else>
+            <view class="empty-tags" bindtap="onAddSkill">
               <text class="empty-text">{{ui.noData}}</text>
             </view>
           </block>

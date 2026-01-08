@@ -1,0 +1,192 @@
+.page-container {
+  min-height: 100vh;
+  background-color: #f8fafc;
+  padding: 32rpx;
+  box-sizing: border-box;
+}
+
+.header-section {
+  margin-bottom: 32rpx;
+  padding-left: 8rpx;
+}
+
+.count-text {
+  font-size: 24rpx;
+  color: #94a3b8;
+  font-weight: 500;
+}
+
+.loading-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 100rpx 0;
+  color: #94a3b8;
+  font-size: 26rpx;
+}
+
+.spinner {
+  width: 40rpx;
+  height: 40rpx;
+  border: 4rpx solid #e2e8f0;
+  border-top: 4rpx solid #2e5fe9;
+  border-radius: 50%;
+  margin-bottom: 20rpx;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.resume-card {
+  background: #ffffff;
+  border-radius: 28rpx;
+  padding: 32rpx;
+  display: flex;
+  align-items: center;
+  margin-bottom: 24rpx;
+  box-shadow: 0 8rpx 20rpx rgba(0, 0, 0, 0.03);
+  border: 1rpx solid rgba(226, 232, 240, 0.6);
+  transition: all 0.2s;
+}
+
+.card-hover {
+  transform: translateY(-2rpx);
+  box-shadow: 0 12rpx 30rpx rgba(0, 0, 0, 0.06);
+}
+
+.card-left {
+  margin-right: 24rpx;
+}
+
+.pdf-icon-box {
+  width: 88rpx;
+  height: 88rpx;
+  background: #eff6ff;
+  border-radius: 20rpx;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.pdf-text {
+  font-size: 24rpx;
+  font-weight: 800;
+  color: #2e5fe9;
+  z-index: 2;
+}
+
+.pdf-decoration {
+  position: absolute;
+  top: -10rpx;
+  right: -10rpx;
+  width: 40rpx;
+  height: 40rpx;
+  background: #dbeafe;
+  transform: rotate(45deg);
+}
+
+.card-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.title-row {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+  margin-bottom: 8rpx;
+}
+
+.job-title {
+  font-size: 32rpx;
+  font-weight: 700;
+  color: #1e293b;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.applied-tag {
+  font-size: 18rpx;
+  color: #10b981;
+  background: #ecfdf5;
+  padding: 4rpx 10rpx;
+  border-radius: 6rpx;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.company-name {
+  font-size: 26rpx;
+  color: #64748b;
+  margin-bottom: 8rpx;
+}
+
+.date-text {
+  font-size: 22rpx;
+  color: #cbd5e1;
+}
+
+.card-right {
+  margin-left: 16rpx;
+}
+
+.view-btn {
+  font-size: 24rpx;
+  font-weight: 600;
+  color: #2e5fe9;
+  background: #eff6ff;
+  padding: 12rpx 24rpx;
+  border-radius: 100rpx;
+}
+
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 120rpx 40rpx;
+  text-align: center;
+}
+
+.empty-icon {
+  font-size: 100rpx;
+  margin-bottom: 40rpx;
+  opacity: 0.8;
+}
+
+.empty-title {
+  font-size: 34rpx;
+  font-weight: 700;
+  color: #1e293b;
+  margin-bottom: 16rpx;
+}
+
+.empty-subtitle {
+  font-size: 26rpx;
+  color: #94a3b8;
+  margin-bottom: 60rpx;
+}
+
+.go-jobs-btn {
+  background: #2e5fe9;
+  color: #ffffff;
+  font-size: 28rpx;
+  font-weight: 700;
+  padding: 24rpx 80rpx;
+  border-radius: 100rpx;
+  box-shadow: 0 8rpx 20rpx rgba(46, 95, 233, 0.2);
+}
+
+.bottom-safe-area {
+  height: 60rpx;
+}
+

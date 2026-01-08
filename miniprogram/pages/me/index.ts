@@ -16,12 +16,8 @@ Page({
 
         showLanguageSheet: false,
         languageSheetOpen: false,
-        currentLanguage: 'Chinese',
+        appLanguage: 'Chinese' as AppLanguage,
         isAiChineseUnlocked: false,
-
-        showAiTranslateSheet: false,
-        aiTranslateSheetOpen: false,
-        aiTranslateLanguage: 'Default',
 
         showInviteSheet: false,
         inviteSheetOpen: false,
@@ -34,6 +30,19 @@ Page({
         expiredDateText: '', // Formatted expired date text
         memberLevel: 0, // 0:普通用户, 1:3天会员, 2:普通月卡, 3:高级月卡
         memberBadgeText: '', // 会员徽章文本（从数据库查询）
+        memberExpiryText: '', // 会员到期时间文案
+
+        // Quota info
+        jobQuotaUsed: 0,
+        jobQuotaLimit: 0,
+        jobQuotaProgress: 0,
+        
+        // Upgrade info
+        upgradeAmount: 0, // 补差价金额
+        isQuotaExhausted: false, // 额度是否耗尽
+
+        showMemberHub: false,
+        memberHubOpen: false,
 
         showProfileSheet: false,
         profileSheetOpen: false,
@@ -117,9 +126,16 @@ Page({
 
         // Sync expired date
         const expiredDateText = this.formatExpiredDate(expiredDate)
+        const memberExpiryText = isMember ? `${t('me.memberExpiredDate', normalizeLanguage(app?.globalData?.language))}: ${expiredDateText}` : ''
 
         // Format phone number (前3位+****+后4位)
         const maskedPhone = this.formatPhoneNumber(user?.phone)
+
+        // Quota logic
+        const jobQuotaUsed = membership?.job_quota?.used || 0
+        const jobQuotaLimit = membership?.job_quota?.limit || 0
+        const jobQuotaProgress = jobQuotaLimit > 0 ? Math.min(100, (jobQuotaUsed / jobQuotaLimit) * 100) : 0
+        const isQuotaExhausted = jobQuotaLimit > 0 && jobQuotaUsed >= jobQuotaLimit
 
         this.setData({
             isVerified,
@@ -130,10 +146,15 @@ Page({
             myInviteCode,
             expiredDate,
             expiredDateText,
-            maskedPhone
+            memberExpiryText,
+            maskedPhone,
+            jobQuotaUsed,
+            jobQuotaLimit,
+            jobQuotaProgress,
+            isQuotaExhausted
         })
 
-        // 加载会员徽章文本（传入 memberLevel 确保使用最新值）
+        // 加载会员徽章及差价逻辑
         this.loadMemberBadgeText(memberLevel)
     },
 
@@ -145,8 +166,15 @@ Page({
             meTitle: t('me.title', lang),
             generateResumeEntry: t('me.generateResumeEntry', lang),
             publishSkillEntry: t('me.publishSkillEntry', lang),
-            aiTranslateEntry: t('me.aiTranslateEntry', lang),
-            language: t('me.language', lang),
+            languageEntry: t('me.languageEntry', lang),
+            langChinese: t('me.langChinese', lang),
+            langChineseDesc: t('me.langChineseDesc', lang),
+            langEnglish: t('me.langEnglish', lang),
+            langEnglishDesc: t('me.langEnglishDesc', lang),
+            langAIChinese: t('me.langAIChinese', lang),
+            langAIChineseDesc: t('me.langAIChineseDesc', lang),
+            langAIEnglish: t('me.langAIEnglish', lang),
+            langAIEnglishDesc: t('me.langAIEnglishDesc', lang),
             inviteCodeEntry: t('me.inviteCodeEntry', lang),
             myInviteCode: t('me.myInviteCode', lang),
             inputInviteCode: t('me.inputInviteCode', lang),
@@ -154,10 +182,6 @@ Page({
             inviteCodeInvalid: t('me.inviteCodeInvalid', lang),
             inviteCodeApplied: t('me.inviteCodeApplied', lang),
             comingSoon: t('me.comingSoon', lang),
-            langDefault: t('me.langDefault', lang),
-            langEnglish: t('me.langEnglish', lang),
-            aiTranslateDefault: t('me.aiTranslateDefault', lang),
-            langAI: t('me.langAI', lang),
             memberBadge: t('me.memberBadge', lang),
             uploadAvatar: t('me.uploadAvatar', lang),
             editNickname: t('me.editNickname', lang),
@@ -167,20 +191,13 @@ Page({
             nicknameTooLong: t('me.nicknameTooLong', lang),
             resumeProfileEntry: t('me.resumeProfileEntry', lang),
             appliedJobsEntry: t('me.appliedJobsEntry', lang),
+            generatedResumesEntry: t('me.generatedResumesEntry', lang),
             save: lang === 'Chinese' || lang === 'AIChinese' ? '保存' : 'Save',
             cancel: lang === 'Chinese' || lang === 'AIChinese' ? '取消' : 'Cancel',
         }
 
-        // Chinese 表示中文（使用原始字段）
-        // English 表示英文
-        // AIChinese 表示AI翻译岗位-中文（使用翻译字段）
-        // AIEnglish 表示AI翻译岗位-英文（使用翻译字段）
-        // Language 弹窗只显示基础语言（Chinese/English），AI状态由 aiTranslateLanguage 单独控制
         this.setData({
-            currentLanguage: lang === 'AIChinese' || lang === 'Chinese' ? 'Chinese' :
-                lang === 'AIEnglish' || lang === 'English' ? 'English' :
-                    'Chinese',  // 默认显示为中文选项
-            aiTranslateLanguage: lang === 'AIChinese' || lang === 'AIEnglish' ? 'AIChinese' : 'Default',
+            appLanguage: lang,
             ui,
         })
 
@@ -213,13 +230,29 @@ Page({
             })
 
             if (res?.result?.success && res.result.schemes) {
+                const schemes = res.result.schemes
                 // 根据 memberLevel 找到对应的方案
-                const scheme = res.result.schemes.find((s: any) => s.scheme_id === memberLevel)
+                const scheme = schemes.find((s: any) => s.scheme_id === memberLevel)
                 if (scheme && scheme.displayName) {
                     this.setData({ memberBadgeText: scheme.displayName })
                 } else {
-                    console.warn('未找到对应的会员方案，memberLevel:', memberLevel, 'schemes:', res.result.schemes)
+                    console.warn('未找到对应的会员方案，memberLevel:', memberLevel, 'schemes:', schemes)
                     this.setData({ memberBadgeText: '' })
+                }
+
+                // 计算升级差价
+                if (memberLevel === 1) {
+                    const level2Scheme = schemes.find((s: any) => s.scheme_id === 2)
+                    if (level2Scheme && scheme) {
+                        const diff = (level2Scheme.price || 0) - (scheme.price || 0)
+                        this.setData({ upgradeAmount: diff > 0 ? diff : 0 })
+                    }
+                } else if (memberLevel === 2) {
+                    const level3Scheme = schemes.find((s: any) => s.scheme_id === 3)
+                    if (level3Scheme && scheme) {
+                        const diff = (level3Scheme.price || 0) - (scheme.price || 0)
+                        this.setData({ upgradeAmount: diff > 0 ? diff : 0 })
+                    }
                 }
             } else {
                 console.warn('获取会员方案失败:', res?.result)
@@ -333,25 +366,9 @@ Page({
     },
 
     async onLanguageSelect(e: WechatMiniprogram.TouchEvent) {
-        const value = (e.currentTarget.dataset.value || '') as string
-        if (!value) return
+        const lang = (e.currentTarget.dataset.value || '') as AppLanguage
+        if (!lang) return
 
-        // value 只可能是 'Chinese' 或 'English'
-        // 需要结合当前 aiTranslateLanguage 来决定最终语言：
-        // - Chinese + Default => Chinese
-        // - English + Default => English
-        // - Chinese + AIChinese => AIChinese
-        // - English + AIChinese => AIEnglish
-        const baseLang = value as 'Chinese' | 'English'
-        const aiTranslate = this.data.aiTranslateLanguage
-        
-        let lang: AppLanguage
-        if (aiTranslate === 'AIChinese') {
-            lang = baseLang === 'Chinese' ? 'AIChinese' : 'AIEnglish'
-        } else {
-            lang = baseLang
-        }
-        
         const app = getApp<IAppOption>() as any
 
         // 如果选择的语言和当前语言相同，只关闭弹窗，不做任何操作
@@ -362,11 +379,11 @@ Page({
         }
 
         // Check if AI features are unlocked
-        if (aiTranslate === 'AIChinese' && !this.data.isAiChineseUnlocked) {
+        if (lang.startsWith('AI') && !this.data.isAiChineseUnlocked) {
             this.closeLanguageSheetImmediate()
             wx.showModal({
-                title: 'AI翻译功能 🔒',
-                content: '该功能需要付费解锁。',
+                title: 'AI翻译与提炼 🔒',
+                content: '开启 AI 增强模式需要付费解锁。',
                 confirmText: '去付费',
                 cancelText: '取消',
                 success: (res) => {
@@ -398,7 +415,7 @@ Page({
             await Promise.all([minDuration, action])
             wx.hideLoading()
             wx.showToast({
-                title: '语言已切换',
+                title: '设置已更新',
                 icon: 'success',
                 duration: 1500
             })
@@ -416,104 +433,6 @@ Page({
     onLanguageTap() {
         this.openLanguageSheet()
     },
-
-    onAiTranslateTap() {
-        this.openAiTranslateSheet()
-    },
-
-    openAiTranslateSheet() {
-        this.setData({ showAiTranslateSheet: true, aiTranslateSheetOpen: false })
-        setTimeout(() => {
-            this.setData({ aiTranslateSheetOpen: true })
-        }, 30)
-    },
-
-    closeAiTranslateSheet() {
-        this.setData({ aiTranslateSheetOpen: false })
-        setTimeout(() => {
-            this.setData({ showAiTranslateSheet: false })
-        }, 260)
-    },
-
-    async onAiTranslateLanguageSelect(e: WechatMiniprogram.TouchEvent) {
-        const value = (e.currentTarget.dataset.value || '') as string
-        if (!value) return
-
-        // value 只可能是 'Default' 或 'AIChinese'
-        // 需要结合当前 currentLanguage 来决定最终语言：
-        // - Chinese + Default => Chinese
-        // - English + Default => English
-        // - Chinese + AIChinese => AIChinese
-        // - English + AIChinese => AIEnglish
-        
-        // 如果选择和当前状态相同，只关闭弹窗
-        if (this.data.aiTranslateLanguage === value) {
-            this.closeAiTranslateSheet()
-            return
-        }
-
-        // Check if AI features are unlocked
-        if (value === 'AIChinese' && !this.data.isAiChineseUnlocked) {
-            this.closeAiTranslateSheet()
-            wx.showModal({
-                title: 'AI翻译功能 🔒',
-                content: '该功能需要付费解锁。',
-                confirmText: '去付费',
-                cancelText: '取消',
-                success: (res) => {
-                    if (res.confirm) {
-                        // TODO: replace with real payment flow.
-                        wx.showToast({ title: '暂未接入付费流程', icon: 'none' })
-                    }
-                },
-            })
-            return
-        }
-
-        const baseLang = this.data.currentLanguage as 'Chinese' | 'English'
-        let lang: AppLanguage
-        if (value === 'AIChinese') {
-            lang = baseLang === 'Chinese' ? 'AIChinese' : 'AIEnglish'
-        } else {
-            lang = baseLang
-        }
-
-        // 1) Close sheet immediately (no waiting)
-        this.closeAiTranslateSheet()
-
-        // 2) Show modal loading (blocks all touches)
-        wx.showLoading({ title: '', mask: true })
-
-        const minDuration = new Promise<void>((resolve) => setTimeout(resolve, 1500))
-
-        const app = getApp<IAppOption>() as any
-
-        // 3) Kick off language switch + persistence
-        const action = (async () => {
-            await app.setLanguage(lang)
-            this.syncUserFromApp()
-            this.syncLanguageFromApp()
-        })()
-
-        try {
-            await Promise.all([minDuration, action])
-            wx.hideLoading()
-            wx.showToast({
-                title: '设置已更新',
-                icon: 'success',
-                duration: 1500
-            })
-        }
-        catch (err) {
-            try {
-                await action
-            }
-            finally {
-                wx.hideLoading()
-            }
-        }
-    },
-
 
     onInviteTap() {
         this.openInviteSheet()
@@ -768,8 +687,89 @@ Page({
 
     onRenewMember() {
         this.closeProfileSheet()
-        // TODO: 跳转到续费页面
-        wx.showToast({ title: '暂未接入付费流程', icon: 'none' })
+        this.openMemberHub()
+    },
+
+    onVipCardTap() {
+        this.openMemberHub()
+    },
+
+    openMemberHub() {
+        this.setData({ showMemberHub: true, memberHubOpen: false })
+        setTimeout(() => {
+            this.setData({ memberHubOpen: true })
+        }, 30)
+    },
+
+    closeMemberHub() {
+        this.setData({ memberHubOpen: false })
+        setTimeout(() => {
+            this.setData({ showMemberHub: false })
+        }, 260)
+    },
+
+    closeMemberHubImmediate() {
+        this.setData({ memberHubOpen: false })
+        setTimeout(() => {
+            this.setData({ showMemberHub: false })
+        }, 260)
+    },
+
+    onRenew() {
+        // TODO: 触发当前等级的续费流程
+        wx.showModal({
+            title: '会员续费',
+            content: `即将为您办理 ${this.data.memberBadgeText} 的续费手续。`,
+            confirmText: '立即续费',
+            success: (res) => {
+                if (res.confirm) {
+                    wx.showToast({ title: '暂未接入支付流程', icon: 'none' })
+                }
+            }
+        })
+    },
+
+    onUpgrade() {
+        const level = this.data.memberLevel
+        if (level === 1) {
+            this.onUpgradeToNormal()
+        } else if (level === 2) {
+            this.onUpgradeToPremium()
+        }
+    },
+
+    onUpgradeToNormal() {
+        if (this.data.memberLevel !== 1) return
+        
+        const amount = this.data.upgradeAmount
+        wx.showModal({
+            title: '升级普通会员',
+            content: `补差价 ¥${amount} 即可升级为普通会员，享受更多岗位配额及 AI 提炼次数。`,
+            confirmText: '立即升级',
+            success: (res) => {
+                if (res.confirm) {
+                    // TODO: 触发升级 Level 2 的支付流程
+                    wx.showToast({ title: '暂未接入支付流程', icon: 'none' })
+                }
+            }
+        })
+    },
+
+    onUpgradeToPremium() {
+        if (this.data.memberLevel !== 2) return
+        
+        const amount = this.data.upgradeAmount
+        wx.showModal({
+            title: '升级高级会员',
+            content: `补差价 ¥${amount} 即可升级为高级会员，尊享无限次 AI 提炼及专属视觉效果。`,
+            confirmText: '立即升级',
+            success: (res) => {
+                if (res.confirm) {
+                    // TODO: 触发升级 Level 3 的支付流程
+                    wx.showToast({ title: '暂未接入支付流程', icon: 'none' })
+                }
+            }
+        })
     },
 
     formatExpiredDate(expired: any): string {
@@ -832,6 +832,12 @@ Page({
     onAppliedJobsTap() {
         wx.navigateTo({
             url: '/pages/applied-jobs/index',
+        })
+    },
+
+    onGeneratedResumesTap() {
+        wx.navigateTo({
+            url: '/pages/generated-resumes/index',
         })
     },
 })

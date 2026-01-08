@@ -9,7 +9,8 @@
     "pages/job-detail/index",
     "pages/filter/index",
     "pages/resume-profile/index",
-    "pages/applied-jobs/index"
+    "pages/applied-jobs/index",
+    "pages/generated-resumes/index"
   ],
   "page": {
     "pages/community/index": {

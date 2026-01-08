@@ -2,6 +2,7 @@
 import { normalizeLanguage, t } from '../../utils/i18n'
 import { normalizeJobTags, translateFieldValue } from '../../utils/job'
 import { attachLanguageAware } from '../../utils/languageAware'
+import { processAndSaveAIResume } from '../../utils/resume'
 const { cloudRunEnv } = require('../../env.js')
 
 const SAVED_COLLECTION = 'saved_jobs'
@@ -313,7 +314,8 @@ Page({
             path: '/api/generate', // 您的接口路径
             header: {
               'X-WX-SERVICE': 'express-vyc1', // 您的服务名称
-              'content-type': 'application/json'
+              'content-type': 'application/json',
+              'accept': 'application/pdf'
             },
             method: 'POST',
             data: {
@@ -321,14 +323,22 @@ Page({
               userId: user.openid,      // 用户 ID (OpenID)
               resume_profile: aiProfile, // 传处理后的资料（头像已转为 https）
               job_data: this.data.job    // 传完整的岗位 JSON
-            }
+            },
+            // @ts-ignore
+            responseType: 'arraybuffer' 
           })
 
           wx.hideLoading()
-          console.log('云托管返回结果:', res)
           
-          if (res.statusCode === 200) {
-            // 处理成功逻辑
+          if (res.statusCode === 200 && res.data) {
+            // 使用新工具处理：暂存 -> 预览 -> 云端持久化
+            const job = this.data.job
+            await processAndSaveAIResume(res.data as ArrayBuffer, {
+              id: job?._id || '',
+              title: job?.title || '',
+              company: job?.source_name || ''
+            })
+            
             wx.showToast({ title: '生成成功', icon: 'success' })
           } else {
             throw new Error('服务响应异常')

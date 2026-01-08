@@ -27,9 +27,13 @@ Page({
       statusEnded: '已结束',
       desc: '敬请期待',
       loading: '加载中...',
+      all: '全部',
     },
     articles: [] as Article[],
+    displayArticles: [] as Article[],
+    heroArticle: null as ArticleItem | null,
     loading: true,
+    activeCategoryId: 'all',
   },
 
   onLoad: function () {
@@ -52,6 +56,10 @@ Page({
           }
         })
 
+        const heroArticle = updatedArticles.length > 0 && updatedArticles[0].items.length > 0 
+          ? updatedArticles[0].items[0] 
+          : null
+
         this.setData({
           ui: {
             ...this.data.ui,
@@ -60,17 +68,15 @@ Page({
             statusActive: t('community.statusActive', lang),
             statusEnded: t('community.statusEnded', lang),
             loading: t('jobs.loading', lang),
+            all: lang === 'Chinese' ? '全部' : 'All',
           },
           articles: updatedArticles,
+          displayArticles: this.data.activeCategoryId === 'all' 
+            ? updatedArticles 
+            : updatedArticles.filter(a => a.id === this.data.activeCategoryId),
+          heroArticle,
         })
         wx.setNavigationBarTitle({ title: '' })
-        
-        try {
-          const app: any = getApp()
-          if (app && app.globalData) app.globalData.articles = updatedArticles
-        } catch {
-          // ignore
-        }
       },
     })
   },
@@ -82,7 +88,7 @@ Page({
       const res = await db.collection('articles').get()
       
       if (!res.data || res.data.length === 0) {
-        this.setData({ articles: [], loading: false })
+        this.setData({ articles: [], displayArticles: [], loading: false })
         return
       }
       
@@ -114,6 +120,7 @@ Page({
             description: item.description,
             status: item.status === 'active' || item.status === 'ended' ? item.status : undefined,
             richText: item.richText,
+            views: Math.floor(Math.random() * 2000) + 100,
           }))
         })
       }
@@ -140,15 +147,21 @@ Page({
           }))
         }
       })
+
+      const heroArticle = updatedArticles.length > 0 && updatedArticles[0].items.length > 0 
+        ? updatedArticles[0].items[0] 
+        : null
       
-      this.setData({ articles: updatedArticles, loading: false })
-      
-      try {
-        const app: any = getApp()
-        if (app && app.globalData) app.globalData.articles = updatedArticles
-      } catch {
-        // ignore
-      }
+      this.setData({ 
+        articles: updatedArticles, 
+        displayArticles: updatedArticles,
+        heroArticle,
+        loading: false,
+        ui: {
+          ...this.data.ui,
+          all: lang === 'Chinese' ? '全部' : 'All',
+        }
+      })
     } catch (err: any) {
       const errorMsg = err.errMsg || err.message || '未知错误'
       wx.showToast({ 
@@ -156,8 +169,22 @@ Page({
         icon: 'none',
         duration: 3000
       })
-      this.setData({ loading: false, articles: [] })
+      this.setData({ loading: false, articles: [], displayArticles: [] })
     }
+  },
+
+  onCategoryTap(e: any) {
+    const id = e.currentTarget.dataset.id
+    if (this.data.activeCategoryId === id) return
+
+    const displayArticles = id === 'all' 
+      ? this.data.articles 
+      : this.data.articles.filter(a => a.id === id)
+
+    this.setData({
+      activeCategoryId: id,
+      displayArticles
+    })
   },
 
   onUnload: function () {
@@ -168,8 +195,6 @@ Page({
   },
 
   onShow: function () {
-    const app: any = getApp()
-    const lang = normalizeLanguage(app && app.globalData ? app.globalData.language : null)
     wx.setNavigationBarTitle({ title: '' })
   },
  
@@ -183,7 +208,6 @@ Page({
     const item = e?.currentTarget?.dataset?.item
     if (!item) return
     
-    // 存储到全局状态并跳转
     const app = getApp<IAppOption>() as any
     if (app?.globalData?._pageData) {
       app.globalData._pageData.articleData = item

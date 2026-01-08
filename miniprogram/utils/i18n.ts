@@ -14,8 +14,15 @@ const dict = {
     me: {
         title: { Chinese: '我', English: 'Me' },
         favoritesEntry: { Chinese: '我收藏的岗位', English: 'Saved jobs' },
-        languageEntry: { Chinese: '语言', English: 'Language' },
-        langChinese: { Chinese: '中文', English: 'Chinese' },
+        languageEntry: { Chinese: '语言与内容显示', English: 'Language & Display' },
+        langChinese: { Chinese: '中文 (标准)', English: 'Chinese (Standard)' },
+        langChineseDesc: { Chinese: '界面中文，岗位内容保持原样', English: 'Chinese UI, original job content' },
+        langEnglish: { Chinese: 'English (Standard)', English: 'English (Standard)' },
+        langEnglishDesc: { Chinese: 'Interface in English, original job content', English: 'Interface in English, original job content' },
+        langAIChinese: { Chinese: 'AI 智能全中文 (VIP)', English: 'AI Smart Chinese (VIP)' },
+        langAIChineseDesc: { Chinese: '全中阅读，AI 自动提取薪资/经验/技能标签', English: 'Full Chinese, AI extracts salary/exp/skills' },
+        langAIEnglish: { Chinese: 'AI Smart English (VIP)', English: 'AI Smart English (VIP)' },
+        langAIEnglishDesc: { Chinese: 'Full English, AI extracts salary/exp/skills', English: 'Full English, AI extracts salary/exp/skills' },
         comingSoon: { Chinese: '敬请期待', English: 'Coming soon' },
         loginSuccess: { Chinese: '登录成功', English: 'Logged in' },
         phoneAuthFailed: { Chinese: '手机号授权失败', English: 'Phone authorization failed' },
@@ -46,7 +53,8 @@ const dict = {
         changePhone: { Chinese: '更换', English: 'Change' },
         nicknameTooLong: { Chinese: '用户名太长了', English: 'Nickname is too long' },
         resumeProfileEntry: { Chinese: '简历资料', English: 'Resume Profile' },
-        appliedJobsEntry: { Chinese: '投递过的工作', English: 'Applied Jobs' },
+        appliedJobsEntry: { Chinese: '投递记录', English: 'Applied Jobs' },
+        generatedResumesEntry: { Chinese: '已生成简历', English: 'Generated Resumes' },
     },
     resume: {
         title: { Chinese: '简历资料', English: 'Resume Profile' },
@@ -92,6 +100,9 @@ const dict = {
         aiMessageLabel: { Chinese: '想对 AI 说的话', English: 'Message to AI' },
         aiMessageDefault: { Chinese: '当工作经验不足时，自动补充工作经历；当过往职位名称与目标岗位不匹配时，根据公司业务方向，灵活变更过往职位名称与工作内容。', English: 'Automatically supplement work experience when experience is insufficient; when past job titles do not match the target position, flexibly change past job titles and work contents based on the company\'s business direction.' },
         addEducation: { Chinese: '添加教育经历', English: 'Add Education' },
+        skills: { Chinese: '专业技能', English: 'Professional Skills' },
+        addSkill: { Chinese: '添加技能', English: 'Add Skill' },
+        skillPlaceholder: { Chinese: '请输入技能名称，如：Python, Figma', English: 'Enter skill name, e.g., Python, Figma' },
         addCertificate: { Chinese: '添加证书', English: 'Add Certificate' },
         noData: { Chinese: '暂无数据', English: 'No data' },
         save: { Chinese: '保存', English: 'Save' },
@@ -195,7 +206,13 @@ export type I18nKey =
     | 'me.favoritesEntry'
     | 'me.languageEntry'
     | 'me.langChinese'
+    | 'me.langChineseDesc'
     | 'me.langEnglish'
+    | 'me.langEnglishDesc'
+    | 'me.langAIChinese'
+    | 'me.langAIChineseDesc'
+    | 'me.langAIEnglish'
+    | 'me.langAIEnglishDesc'
     | 'me.comingSoon'
     | 'me.loginSuccess'
     | 'me.phoneAuthFailed'
@@ -327,6 +344,9 @@ export type I18nKey =
     | 'resume.aiMessageLabel'
     | 'resume.aiMessageDefault'
     | 'resume.addEducation'
+    | 'resume.skills'
+    | 'resume.addSkill'
+    | 'resume.skillPlaceholder'
     | 'resume.addCertificate'
     | 'resume.noData'
     | 'resume.save'

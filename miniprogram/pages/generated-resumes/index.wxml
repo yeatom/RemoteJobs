@@ -1,0 +1,50 @@
+<view class="page-container">
+  <view class="header-section" wx:if="{{resumes.length > 0}}">
+    <text class="count-text">共 {{resumes.length}} 份简历资产</text>
+  </view>
+
+  <view class="list-section">
+    <block wx:if="{{loading && resumes.length === 0}}">
+      <view class="loading-state">
+        <view class="spinner"></view>
+        <text>加载中...</text>
+      </view>
+    </block>
+
+    <block wx:elif="{{resumes.length > 0}}">
+      <view class="resume-card" wx:for="{{resumes}}" wx:key="_id" bindtap="onPreviewResume" data-item="{{item}}" hover-class="card-hover">
+        <view class="card-left">
+          <view class="pdf-icon-box">
+            <text class="pdf-text">PDF</text>
+            <view class="pdf-decoration"></view>
+          </view>
+        </view>
+        
+        <view class="card-body">
+          <view class="title-row">
+            <text class="job-title">{{item.jobTitle}}</text>
+            <view wx:if="{{item.isApplied}}" class="applied-tag">已投递</view>
+          </view>
+          <text class="company-name">{{item.company || '通用简历'}}</text>
+          <text class="date-text">{{item.formattedDate}}</text>
+        </view>
+
+        <view class="card-right">
+          <view class="view-btn">查看</view>
+        </view>
+      </view>
+    </block>
+
+    <block wx:else>
+      <view class="empty-state">
+        <view class="empty-icon">📄</view>
+        <text class="empty-title">还没有 AI 为你定制的简历</text>
+        <text class="empty-subtitle">快去探索岗位，让 AI 帮你写简历吧</text>
+        <button class="go-jobs-btn" bindtap="goJobsList">去看看岗位</button>
+      </view>
+    </block>
+  </view>
+
+  <view class="bottom-safe-area"></view>
+</view>
+

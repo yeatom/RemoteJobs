@@ -40,6 +40,7 @@ Page({
     datePickerValue: [0, 0],
     years: [] as number[],
     months: [] as number[],
+    skills: [] as string[],
     workExperiences: [] as Array<{
       company: string;
       jobTitle: string;
@@ -156,6 +157,9 @@ Page({
       descriptionPlaceholder: t('resume.descriptionPlaceholder', lang),
       optional: t('resume.optional', lang),
       addEducation: t('resume.addEducation', lang),
+      skills: t('resume.skills', lang),
+      addSkill: t('resume.addSkill', lang),
+      skillPlaceholder: t('resume.skillPlaceholder', lang),
       addCertificate: t('resume.addCertificate', lang),
       noData: t('resume.noData', lang),
       save: t('resume.save', lang),
@@ -244,6 +248,7 @@ Page({
         phone,
         educations,
         certificates,
+        skills: profile.skills || [],
         workExperiences,
         aiMessage,
         completeness
@@ -759,6 +764,52 @@ Page({
     await this.saveResumeProfile({ educations: newEducations })
     this.closeEduDrawer()
   },
+
+  // 技能相关逻辑
+  onAddSkill() {
+    wx.showModal({
+      title: this.data.ui.addSkill,
+      placeholderText: this.data.ui.skillPlaceholder,
+      editable: true,
+      success: async (res) => {
+        if (res.confirm && res.content.trim()) {
+          const newSkills = [...this.data.skills, res.content.trim()]
+          await this.saveResumeProfile({ skills: newSkills })
+        }
+      }
+    })
+  },
+  onEditSkill(e: any) {
+    const index = e.currentTarget.dataset.index
+    const currentSkill = this.data.skills[index]
+    wx.showModal({
+      title: '编辑技能',
+      editable: true,
+      content: currentSkill,
+      success: async (res) => {
+        if (res.confirm && res.content.trim()) {
+          const newSkills = [...this.data.skills]
+          newSkills[index] = res.content.trim()
+          await this.saveResumeProfile({ skills: newSkills })
+        }
+      }
+    })
+  },
+  onDeleteSkill(e: any) {
+    const index = e.currentTarget.dataset.index
+    wx.showModal({
+      title: '确认删除',
+      content: `确定要删除“${this.data.skills[index]}”吗？`,
+      success: async (res) => {
+        if (res.confirm) {
+          const newSkills = [...this.data.skills]
+          newSkills.splice(index, 1)
+          await this.saveResumeProfile({ skills: newSkills })
+        }
+      }
+    })
+  },
+
   async onDeleteEducation() {
     const { editingEduIndex, educations } = this.data
     if (editingEduIndex === -1) return

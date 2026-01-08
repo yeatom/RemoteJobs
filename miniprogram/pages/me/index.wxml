@@ -1,98 +1,221 @@
 <view class="page">
-  <view class="me-card" bindtap="onAvatarTap">
-    <view class="user-row">
-      <block wx:if="{{userInfo}}">
-        <image class="avatar" src="{{userInfo.avatarUrl}}"/>
-      </block>
-      <block wx:else>
-        <view class="avatar-placeholder"></view>
-      </block>
-
-      <view class="user-text">
-        <block wx:if="{{isInitialLoading}}">
-          <text class="nickname">加载中...</text>
+  <!-- 1. 沉浸式头部 Hero Section -->
+  <view class="hero-section">
+    <view class="hero-bg"></view>
+    <view class="user-container" bindtap="onAvatarTap">
+      <view class="avatar-wrapper">
+        <block wx:if="{{userInfo}}">
+          <image class="avatar-large {{memberLevel === 3 ? 'avatar-premium' : ''}}" src="{{userInfo.avatarUrl}}" />
         </block>
         <block wx:else>
-          <view class="nickname-container">
-            <text class="nickname">{{userInfo.nickName}}</text>
-            <view wx:if="{{memberLevel > 0 && memberBadgeText}}" class="member-badge {{memberLevel === 1 ? 'member-badge-trial' : (memberLevel === 2 ? 'member-badge-normal' : 'member-badge-premium')}}">
-              <text class="member-text">{{memberBadgeText}}</text>
-            </view>
+          <view class="avatar-placeholder-large"></view>
+        </block>
+        <view class="edit-badge">
+          <icon type="info" size="12" color="#fff"/>
+        </view>
+      </view>
+      <view class="user-info-main">
+        <block wx:if="{{isInitialLoading}}">
+          <text class="nickname-large">加载中...</text>
+        </block>
+        <block i:else>
+          <text class="nickname-large">{{userInfo.nickName || '立即登录'}}</text>
+          <view class="user-subtext-wrapper">
+            <text class="user-subtext">查看并编辑个人资料</text>
+            <text class="row-arrow">❯</text>
           </view>
         </block>
       </view>
     </view>
   </view>
 
-  <view class="me-list">
-    <view class="me-item" bindtap="onResumeProfileTap">
-      <text class="me-item-text">{{ui.resumeProfileEntry}}</text>
+  <view class="content-body">
+    <!-- 2. 会员权益看板 VIP Benefit Card -->
+    <view class="vip-benefit-card vip-level-{{memberLevel}} {{isMember ? 'vip-active' : ''}}" bindtap="onVipCardTap">
+      <view class="vip-main-content">
+        <!-- 头部：等级与有效期 -->
+        <view class="vip-card-header">
+          <view class="vip-title-row">
+            <text class="vip-identity-title">{{isMember ? memberBadgeText : '普通用户'}}</text>
+            <view wx:if="{{isMember}}" class="vip-badge-icon badge-level-{{memberLevel}}"></view>
+          </view>
+          <text class="vip-expiry-date" wx:if="{{isMember}}">{{memberExpiryText}}</text>
+        </view>
+
+        <!-- 中部：权益描述或配额进度 -->
+        <view class="vip-card-body">
+          <block wx:if="{{memberLevel === 1}}">
+            <view class="quota-container">
+              <view class="quota-label-row">
+                <text class="quota-label">岗位提炼配额</text>
+                <text class="quota-value">{{jobQuotaUsed}}/{{jobQuotaLimit}}</text>
+              </view>
+              <view class="quota-progress-bar">
+                <view class="quota-progress-inner {{isQuotaExhausted ? 'quota-full' : ''}}" style="width: {{jobQuotaProgress}}%"></view>
+              </view>
+            </view>
+          </block>
+          <block wx:else>
+            <text class="vip-desc">{{isMember ? '您已开启全部会员特权' : '解锁 AI 自动翻译与岗位要求提炼'}}</text>
+          </block>
+        </view>
+
+        <!-- 底部：操作按钮与升舱引导 -->
+        <view class="vip-card-footer">
+          <block wx:if="{{memberLevel === 1 && isQuotaExhausted}}">
+            <view class="upgrade-guide-box" catchtap="onUpgradeToNormal">
+              <text class="upgrade-text">额度已满？补差价 ¥{{upgradeAmount}} 升级月卡 ❯</text>
+            </view>
+          </block>
+          <view wx:else></view> <!-- 占位保持 space-between -->
+          <view class="vip-btn btn-level-{{memberLevel}}">{{isMember ? '管理权益' : '立即解锁'}}</view>
+        </view>
+      </view>
+
+      <view class="vip-card-bg-icon">✨</view>
+      <view wx:if="{{memberLevel === 3}}" class="shimmer-effect"></view>
     </view>
-    <view class="me-item" bindtap="onAppliedJobsTap">
-      <text class="me-item-text">{{ui.appliedJobsEntry}}</text>
+
+    <!-- 3. 核心功能列表 Action List Group -->
+    <view class="action-list-group">
+      <view class="action-row" bindtap="onResumeProfileTap" hover-class="row-hover">
+        <view class="row-left">
+          <view class="icon-circle blue-bg">📄</view>
+          <view class="row-text">
+            <text class="row-title">{{ui.resumeProfileEntry}}</text>
+            <text class="row-subtitle">完善信息，提升 AI 匹配度</text>
+          </view>
+        </view>
+        <view class="row-right">
+          <text class="row-arrow">❯</text>
+        </view>
+      </view>
+
+      <view class="action-row" bindtap="onGeneratedResumesTap" hover-class="row-hover">
+        <view class="row-left">
+          <view class="icon-circle green-bg">✨</view>
+          <view class="row-text">
+            <text class="row-title">{{ui.generatedResumesEntry}}</text>
+            <text class="row-subtitle">预览及下载 PDF 简历</text>
+          </view>
+        </view>
+        <view class="row-right">
+          <text class="row-arrow">❯</text>
+        </view>
+      </view>
+
+      <view class="action-row" bindtap="onAppliedJobsTap" hover-class="row-hover">
+        <view class="row-left">
+          <view class="icon-circle purple-bg">📮</view>
+          <view class="row-text">
+            <text class="row-title">{{ui.appliedJobsEntry}}</text>
+            <text class="row-subtitle">追踪简历投递进度</text>
+          </view>
+        </view>
+        <view class="row-right">
+          <text class="row-arrow">❯</text>
+        </view>
+      </view>
     </view>
-    <view class="me-item" bindtap="onAiTranslateTap">
-      <text class="me-item-text">{{ui.aiTranslateEntry}}</text>
+
+    <!-- 4. 设置列表 Settings List -->
+    <view class="settings-group">
+      <view class="setting-row" bindtap="onLanguageTap" hover-class="row-hover">
+        <view class="row-left">
+          <view class="row-icon-box"><text>🌍</text></view>
+          <text class="row-label">{{ui.languageEntry}}</text>
+        </view>
+        <view class="row-right">
+          <text class="row-value">{{appLanguage === 'Chinese' ? '中文 (标准)' : (appLanguage === 'AIChinese' ? 'AI 智能全中文' : (appLanguage === 'English' ? 'English' : 'AI Smart English'))}}</text>
+          <text class="row-arrow">❯</text>
+        </view>
+      </view>
+
+      <view class="setting-row" bindtap="onInviteTap" hover-class="row-hover">
+        <view class="row-left">
+          <view class="row-icon-box"><text>🎁</text></view>
+          <text class="row-label">{{ui.inviteCodeEntry}}</text>
+        </view>
+        <view class="row-right">
+          <text class="row-arrow">❯</text>
+        </view>
+      </view>
     </view>
-    <view class="me-item" bindtap="onLanguageTap">
-      <text class="me-item-text">{{ui.language}}</text>
-    </view>
-    <view class="me-item" bindtap="onInviteTap">
-      <text class="me-item-text">{{ui.inviteCodeEntry}}</text>
-    </view>
+
+    <!-- 5. 退出登录/切换账号 (未来扩展) -->
   </view>
 
-  <!-- Language bottom sheet (same animation as saved sheet) -->
+  <!-- Bottom Sheets & Modals (Rest of the original code) -->
   <block wx:if="{{showLanguageSheet}}">
     <view class="bottom-sheet-mask {{languageSheetOpen ? 'bottom-sheet-mask-open' : ''}}"
           bindtap="closeLanguageSheet"></view>
     <view class="bottom-sheet {{languageSheetOpen ? 'bottom-sheet-open' : ''}}">
-
       <view class="bottom-sheet-content">
-        <view class="language-item {{currentLanguage === 'Chinese' ? 'language-item-active' : ''}}"
+        <view class="sheet-title-row">
+          <text class="sheet-title">{{ui.languageEntry}}</text>
+        </view>
+
+        <!-- Standard Modes -->
+        <view class="mode-section-title">基础模式</view>
+        <view class="mode-card {{appLanguage === 'Chinese' ? 'mode-card-active' : ''}}"
               data-value="Chinese" bindtap="onLanguageSelect">
-          <text class="language-item-text">{{ui.langDefault}}</text>
+          <view class="mode-card-main">
+            <text class="mode-name">{{ui.langChinese}}</text>
+            <text class="mode-desc">{{ui.langChineseDesc}}</text>
+          </view>
+          <view class="mode-check" wx:if="{{appLanguage === 'Chinese'}}">
+            <icon type="success_no_circle" size="16" color="#1d4ed8"/>
+          </view>
         </view>
-        <view class="language-item {{currentLanguage === 'English' ? 'language-item-active' : ''}}"
+
+        <view class="mode-card {{appLanguage === 'English' ? 'mode-card-active' : ''}}"
               data-value="English" bindtap="onLanguageSelect">
-          <view class="language-item-text">
-            <text>{{ui.langEnglish}}</text>
-            <image class="member-star-icon" src="/assets/icons/four-point-star-twin.png" mode="aspectFit"/>
+          <view class="mode-card-main">
+            <text class="mode-name">{{ui.langEnglish}}</text>
+            <text class="mode-desc">{{ui.langEnglishDesc}}</text>
+          </view>
+          <view class="mode-check" wx:if="{{appLanguage === 'English'}}">
+            <icon type="success_no_circle" size="16" color="#1d4ed8"/>
           </view>
         </view>
 
+        <!-- AI VIP Modes -->
+        <view class="mode-section-title mode-section-title-vip">
+          <text>AI 增强模式</text>
+          <text class="vip-tag-mini">VIP</text>
+        </view>
+
+        <view class="mode-card mode-card-vip {{appLanguage === 'AIChinese' ? 'mode-card-active' : ''}}"
+              data-value="AIChinese" bindtap="onLanguageSelect">
+          <view class="mode-card-icon">✨</view>
+          <view class="mode-card-main">
+            <text class="mode-name">{{ui.langAIChinese}}</text>
+            <text class="mode-desc">{{ui.langAIChineseDesc}}</text>
+          </view>
+          <view class="mode-check" wx:if="{{appLanguage === 'AIChinese'}}">
+            <icon type="success_no_circle" size="16" color="#1d4ed8"/>
+          </view>
+        </view>
+
+        <view class="mode-card mode-card-vip {{appLanguage === 'AIEnglish' ? 'mode-card-active' : ''}}"
+              data-value="AIEnglish" bindtap="onLanguageSelect">
+          <view class="mode-card-icon">✨</view>
+          <view class="mode-card-main">
+            <text class="mode-name">{{ui.langAIEnglish}}</text>
+            <text class="mode-desc">{{ui.langAIEnglishDesc}}</text>
+          </view>
+          <view class="mode-check" wx:if="{{appLanguage === 'AIEnglish'}}">
+            <icon type="success_no_circle" size="16" color="#1d4ed8"/>
+          </view>
+        </view>
       </view>
     </view>
   </block>
 
-  <!-- AI Translate bottom sheet -->
-  <block wx:if="{{showAiTranslateSheet}}">
-    <view class="bottom-sheet-mask {{aiTranslateSheetOpen ? 'bottom-sheet-mask-open' : ''}}"
-          bindtap="closeAiTranslateSheet"></view>
-    <view class="bottom-sheet {{aiTranslateSheetOpen ? 'bottom-sheet-open' : ''}}">
-
-      <view class="bottom-sheet-content">
-        <view class="language-item {{aiTranslateLanguage === 'Default' ? 'language-item-active' : ''}}"
-              data-value="Default" bindtap="onAiTranslateLanguageSelect">
-          <text class="language-item-text">{{ui.aiTranslateDefault}}</text>
-        </view>
-        <view class="language-item {{aiTranslateLanguage === 'AIChinese' ? 'language-item-active' : ''}}"
-              data-value="AIChinese" bindtap="onAiTranslateLanguageSelect">
-          <view class="language-item-text">
-            <text>{{ui.langAI}}</text>
-            <image class="member-star-icon" src="/assets/icons/four-point-star-twin.png" mode="aspectFit"/>
-          </view>
-        </view>
-      </view>
-    </view>
-  </block>
-
-  <!-- Invite code bottom sheet -->
   <block wx:if="{{showInviteSheet}}">
     <view class="bottom-sheet-mask {{inviteSheetOpen ? 'bottom-sheet-mask-open' : ''}}"
           bindtap="closeInviteSheet"></view>
     <view class="bottom-sheet {{inviteSheetOpen ? 'bottom-sheet-open' : ''}}">
-
       <view class="bottom-sheet-content invite-sheet-content">
         <view class="invite-section">
           <text class="invite-section-title">{{ui.myInviteCode}}</text>
@@ -101,22 +224,94 @@
             <text class="invite-code-copy">复制</text>
           </view>
         </view>
-
         <view class="invite-section">
           <text class="invite-section-title">{{ui.inputInviteCode}}</text>
-          <input
-                  class="invite-code-input"
-                  type="text"
-                  placeholder="请输入邀请码"
-                  value="{{inputInviteCode}}"
-                  bindinput="onInviteCodeInput"
-          />
+          <input class="invite-code-input" type="text" placeholder="请输入邀请码" value="{{inputInviteCode}}" bindinput="onInviteCodeInput" />
           <button class="invite-apply-btn" bindtap="onApplyInviteCode">应用</button>
         </view>
       </view>
     </view>
   </block>
 
-  <!-- User Profile Sheet -->
   <include src="./profile-sheet.wxml"/>
+
+  <!-- 会员权益中心弹窗 Member Hub Sheet -->
+  <block wx:if="{{showMemberHub}}">
+    <view class="bottom-sheet-mask {{memberHubOpen ? 'bottom-sheet-mask-open' : ''}}" bindtap="closeMemberHub"></view>
+    <view class="bottom-sheet {{memberHubOpen ? 'bottom-sheet-open' : ''}}">
+      <view class="bottom-sheet-content member-hub-content">
+        
+        <!-- 1. Header: Status & Expiry -->
+        <view class="hub-header">
+          <view class="hub-user-info">
+            <view class="vip-badge-icon badge-level-{{memberLevel}}"></view>
+            <text class="hub-level-name">{{memberBadgeText || '普通用户'}}</text>
+          </view>
+          <text class="hub-expiry-date" wx:if="{{isMember}}">{{expiredDateText}}到期</text>
+        </view>
+
+        <!-- 2. Quota Dashboard -->
+        <view class="hub-quota-card">
+          <view class="quota-title-row">
+            <text class="quota-title">AI 岗位提炼额度</text>
+            <text class="quota-infinite-tag" wx:if="{{memberLevel === 3}}">UNLIMITED</text>
+          </view>
+          
+          <block wx:if="{{memberLevel === 3}}">
+            <view class="quota-infinite-box">
+              <text class="quota-infinite-text">∞ 无限制使用</text>
+              <view class="infinite-sparkle">✨</view>
+            </view>
+          </block>
+          <block wx:else>
+            <view class="hub-progress-section">
+              <view class="hub-progress-bar">
+                <view class="hub-progress-inner {{isQuotaExhausted ? 'quota-full' : ''}}" style="width: {{jobQuotaProgress}}%"></view>
+              </view>
+              <view class="hub-quota-labels">
+                <text class="hub-quota-used">已用 {{jobQuotaUsed}}</text>
+                <text class="hub-quota-limit">总额度 {{jobQuotaLimit}}</text>
+              </view>
+            </view>
+          </block>
+        </view>
+
+        <!-- 3. Privileges List -->
+        <view class="hub-benefit-list">
+          <view class="hub-benefit-item {{memberLevel >= 1 ? 'benefit-active' : ''}}">
+            <icon type="{{memberLevel >= 1 ? 'success' : 'waiting'}}" size="16" color="{{memberLevel >= 1 ? '#2e5fe9' : '#cbd5e1'}}" />
+            <view class="benefit-info">
+              <text class="benefit-name">AI 岗位智能翻译</text>
+              <text class="benefit-sub">全中/英岗位描述，无障碍阅读</text>
+            </view>
+          </view>
+          <view class="hub-benefit-item {{memberLevel >= 2 ? 'benefit-active' : ''}}">
+            <icon type="{{memberLevel >= 2 ? 'success' : 'waiting'}}" size="16" color="{{memberLevel >= 2 ? '#2e5fe9' : '#cbd5e1'}}" />
+            <view class="benefit-info">
+              <text class="benefit-name">AI 生成简历</text>
+              <text class="benefit-sub">针对不同岗位，智能生成高匹配度简历</text>
+            </view>
+          </view>
+          <view class="hub-benefit-item {{memberLevel >= 3 ? 'benefit-active' : ''}}">
+            <icon type="{{memberLevel >= 3 ? 'success' : 'waiting'}}" size="16" color="{{memberLevel >= 3 ? '#2e5fe9' : '#cbd5e1'}}" />
+            <view class="benefit-info">
+              <text class="benefit-name">一键投递简历</text>
+              <text class="benefit-sub">极速直达招聘方，解决网络投递难题</text>
+            </view>
+          </view>
+        </view>
+
+        <!-- 4. Action Bar -->
+        <view class="hub-action-bar">
+          <view class="hub-action-left {{memberLevel === 3 ? 'full-width' : ''}}" bindtap="onRenew">
+            <text class="action-btn-text secondary">立即续费</text>
+          </view>
+          <view class="hub-action-right" wx:if="{{memberLevel < 3}}" bindtap="onUpgrade">
+            <text class="action-btn-text primary">补差价 ¥{{upgradeAmount}} 升级</text>
+          </view>
+        </view>
+
+      </view>
+    </view>
+  </block>
 </view>

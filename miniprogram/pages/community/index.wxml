@@ -1,33 +1,71 @@
 <view class="page">
-  <view class="content">
-    <view wx:if="{{loading}}" class="loading">{{ui.loading}}</view>
-    <!-- Articles -->
+  <!-- 1. Category Navigation (Horizontal Scroll) -->
+  <scroll-view scroll-x class="category-nav" scroll-with-animation>
+    <view 
+      class="nav-item {{activeCategoryId === 'all' ? 'nav-item-active' : ''}}" 
+      bindtap="onCategoryTap" 
+      data-id="all"
+    >{{ui.all}}</view>
+    <view 
+      wx:for="{{articles}}" 
+      wx:key="id" 
+      class="nav-item {{activeCategoryId === item.id ? 'nav-item-active' : ''}}"
+      bindtap="onCategoryTap"
+      data-id="{{item.id}}"
+    >{{item.title}}</view>
+  </scroll-view>
+
+  <view class="community-container">
+    <view wx:if="{{loading}}" class="loading-box">
+      <view class="loading-spinner"></view>
+      <text>{{ui.loading}}</text>
+    </view>
+
     <block wx:else>
-      <view
-        wx:for="{{articles}}"
-        wx:for-item="article"
-        wx:key="id"
-        class="article"
-      >
-        <view class="article-title-row">
-          <view class="article-title">{{article.title}}</view>
-          <view class="article-all" bindtap="onOpenArticleAll" data-id="{{article.id}}">全部></view>
+      <!-- 2. Hero Section (Featured Article) -->
+      <view class="hero-section" wx:if="{{heroArticle && activeCategoryId === 'all'}}" bindtap="onArticleTap" data-item="{{heroArticle}}">
+        <image class="hero-image" src="{{heroArticle.image}}" mode="aspectFill" />
+        <view class="hero-overlay">
+          <view class="hero-tag">FEATURED</view>
+          <view class="hero-content">
+            <text class="hero-title">{{heroArticle.title}}</text>
+            <text class="hero-desc">{{heroArticle.description}}</text>
+          </view>
         </view>
-        <view class="article-list">
-          <view
-            wx:for="{{article.items}}"
-            wx:key="id"
-            class="article-card"
-            bindtap="onArticleTap"
-            data-item="{{item}}"
-          >
-            <view wx:if="{{item.status}}" class="article-badge {{'article-badge-' + item.status}}">
-              <text class="article-badge-text">{{item.status === 'active' ? ui.statusActive : ui.statusEnded}}</text>
-            </view>
-            <image wx:if="{{item.image}}" class="article-image" src="{{item.image}}" mode="aspectFill" />
-            <view class="article-content">
-              <text class="article-title-text">{{item.title}}</text>
-              <text wx:if="{{item.description}}" class="article-description">{{item.description}}</text>
+      </view>
+
+      <!-- 3. Articles List -->
+      <view class="article-sections">
+        <view 
+          wx:for="{{displayArticles}}" 
+          wx:for-item="section" 
+          wx:key="id" 
+          class="section-group"
+        >
+          <view class="section-header">
+            <text class="section-title">{{section.title}}</text>
+          </view>
+
+          <view class="article-grid">
+            <view 
+              wx:for="{{section.items}}" 
+              wx:key="id" 
+              class="modern-card" 
+              bindtap="onArticleTap" 
+              data-item="{{item}}"
+            >
+              <view class="card-image-box">
+                <image class="card-image" src="{{item.image}}" mode="aspectFill" />
+                <view wx:if="{{item.status}}" class="card-status-badge status-{{item.status}}">
+                  {{item.status === 'active' ? ui.statusActive : ui.statusEnded}}
+                </view>
+              </view>
+              <view class="card-info">
+                <text class="card-title">{{item.title}}</text>
+                <view class="card-footer">
+                  <text class="card-views">👁️ {{item.views || 0}}</text>
+                </view>
+              </view>
             </view>
           </view>
         </view>

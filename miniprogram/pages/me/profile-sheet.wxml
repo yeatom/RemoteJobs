@@ -56,18 +56,6 @@
             <text class="profile-phone-value">{{maskedPhone}}</text>
           </view>
         </view>
-
-        <!-- Member Expired Date -->
-        <view class="profile-info-item profile-expired-item" catchtap="onRenewMember">
-          <view class="profile-expired-header">
-            <view class="profile-expired-title-wrapper">
-              <text class="profile-expired-title">{{ui.memberExpiredDate}}</text>
-            </view>
-            <view class="profile-expired-value-wrapper">
-              <text class="profile-expired-value {{isMember ? 'profile-expired-value-active' : 'profile-expired-value-expired'}}">{{expiredDateText}}</text>
-            </view>
-          </view>
-        </view>
       </view>
     </view>
   </view>

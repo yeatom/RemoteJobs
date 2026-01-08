@@ -1,265 +1,528 @@
+/* --- Base Page Style --- */
 .page {
     min-height: 100vh;
-    background: #f5f7fb;
+    background: #f8fafc; /* More neutral, professional slate tint */
     box-sizing: border-box;
-    padding: 40rpx 32rpx;
+    padding-bottom: 60rpx;
 }
 
-.content {
-    margin-top: 40rpx;
-}
-
-.title {
-    font-size: 44rpx;
-    font-weight: 600;
-    color: #1f2933;
-}
-
-.desc {
-    margin-top: 16rpx;
-    font-size: 28rpx;
-    color: #6b7280;
-}
-
-.me-card {
-    background: #ffffff;
-    border-radius: 24rpx;
-    padding: 28rpx;
-    box-shadow: 0 8rpx 20rpx rgba(15, 23, 42, 0.04);
-    cursor: pointer;
-    -webkit-tap-highlight-color: transparent;
-    tap-highlight-color: transparent;
-}
-
-.user-row {
-    display: flex;
-    align-items: center;
-}
-
-.avatar,
-.avatar-placeholder {
-    width: 100rpx;
-    height: 100rpx;
-    border-radius: 50%;
-    margin-right: 18rpx;
-    overflow: hidden;
-    cursor: pointer;
-}
-
-.avatar {
-    display: block;
-}
-
-.avatar-placeholder {
-    background-color: #e0e0e0;
-    cursor: pointer;
-}
-
-.user-text {
-    flex: 1;
-    height: 100rpx;
-    display: flex;
-    align-items: center;
-}
-
-.nickname-container {
-    display: flex;
-    align-items: center;
-    gap: 15rpx; /* 从12rpx增加到15rpx，加宽3rpx */
-}
-
-.nickname {
-    font-size: 32rpx;
-    font-weight: bold;
-    color: #333;
-    line-height: 1.2;
-    margin: 0;
-    padding: 0;
-}
-
-.member-badge {
-    padding: 4rpx 12rpx;
-    border-radius: 12rpx;
-    font-size: 20rpx;
-    font-weight: 600;
-    display: flex;
-    align-items: center;
-}
-
-/* 体验会员：主题蓝色linear，透明度高一点 */
-.member-badge-trial {
-    background: linear-gradient(135deg, rgba(29, 78, 216, 0.4) 0%, rgba(59, 130, 246, 0.4) 100%);
-}
-
-/* 普通会员：主题蓝色linear，透明度低一点 */
-.member-badge-normal {
-    background: linear-gradient(135deg, rgba(29, 78, 216, 0.7) 0%, rgba(59, 130, 246, 0.7) 100%);
-}
-
-/* 高级会员：沿用现在的linear背景色 */
-.member-badge-premium {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-}
-
-.member-text {
-    font-size: 20rpx;
-    font-weight: 600;
-    color: #ffffff;
-}
-
-.nickname-login {
-    color: #1d4ed8;
-}
-
-.phone-auth-name-btn {
-    background: transparent;
-    padding: 0;
-    margin: 0;
-    border: none;
-    display: inline-flex;
-    align-items: center;
-    justify-content: flex-start;
-    height: auto;
-    width: auto;
-    line-height: 1.2;
-}
-
-.phone-auth-name-btn::after {
-    border: none;
-}
-
-.me-list {
-    margin-top: 24rpx;
-    background: #ffffff;
-    border-radius: 24rpx;
-    overflow: hidden;
-    box-shadow: 0 8rpx 20rpx rgba(15, 23, 42, 0.04);
-}
-
-.me-item {
-    padding: 28rpx;
+/* --- 1. Hero Section --- */
+.hero-section {
     position: relative;
+    padding: 100rpx 40rpx 60rpx;
+    background: #ffffff;
+    overflow: hidden;
 }
 
-.me-item::after {
-    content: '';
+.hero-bg {
     position: absolute;
+    top: -200rpx;
+    left: -100rpx;
+    width: 600rpx;
+    height: 600rpx;
+    background: radial-gradient(circle, rgba(46, 95, 233, 0.08) 0%, transparent 70%);
+    pointer-events: none;
+}
+
+.user-container {
+    display: flex;
+    align-items: center;
+    position: relative;
+    z-index: 1;
+}
+
+.avatar-wrapper {
+    position: relative;
+    margin-right: 32rpx;
+}
+
+.avatar-large, .avatar-placeholder-large {
+    width: 140rpx;
+    height: 140rpx;
+    border-radius: 50%;
+    border: 6rpx solid #ffffff;
+    box-shadow: 0 8rpx 24rpx rgba(15, 23, 42, 0.08);
+}
+
+.avatar-placeholder-large {
+    background: #e2e8f0;
+}
+
+.edit-badge {
+    position: absolute;
+    right: 0;
     bottom: 0;
-    left: 20rpx;
-    right: 20rpx;
-    height: 1rpx;
-    background: #f0f0f0;
-}
-
-.me-item:last-child::after {
-    display: none;
-}
-
-.me-item-text {
-    font-size: 30rpx;
-    color: #333;
-}
-
-/* --- Language bottom sheet (same motion pattern as favorites) --- */
-/* remove unused handle styles */
-.language-sheet-handle {
-    display: none;
-}
-
-.language-item {
-    height: 96rpx;
-    border-radius: 18rpx;
-    background: #f3f4f6;
+    width: 44rpx;
+    height: 44rpx;
+    background: #2e5fe9;
+    border-radius: 50%;
+    border: 4rpx solid #ffffff;
     display: flex;
     align-items: center;
     justify-content: center;
-    margin-top: 18rpx;
 }
 
-.language-item-text {
-    font-size: 30rpx;
-    font-weight: 600;
-    color: #111827;
-    display: flex;
-    align-items: center;
-    gap: 8rpx;
-}
-
-.language-item view.language-item-text {
-    margin-left: 30rpx;
-}
-
-.member-star-icon {
-    width: 57rpx;
-    height: 57rpx;
-    display: inline-block;
-    flex-shrink: 0;
-    margin: 0 6rpx;
-    margin-left: -10rpx;
-}
-
-.language-item-active {
-    background: rgba(29, 78, 216, 0.10);
-    border: 2rpx solid #1d4ed8;
-}
-
-.language-item-active .language-item-text {
-    color: #1d4ed8;
-}
-
-/* Invite code bottom sheet */
-.invite-sheet-content {
+.user-info-main {
     display: flex;
     flex-direction: column;
-    gap: 32rpx;
 }
 
-.invite-section {
-    display: flex;
-    flex-direction: column;
-    gap: 16rpx;
+.nickname-large {
+    font-size: 44rpx;
+    font-weight: 700;
+    color: #0f172a;
+    line-height: 1.2;
 }
 
-.invite-section-title {
-    font-size: 30rpx;
-    font-weight: 600;
-    color: #1f2933;
+.avatar-premium {
+    border-color: #3b82f6 !important;
+    box-shadow: 0 0 15rpx rgba(59, 130, 246, 0.3) !important;
 }
 
-.invite-code-display {
+.user-subtext-wrapper {
     display: flex;
     align-items: center;
+    margin-top: 12rpx;
+    gap: 4rpx;
+}
+
+.user-subtext {
+    font-size: 26rpx;
+    color: #64748b;
+}
+
+/* --- Content Body Padding --- */
+.content-body {
+    padding: 0 32rpx;
+    margin-top: -30rpx;
+    position: relative;
+    z-index: 10;
+}
+
+/* --- 2. VIP Card --- */
+.vip-benefit-card {
+    background: #ffffff;
+    border-radius: 28rpx;
+    padding: 32rpx;
+    box-shadow: 0 12rpx 30rpx rgba(0, 0, 0, 0.04);
+    position: relative;
+    overflow: hidden;
+    margin-bottom: 32rpx;
+    border: 1rpx solid rgba(226, 232, 240, 0.6);
+}
+
+/* Level Specific Card Backgrounds */
+.vip-level-1.vip-active {
+    background: linear-gradient(135deg, #ffffff 0%, #f0f7ff 100%);
+    border: 1rpx solid rgba(46, 95, 233, 0.1);
+}
+
+.vip-level-2.vip-active {
+    background: linear-gradient(135deg, #ffffff 0%, #ebf4ff 100%);
+    border: 1rpx solid rgba(46, 95, 233, 0.15);
+}
+
+.vip-level-3.vip-active {
+    background: linear-gradient(135deg, #ffffff 0%, #f5f9ff 100%);
+    /* Layered Shadows: Soft ambient + crisp directional */
+    box-shadow: 
+        0 20rpx 40rpx rgba(46, 95, 233, 0.08),
+        0 8rpx 16rpx rgba(0, 0, 0, 0.02);
+    /* High-end subtle border */
+    border: 1rpx solid rgba(46, 95, 233, 0.12);
+    /* Floating effect */
+    transform: translateY(-4rpx);
+}
+
+.vip-main-content {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    flex-direction: column;
+}
+
+.vip-card-header {
+    display: flex;
     justify-content: space-between;
-    padding: 16rpx 20rpx;
-    background: #f3f4f6;
-    border-radius: 12rpx;
-    min-height: 60rpx;
+    align-items: flex-start;
 }
 
-.invite-code-text {
-    font-size: 28rpx;
-    font-weight: 600;
-    color: #1d4ed8;
-    font-family: 'Courier New', monospace;
+.vip-expiry-date {
+    font-size: 22rpx;
+    color: #94a3b8;
+    margin-top: 8rpx;
+    opacity: 0.8;
+}
+
+.vip-card-body {
+    margin-top: 20rpx;
     flex: 1;
 }
 
-.invite-code-copy {
-    font-size: 26rpx;
-    color: #6b7280;
-    margin-left: 16rpx;
+.quota-container {
+    width: 100%;
 }
 
-.invite-code-input {
-    padding: 16rpx 20rpx;
-    background: #f3f4f6;
+.quota-label-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12rpx;
+}
+
+.quota-label {
+    font-size: 24rpx;
+    color: #64748b;
+    font-weight: 500;
+}
+
+.quota-value {
+    font-size: 24rpx;
+    color: #1e293b;
+    font-weight: 700;
+}
+
+.quota-progress-bar {
+    height: 10rpx;
+    background: #f1f5f9;
+    border-radius: 100rpx;
+    overflow: hidden;
+}
+
+.quota-progress-inner {
+    height: 100%;
+    background: #2e5fe9;
+    border-radius: 100rpx;
+    transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.quota-progress-inner.quota-full {
+    background: linear-gradient(to right, #2e5fe9, #ef4444);
+}
+
+.vip-card-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 28rpx;
+}
+
+.upgrade-guide-box {
+    background: rgba(46, 95, 233, 0.06);
+    padding: 12rpx 20rpx;
     border-radius: 12rpx;
-    font-size: 28rpx;
-    border: none;
-    outline: none;
-    min-height: 60rpx;
+    border: 1rpx dashed rgba(46, 95, 233, 0.3);
 }
 
+.upgrade-text {
+    font-size: 22rpx;
+    color: #2e5fe9;
+    font-weight: 600;
+}
+
+.vip-title-row {
+    display: flex;
+    align-items: center;
+    gap: 12rpx;
+}
+
+.vip-identity-title {
+    font-size: 36rpx;
+    font-weight: 800;
+    color: #1e293b;
+}
+
+.vip-badge-icon {
+    width: 36rpx;
+    height: 36rpx;
+    margin-left: 12rpx;
+    display: block;
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 24 24' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M12 0L14.59 9.41L24 12L14.59 14.59L12 24L9.41 14.59L0 12L9.41 9.41L12 0Z' fill='currentColor'/%3E%3C/svg%3E");
+    -webkit-mask-size: contain;
+    -webkit-mask-repeat: no-repeat;
+    -webkit-mask-position: center;
+}
+
+/* 1. Trial Star: Solid Theme Blue */
+.badge-level-1 {
+    background: #2e5fe9;
+}
+
+/* 2. Member Star: Theme Blue Gradient */
+.badge-level-2 {
+    background: linear-gradient(135deg, #60a5fa 0%, #2e5fe9 100%);
+}
+
+/* 3. Premium Star: Dazzling Blue Gradient + Glow */
+.badge-level-3 {
+    background: linear-gradient(135deg, #3b82f6 0%, #2e5fe9 45%, #1d4ed8 100%);
+    box-shadow: 0 0 12rpx rgba(46, 95, 233, 0.4);
+}
+
+.vip-status-tag {
+    font-size: 18rpx;
+    font-weight: 800;
+    color: #ffffff;
+    padding: 4rpx 12rpx;
+    border-radius: 8rpx;
+    letter-spacing: 1rpx;
+}
+
+.tag-level-1 { background: #2e5fe9; }
+.tag-level-2 { background: #1d4ed8; }
+.tag-level-3 { background: linear-gradient(to right, #2e5fe9, #1d4ed8); }
+
+.vip-desc {
+    font-size: 24rpx;
+    color: #64748b;
+    margin-top: 8rpx;
+    display: block;
+}
+
+.vip-btn {
+    font-size: 24rpx;
+    font-weight: 600;
+    color: #ffffff;
+    background: #2e5fe9;
+    padding: 16rpx 32rpx;
+    border-radius: 100rpx;
+    box-shadow: 0 4rpx 12rpx rgba(46, 95, 233, 0.2);
+}
+
+.btn-level-1 { background: #2e5fe9; box-shadow: 0 4rpx 10rpx rgba(46, 95, 233, 0.15); }
+.btn-level-2 { background: linear-gradient(135deg, #60a5fa 0%, #2e5fe9 100%); box-shadow: 0 4rpx 12rpx rgba(46, 95, 233, 0.2); }
+.btn-level-3 { background: linear-gradient(135deg, #3b82f6 0%, #2e5fe9 45%, #1d4ed8 100%); box-shadow: 0 4rpx 15rpx rgba(29, 78, 216, 0.3); }
+
+.vip-active .vip-btn {
+    background: rgba(0, 0, 0, 0.05);
+    color: #64748b;
+    box-shadow: none;
+}
+
+/* Shimmer for Premium */
+.shimmer-effect {
+    position: absolute;
+    top: 0; left: -100%;
+    width: 150rpx; /* Narrower for more elegance */
+    height: 100%;
+    background: linear-gradient(
+        to right, 
+        transparent 0%, 
+        rgba(46, 95, 233, 0.03) 40%, 
+        rgba(46, 95, 233, 0.12) 50%, 
+        rgba(46, 95, 233, 0.03) 60%, 
+        transparent 100%
+    );
+    transform: skewX(-25deg);
+    animation: shimmer 19s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+    z-index: 1;
+}
+
+@keyframes shimmer {
+    0% { left: -100%; }
+    21.05% { left: 200%; }
+    100% { left: 200%; }
+}
+
+.vip-card-bg-icon {
+    position: absolute;
+    right: -20rpx;
+    bottom: -20rpx;
+    font-size: 120rpx;
+    opacity: 0.05;
+    transform: rotate(-15deg);
+}
+
+/* --- 3. Action List Group --- */
+.action-list-group {
+    background: #ffffff;
+    border-radius: 28rpx;
+    padding: 8rpx 0;
+    box-shadow: 0 8rpx 20rpx rgba(0, 0, 0, 0.03);
+    border: 1rpx solid rgba(226, 232, 240, 0.6);
+    margin-bottom: 32rpx;
+}
+
+.action-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 28rpx 32rpx;
+    position: relative;
+    transition: background 0.2s;
+}
+
+.action-row:not(:last-child)::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 132rpx;
+    right: 32rpx;
+    height: 1rpx;
+    background: #f1f5f9;
+}
+
+.action-row .row-left {
+    display: flex;
+    align-items: center;
+}
+
+.icon-circle {
+    width: 80rpx;
+    height: 80rpx;
+    border-radius: 20rpx;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 36rpx;
+    margin-right: 24rpx;
+}
+
+.blue-bg { background: #eff6ff; }
+.green-bg { background: #f0fdf4; }
+.purple-bg { background: #f5f3ff; }
+
+.action-row .row-text {
+    display: flex;
+    flex-direction: column;
+}
+
+.action-row .row-title {
+    font-size: 30rpx;
+    font-weight: 700;
+    color: #1e293b;
+    line-height: 1.4;
+}
+
+.action-row .row-subtitle {
+    font-size: 22rpx;
+    color: #94a3b8;
+    margin-top: 4rpx;
+}
+
+.action-row .row-right {
+    display: flex;
+    align-items: center;
+    gap: 16rpx;
+}
+
+.row-arrow {
+    font-size: 24rpx;
+    color: #cbd5e1;
+}
+
+.row-hover {
+    background: #f8fafc;
+}
+
+/* --- 4. Settings List --- */
+.settings-group {
+    background: #ffffff;
+    border-radius: 28rpx;
+    padding: 8rpx 0;
+    box-shadow: 0 8rpx 20rpx rgba(0, 0, 0, 0.03);
+    border: 1rpx solid rgba(226, 232, 240, 0.6);
+}
+
+.setting-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 32rpx;
+    position: relative;
+}
+
+.setting-row:not(:last-child)::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 100rpx;
+    right: 32rpx;
+    height: 1rpx;
+    background: #f1f5f9;
+}
+
+.row-left {
+    display: flex;
+    align-items: center;
+}
+
+.row-icon-box {
+    width: 48rpx;
+    height: 48rpx;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 20rpx;
+    font-size: 32rpx;
+}
+
+.row-label {
+    font-size: 30rpx;
+    font-weight: 500;
+    color: #334155;
+}
+
+.row-right {
+    display: flex;
+    align-items: center;
+    gap: 12rpx;
+}
+
+.row-value {
+    font-size: 26rpx;
+    color: #94a3b8;
+}
+
+.row-hover {
+    background: #f8fafc;
+}
+
+/* --- Bottom Sheet Custom Styles (Inherited from original) --- */
+.sheet-title-row { padding: 32rpx 32rpx 16rpx; }
+.sheet-title { font-size: 34rpx; font-weight: 600; color: #111827; }
+.mode-section-title { font-size: 24rpx; color: #6b7280; padding: 24rpx 32rpx 12rpx; font-weight: 500; }
+.mode-section-title-vip { display: flex; align-items: center; gap: 12rpx; margin-top: 12rpx; }
+.vip-tag-mini {
+    background: linear-gradient(135deg,rgb(77, 140, 243) 0%,rgb(46, 95, 233) 100%);
+    color: #ffffff;
+    font-size: 18rpx;
+    font-weight: bold;
+    padding: 4rpx 10rpx;
+    border-radius: 6rpx;
+    box-shadow: 0 2rpx 8rpx rgba(29, 78, 216, 0.3);
+}
+.mode-card {
+    margin: 12rpx 32rpx;
+    padding: 24rpx;
+    background: #f9fafb;
+    border-radius: 20rpx;
+    display: flex;
+    align-items: center;
+    border: 3rpx solid transparent;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.mode-card-active { background: rgba(29, 78, 216, 0.04); border-color: #1d4ed8; }
+.mode-card-icon { font-size: 36rpx; margin-right: 20rpx; filter: drop-shadow(0 0 2rpx rgba(59, 130, 246, 0.4)); }
+.mode-card-main { flex: 1; display: flex; flex-direction: column; }
+.mode-name { font-size: 28rpx; font-weight: 600; color: #111827; }
+.mode-desc { font-size: 22rpx; color: #6b7280; margin-top: 4rpx; }
+.mode-card-vip { background: linear-gradient(to right, #ffffff, #f8fbff); border: 1px solid #e5e7eb; }
+.mode-card-vip.mode-card-active {
+    border: 3rpx solid #3b82f6;
+    background: linear-gradient(to right, #f0f7ff, #eef2ff);
+    box-shadow: 0 4rpx 12rpx rgba(59, 130, 246, 0.12);
+}
+.mode-check { margin-left: 20rpx; }
+
+/* Invite Sheet & Others */
+.invite-sheet-content { display: flex; flex-direction: column; gap: 32rpx; }
+.invite-section { display: flex; flex-direction: column; gap: 16rpx; }
+.invite-section-title { font-size: 30rpx; font-weight: 600; color: #1f2933; }
+.invite-code-display { display: flex; align-items: center; justify-content: space-between; padding: 16rpx 20rpx; background: #f3f4f6; border-radius: 12rpx; min-height: 60rpx; }
+.invite-code-text { font-size: 28rpx; font-weight: 600; color: #1d4ed8; font-family: 'Courier New', monospace; flex: 1; }
+.invite-code-copy { font-size: 26rpx; color: #6b7280; margin-left: 16rpx; }
+.invite-code-input { padding: 16rpx 20rpx; background: #f3f4f6; border-radius: 12rpx; font-size: 28rpx; border: none; outline: none; min-height: 60rpx; }
 .invite-apply-btn {
     margin-top: 16rpx;
     padding: 16rpx 24rpx;
@@ -276,9 +539,197 @@
     min-height: 60rpx;
 }
 
+/* --- 5. Member Hub Sheet --- */
+.member-hub-content {
+    padding: 40rpx 32rpx 60rpx;
+    background: #ffffff;
+    border-radius: 40rpx 40rpx 0 0;
+}
 
-/* --- User Profile Sheet (from bottom, same as restore-sheet) --- */
-/* 使用公共样式 bottom-sheet, bottom-sheet-mask, bottom-sheet-header, bottom-sheet-content */
-/* 个人资料弹窗样式已移至 profile-sheet.wxss */
+.hub-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 40rpx;
+}
+
+.hub-user-info {
+    display: flex;
+    align-items: center;
+    gap: 16rpx;
+}
+
+.hub-level-name {
+    font-size: 36rpx;
+    font-weight: 800;
+    color: #0f172a;
+}
+
+.hub-expiry-date {
+    font-size: 24rpx;
+    color: #64748b;
+    background: #f1f5f9;
+    padding: 6rpx 16rpx;
+    border-radius: 100rpx;
+}
+
+/* Quota Card in Hub */
+.hub-quota-card {
+    background: #f8fafc;
+    border-radius: 32rpx;
+    padding: 32rpx;
+    margin-bottom: 40rpx;
+    border: 1rpx solid #f1f5f9;
+}
+
+.quota-title-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24rpx;
+}
+
+.quota-title {
+    font-size: 26rpx;
+    color: #64748b;
+    font-weight: 600;
+}
+
+.quota-infinite-tag {
+    font-size: 18rpx;
+    font-weight: 800;
+    color: #2e5fe9;
+    background: rgba(46, 95, 233, 0.1);
+    padding: 4rpx 12rpx;
+    border-radius: 6rpx;
+    letter-spacing: 1rpx;
+}
+
+.quota-infinite-box {
+    display: flex;
+    align-items: center;
+    gap: 12rpx;
+}
+
+.quota-infinite-text {
+    font-size: 40rpx;
+    font-weight: 800;
+    color: #0f172a;
+}
+
+.infinite-sparkle {
+    font-size: 32rpx;
+    animation: bounce 2s infinite;
+}
+
+.hub-progress-section {
+    width: 100%;
+}
+
+.hub-quota-labels {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 16rpx;
+}
+
+.hub-quota-used {
+    font-size: 24rpx;
+    font-weight: 700;
+    color: #0f172a;
+}
+
+.hub-quota-limit {
+    font-size: 24rpx;
+    color: #94a3b8;
+}
+
+/* Benefit List */
+.hub-benefit-list {
+    display: flex;
+    flex-direction: column;
+    gap: 32rpx;
+    margin-bottom: 60rpx;
+    padding: 0 8rpx;
+}
+
+.hub-benefit-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 24rpx;
+    opacity: 0.5;
+    transition: opacity 0.3s;
+}
+
+.hub-benefit-item.benefit-active {
+    opacity: 1;
+}
+
+.benefit-info {
+    display: flex;
+    flex-direction: column;
+}
+
+.benefit-name {
+    font-size: 28rpx;
+    font-weight: 700;
+    color: #1e293b;
+}
+
+.benefit-sub {
+    font-size: 22rpx;
+    color: #64748b;
+    margin-top: 4rpx;
+}
+
+/* Hub Action Bar */
+.hub-action-bar {
+    display: flex;
+    gap: 20rpx;
+}
+
+.hub-action-left, .hub-action-right {
+    flex: 1;
+    height: 96rpx;
+    border-radius: 24rpx;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.1s;
+}
+
+.hub-action-left {
+    background: #f1f5f9;
+}
+
+.hub-action-right {
+    background: #2e5fe9;
+    box-shadow: 0 8rpx 20rpx rgba(46, 95, 233, 0.2);
+}
+
+.hub-action-left.full-width {
+    flex: 1;
+}
+
+.action-btn-text {
+    font-size: 28rpx;
+    font-weight: 700;
+}
+
+.action-btn-text.secondary {
+    color: #475569;
+}
+
+.action-btn-text.primary {
+    color: #ffffff;
+}
+
+.hub-action-left:active, .hub-action-right:active {
+    transform: scale(0.97);
+}
+
+@keyframes bounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-6rpx); }
+}
+
 @import "./profile-sheet.wxss";
-
