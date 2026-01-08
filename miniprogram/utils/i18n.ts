@@ -81,12 +81,23 @@ const dict = {
         certificates: { Chinese: '证书', English: 'Certificates' },
         graduationDate: { Chinese: '毕业时间', English: 'Graduation Date' },
         timePeriod: { Chinese: '时间段', English: 'Time Period' },
+        workExperience: { Chinese: '工作经历', English: 'Work Experience' },
+        company: { Chinese: '公司名称', English: 'Company' },
+        companyPlaceholder: { Chinese: '请输入公司名称', English: 'Enter company name' },
+        jobTitle: { Chinese: '职位名称', English: 'Job Title' },
+        jobTitlePlaceholder: { Chinese: '请输入职位名称', English: 'Enter job title' },
+        businessDirection: { Chinese: '业务方向', English: 'Business Direction' },
+        businessDirectionPlaceholder: { Chinese: '一句话描述公司的业务方向', English: 'Brief description of company business' },
+        addWorkExperience: { Chinese: '添加工作经历', English: 'Add Work Experience' },
+        aiMessageLabel: { Chinese: '想对 AI 说的话', English: 'Message to AI' },
+        aiMessageDefault: { Chinese: '当工作经验不足时，自动补充工作经历；当过往职位名称与目标岗位不匹配时，根据公司业务方向，灵活变更过往职位名称与工作内容。', English: 'Automatically supplement work experience when experience is insufficient; when past job titles do not match the target position, flexibly change past job titles and work contents based on the company\'s business direction.' },
         addEducation: { Chinese: '添加教育经历', English: 'Add Education' },
         addCertificate: { Chinese: '添加证书', English: 'Add Certificate' },
         noData: { Chinese: '暂无数据', English: 'No data' },
         save: { Chinese: '保存', English: 'Save' },
         cancel: { Chinese: '取消', English: 'Cancel' },
         delete: { Chinese: '删除', English: 'Delete' },
+        toPresent: { Chinese: '至今', English: 'Present' },
         degreeOptions: {
             Chinese: ['大专', '本科', '硕士', '博士', '其他'],
             English: ['Associate', 'Bachelor', 'Master', 'PhD', 'Other']
@@ -305,12 +316,23 @@ export type I18nKey =
     | 'resume.certificates'
     | 'resume.graduationDate'
     | 'resume.timePeriod'
+    | 'resume.workExperience'
+    | 'resume.company'
+    | 'resume.companyPlaceholder'
+    | 'resume.jobTitle'
+    | 'resume.jobTitlePlaceholder'
+    | 'resume.businessDirection'
+    | 'resume.businessDirectionPlaceholder'
+    | 'resume.addWorkExperience'
+    | 'resume.aiMessageLabel'
+    | 'resume.aiMessageDefault'
     | 'resume.addEducation'
     | 'resume.addCertificate'
     | 'resume.noData'
     | 'resume.save'
     | 'resume.cancel'
     | 'resume.delete'
+    | 'resume.toPresent'
     | 'resume.degreeOptions'
     | 'resume.studyTypes'
     | 'resume.genderOptions'

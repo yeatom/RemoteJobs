@@ -28,6 +28,7 @@ Page({
     
     // 编辑状态
     showEduDrawer: false,
+    showWorkDrawer: false,
     showBasicInfoDrawer: false,
     showDegreePicker: false,
     degreePickerValue: [0, 0],
@@ -39,7 +40,18 @@ Page({
     datePickerValue: [0, 0],
     years: [] as number[],
     months: [] as number[],
+    workExperiences: [] as Array<{
+      company: string;
+      jobTitle: string;
+      businessDirection: string;
+      startDate: string;
+      endDate: string;
+    }>,
+    aiMessage: '',
+    showAiMessageSheet: false,
+    aiMessageForm: '',
     editingEduIndex: -1, // -1 表示新增
+    editingWorkIndex: -1, // -1 表示新增
     eduForm: {
       school: '',
       degree: '',
@@ -47,6 +59,13 @@ Page({
       startDate: '',
       endDate: '',
       description: '',
+    },
+    workForm: {
+      company: '',
+      jobTitle: '',
+      businessDirection: '',
+      startDate: '',
+      endDate: '',
     },
     basicInfoForm: {
       name: '',
@@ -142,6 +161,17 @@ Page({
       save: t('resume.save', lang),
       cancel: t('resume.cancel', lang),
       delete: t('resume.delete', lang),
+      toPresent: t('resume.toPresent', lang),
+      workExperience: t('resume.workExperience', lang),
+      aiMessageLabel: t('resume.aiMessageLabel', lang),
+      aiMessageDefault: t('resume.aiMessageDefault', lang),
+      company: t('resume.company', lang),
+      companyPlaceholder: t('resume.companyPlaceholder', lang),
+      jobTitle: t('resume.jobTitle', lang),
+      jobTitlePlaceholder: t('resume.jobTitlePlaceholder', lang),
+      businessDirection: t('resume.businessDirection', lang),
+      businessDirectionPlaceholder: t('resume.businessDirectionPlaceholder', lang),
+      addWorkExperience: t('resume.addWorkExperience', lang),
     }
 
     const degreeOptions = t<string[]>('resume.degreeOptions', lang)
@@ -189,6 +219,8 @@ Page({
       const phone = profile.phone || ''
       const educations = profile.educations || []
       const certificates = profile.certificates || []
+      const workExperiences = profile.workExperiences || []
+      const aiMessage = profile.aiMessage !== undefined ? profile.aiMessage : t('resume.aiMessageDefault', normalizeLanguage(app?.globalData?.language))
 
       // 计算完整度
       const isBasicComplete = !!(name && photo && gender && birthday && identity)
@@ -212,6 +244,8 @@ Page({
         phone,
         educations,
         certificates,
+        workExperiences,
+        aiMessage,
         completeness
       }, () => {
         this.updateTips()
@@ -486,7 +520,9 @@ Page({
   // 自定义日期选择器逻辑
   openDatePicker(e: any) {
     const field = e.currentTarget.dataset.field
-    const currentDate = (this.data.eduForm as any)[field]
+    const isWorkField = field.startsWith('work_')
+    const actualField = isWorkField ? field.replace('work_', '') : field
+    const currentDate = isWorkField ? (this.data.workForm as any)[actualField] : (this.data.eduForm as any)[actualField]
     
     let yearIndex = this.data.years.indexOf(new Date().getFullYear())
     let monthIndex = new Date().getMonth()
@@ -510,6 +546,17 @@ Page({
   onDatePickerChange(e: any) {
     this.setData({ datePickerValue: e.detail.value })
   },
+  onSetToPresent() {
+    const field = this.data.currentDatePickingField
+    const isWorkField = field.startsWith('work_')
+    const actualField = isWorkField ? field.replace('work_', '') : field
+    const formPrefix = isWorkField ? 'workForm' : 'eduForm'
+    
+    this.setData({
+      [`${formPrefix}.${actualField}`]: this.data.ui.toPresent,
+      showDatePicker: false
+    })
+  },
   onConfirmDate() {
     const [yIdx, mIdx] = this.data.datePickerValue
     const year = this.data.years[yIdx]
@@ -526,23 +573,26 @@ Page({
       return
     }
 
-    const otherField = field === 'startDate' ? 'endDate' : 'startDate'
-    const otherDate = (this.data.eduForm as any)[otherField]
+    const isWorkField = field.startsWith('work_')
+    const actualField = isWorkField ? field.replace('work_', '') : field
+    const otherField = actualField === 'startDate' ? 'endDate' : 'startDate'
+    const formPrefix = isWorkField ? 'workForm' : 'eduForm'
+    const otherDate = (this.data[formPrefix] as any)[otherField]
 
     // 校验：开始时间不能晚于结束时间
-    if (otherDate) {
-      if (field === 'startDate' && dateStr > otherDate) {
+    if (otherDate && dateStr !== this.data.ui.toPresent && otherDate !== this.data.ui.toPresent) {
+      if (actualField === 'startDate' && dateStr > otherDate) {
         wx.showToast({ title: '开始时间不能晚于结束时间', icon: 'none' })
         return
       }
-      if (field === 'endDate' && dateStr < otherDate) {
+      if (actualField === 'endDate' && dateStr < otherDate) {
         wx.showToast({ title: '结束时间不能早于开始时间', icon: 'none' })
         return
       }
     }
     
     this.setData({
-      [`eduForm.${field}`]: dateStr,
+      [`${formPrefix}.${actualField}`]: dateStr,
       showDatePicker: false
     })
   },
@@ -565,6 +615,105 @@ Page({
   onEduDescriptionInput(e: any) {
     this.setData({ 'eduForm.description': e.detail.value })
   },
+  
+  // 工作经历相关逻辑
+  onAddWorkExperience() {
+    this.setData({
+      showWorkDrawer: true,
+      editingWorkIndex: -1,
+      workForm: {
+        company: '',
+        jobTitle: '',
+        businessDirection: '',
+        startDate: '',
+        endDate: '',
+      }
+    })
+  },
+  onEditWorkExperience(e: any) {
+    const index = e.currentTarget.dataset.index
+    const work = this.data.workExperiences[index]
+    this.setData({
+      showWorkDrawer: true,
+      editingWorkIndex: index,
+      workForm: {
+        company: work.company || '',
+        jobTitle: work.jobTitle || '',
+        businessDirection: work.businessDirection || '',
+        startDate: work.startDate || '',
+        endDate: work.endDate || '',
+      }
+    })
+  },
+  closeWorkDrawer() {
+    this.setData({ showWorkDrawer: false })
+  },
+  onWorkCompanyInput(e: any) {
+    this.setData({ 'workForm.company': e.detail.value })
+  },
+  onWorkJobTitleInput(e: any) {
+    this.setData({ 'workForm.jobTitle': e.detail.value })
+  },
+  onWorkBusinessDirectionInput(e: any) {
+    this.setData({ 'workForm.businessDirection': e.detail.value })
+  },
+  async onSaveWorkExperience() {
+    const { workForm, editingWorkIndex, workExperiences, ui } = this.data
+    
+    if (!workForm.company.trim()) {
+      wx.showToast({ title: ui.companyPlaceholder || '请输入公司名称', icon: 'none' })
+      return
+    }
+    if (!workForm.jobTitle.trim()) {
+      wx.showToast({ title: ui.jobTitlePlaceholder || '请输入职位名称', icon: 'none' })
+      return
+    }
+    if (!workForm.startDate) {
+      wx.showToast({ title: '请选择开始时间', icon: 'none' })
+      return
+    }
+    if (!workForm.endDate) {
+      wx.showToast({ title: '请选择结束时间', icon: 'none' })
+      return
+    }
+
+    if (workForm.startDate && workForm.endDate && workForm.startDate !== ui.toPresent && workForm.endDate !== ui.toPresent) {
+      if (workForm.startDate > workForm.endDate) {
+        wx.showToast({ title: '开始时间不能晚于结束时间', icon: 'none' })
+        return
+      }
+    }
+
+    const newWorks = [...workExperiences]
+    const workData = { ...workForm }
+
+    if (editingWorkIndex === -1) {
+      newWorks.push(workData)
+    } else {
+      newWorks[editingWorkIndex] = workData
+    }
+
+    await this.saveResumeProfile({ workExperiences: newWorks })
+    this.closeWorkDrawer()
+  },
+  async onDeleteWorkExperience() {
+    const { editingWorkIndex, workExperiences } = this.data
+    if (editingWorkIndex === -1) return
+
+    wx.showModal({
+      title: '删除确认',
+      content: '确定要删除这段工作经历吗？',
+      success: async (res) => {
+        if (res.confirm) {
+          const newWorks = [...workExperiences]
+          newWorks.splice(editingWorkIndex, 1)
+          await this.saveResumeProfile({ workExperiences: newWorks })
+          this.closeWorkDrawer()
+        }
+      }
+    })
+  },
+
   async onSaveEducation() {
     const { eduForm, editingEduIndex, educations, ui } = this.data
     
@@ -591,9 +740,11 @@ Page({
     }
 
     // 时间逻辑校验
-    if (eduForm.startDate > eduForm.endDate) {
-      wx.showToast({ title: '开始时间不能晚于结束时间', icon: 'none' })
-      return
+    if (eduForm.startDate && eduForm.endDate && eduForm.startDate !== ui.toPresent && eduForm.endDate !== ui.toPresent) {
+      if (eduForm.startDate > eduForm.endDate) {
+        wx.showToast({ title: '开始时间不能晚于结束时间', icon: 'none' })
+        return
+      }
     }
 
     const newEducations = [...educations]
@@ -668,6 +819,26 @@ Page({
         }
       }
     })
+  },
+
+  onEditAiMessage() {
+    this.setData({
+      showAiMessageSheet: true,
+      aiMessageForm: this.data.aiMessage
+    })
+  },
+
+  closeAiMessageSheet() {
+    this.setData({ showAiMessageSheet: false })
+  },
+
+  onAiMessageInput(e: any) {
+    this.setData({ aiMessageForm: e.detail.value })
+  },
+
+  async onSaveAiMessageSheet() {
+    await this.saveResumeProfile({ aiMessage: this.data.aiMessageForm || '' })
+    this.closeAiMessageSheet()
   },
 })
 

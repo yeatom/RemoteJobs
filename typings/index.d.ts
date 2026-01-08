@@ -45,7 +45,14 @@ type AppUser = {
       endDate?: string
     }>
     certificates: string[]
-    skills: string[]
+    workExperiences: Array<{
+      company: string
+      jobTitle: string
+      businessDirection: string
+      startDate: string
+      endDate: string
+    }>
+    aiMessage: string
   }
   inviteCode?: string
   createdAt?: Date | string

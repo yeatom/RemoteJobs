@@ -70,7 +70,7 @@
   - `job_quota`: Object - {used, limit} 岗位槽位限额
   - `job_details`: Object - 记录每个岗位的微调/邮件沟通明细
 - `resume_profile`: Object - 个人简历资料
-  - `name`, `photo`, `wechat`, `email`, `phone`, `educations`, `certificates`, `skills`
+  - `name`, `photo`, `wechat`, `email`, `phone`, `educations`, `workExperiences`, `certificates`, `aiMessage`
 - `language`: String - 用户界面语言 (Chinese/English/...)
 - `isAuthed`: Boolean - 是否已完成手机号授权
 - `createdAt`, `updatedAt`: DateTime

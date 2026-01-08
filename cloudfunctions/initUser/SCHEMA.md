@@ -34,20 +34,28 @@
   - `identity`: `String` - 身份 (e.g., '在校生', '职场人')。
   - `wechat`: `String` - 简历联系微信。
   - `email`: `String` - 简历联系邮箱。
-  - `phone`: `String` - 简历联系电话（独立于账号绑定的 `phone`）。
+  - `phone`: `String` - 简历联系电话（独立于账号绑定的主手机号）。
   - `educations`: `Array<Object>` - 教育经历。
-    - `school`: `String`
-    - `degree`: `String`
-    - `major`: `String`
-    - `startDate`: `String`
-    - `endDate`: `String`
-    - `description`: `String`
+    - `school`: `String` - 学校名称。
+    - `degree`: `String` - 学历 (e.g., '本科 (全日制)')。
+    - `major`: `String` - 专业名称。
+    - `startDate`: `String` - 开始日期 (YYYY-MM)。
+    - `endDate`: `String` - 结束日期 (YYYY-MM 或 "至今")。
+    - `description`: `String` - 在校描述/荣誉奖励 (选填)。
+  - `workExperiences`: `Array<Object>` - 工作经历。
+    - `company`: `String` - 公司名称。
+    - `jobTitle`: `String` - 职位名称。
+    - `businessDirection`: `String` - 业务方向（一句话描述）。
+    - `startDate`: `String` - 开始日期 (YYYY-MM)。
+    - `endDate`: `String` - 结束日期 (YYYY-MM 或 "至今")。
   - `certificates`: `Array<String>` - 证书列表。
-  - `skills`: `Array<String>` - 技能列表。
+  - `aiMessage`: `String` - 想对 AI 说的话。默认值："当工作经验不足时，自动补充工作经历；当过往职位名称与目标岗位不匹配时，根据公司业务方向，灵活变更过往职位名称与工作内容。"
 
 ## 系统状态 (System Status)
 - `resume_completeness`: `Number` - 简历完整度等级。
-  - `0`: 不完整（未满足基本信息、教育经历或联系方式三选一）。
-  - `1`: 基本完整（已填写必要项，可使用 AI 功能）。
-  - `2`: 非常完美（在 1 的基础上填写了证书）。
-
+  - `0`: 不完整。未满足以下全部条件：
+    1. 基本信息完整（姓名、照片、性别、生日、身份）。
+    2. 联系方式至少填一项（微信、邮箱、手机三选一）。
+    3. 至少有一条教育经历。
+  - `1`: 基本完整。已满足上述条件，可正常使用 AI 生成功能。
+  - `2`: 非常完美。在等级 `1` 的基础上，至少填写了一个证书。

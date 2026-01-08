@@ -199,6 +199,11 @@
   margin-bottom: 8rpx;
 }
 
+.business-dir {
+  color: #64748b;
+  font-style: italic;
+}
+
 .edu-date {
   font-size: 24rpx;
   color: #64748b;
@@ -277,6 +282,38 @@
 
 .bottom-safe-area {
   height: 80rpx;
+}
+
+.ai-message-value {
+  width: 100%;
+  justify-content: space-between;
+}
+
+.ai-message-text {
+  text-align: left;
+  max-width: 580rpx;
+  white-space: normal;
+  line-height: 1.6;
+  font-size: 30rpx;
+  color: #64748b;
+}
+
+.ai-message-picker {
+  height: 60vh; /* 3/5 of screen height */
+}
+
+.ai-message-input-content {
+  flex: 1;
+  padding: 32rpx 40rpx;
+  background-color:rgb(255, 255, 255);
+}
+
+.ai-message-textarea {
+  width: 100%;
+  height: 100%;
+  font-size: 30rpx;
+  color: #111827;
+  line-height: 1.6;
 }
 
 /* Drawer Styles */
@@ -524,6 +561,20 @@
   color: #1d4ed8;
   font-weight: 600;
   padding: 10rpx 20rpx;
+}
+
+.header-right-btns {
+  display: flex;
+  align-items: center;
+}
+
+.btn-present {
+  font-size: 26rpx;
+  color: #64748b;
+  background: #f1f5f9;
+  padding: 8rpx 24rpx;
+  border-radius: 30rpx;
+  margin-right: 10rpx;
 }
 
 .custom-picker-close {

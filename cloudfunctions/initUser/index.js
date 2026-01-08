@@ -69,8 +69,9 @@ exports.main = async (event, context) => {
           email: '',
           phone: '',
           educations: [],
+          workExperiences: [],
           certificates: [],
-          skills: []
+          aiMessage: '当工作经验不足时，自动补充工作经历；当过往职位名称与目标岗位不匹配时，根据公司业务方向，灵活变更过往职位名称与工作内容。'
         },
         resume_completeness: 0,
 

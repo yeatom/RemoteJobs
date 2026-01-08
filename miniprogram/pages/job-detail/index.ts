@@ -2,6 +2,7 @@
 import { normalizeLanguage, t } from '../../utils/i18n'
 import { normalizeJobTags, translateFieldValue } from '../../utils/job'
 import { attachLanguageAware } from '../../utils/languageAware'
+const { cloudRunEnv } = require('../../env.js')
 
 const SAVED_COLLECTION = 'saved_jobs'
 const SAVE_DEBOUNCE_DELAY = 300
@@ -288,8 +289,28 @@ Page({
         try {
           wx.showLoading({ title: 'AI 思考中...', mask: true })
           
+          let aiProfile = { ...profile }
+          
+          // 如果有头像，换取临时链接，确保后端能跨环境访问
+          if (profile.photo && profile.photo.startsWith('cloud://')) {
+            try {
+              const fileRes = await wx.cloud.getTempFileURL({
+                fileList: [profile.photo]
+              })
+              if (fileRes.fileList && fileRes.fileList[0].tempFileURL) {
+                aiProfile.photo = fileRes.fileList[0].tempFileURL
+              }
+            } catch (fileErr) {
+              console.error('换取头像链接失败:', fileErr)
+              // 失败了也继续，不影响文字生成
+            }
+          }
+
           const res = await wx.cloud.callContainer({
-            path: '/api/generate-from-db', // 您的接口路径
+            config: {
+              env: cloudRunEnv
+            },
+            path: '/api/generate', // 您的接口路径
             header: {
               'X-WX-SERVICE': 'express-vyc1', // 您的服务名称
               'content-type': 'application/json'
@@ -298,6 +319,8 @@ Page({
             data: {
               jobId: this.data.job?._id, // 岗位 ID
               userId: user.openid,      // 用户 ID (OpenID)
+              resume_profile: aiProfile, // 传处理后的资料（头像已转为 https）
+              job_data: this.data.job    // 传完整的岗位 JSON
             }
           })
 

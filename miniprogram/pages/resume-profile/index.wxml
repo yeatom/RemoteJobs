@@ -110,6 +110,41 @@
         </view>
       </view>
 
+      <!-- 工作经历 -->
+      <view class="section-group">
+        <view class="section-header-row">
+          <view class="section-group-title">{{ui.workExperience}}</view>
+          <view class="add-btn" bindtap="onAddWorkExperience">
+            <text class="add-btn-text">{{ui.addWorkExperience}}</text>
+          </view>
+        </view>
+        
+        <view class="card education-card">
+          <block wx:if="{{workExperiences && workExperiences.length > 0}}">
+            <view class="education-item" wx:for="{{workExperiences}}" wx:key="index" bindtap="onEditWorkExperience" data-index="{{index}}">
+              <view class="edu-info">
+                <view class="edu-school">{{item.company || ui.noData}}</view>
+                <view class="edu-details">
+                  <text wx:if="{{item.jobTitle}}">{{item.jobTitle}}</text>
+                </view>
+                <view class="edu-details business-dir" wx:if="{{item.businessDirection}}">
+                  <text>{{item.businessDirection}}</text>
+                </view>
+                <view class="edu-date" wx:if="{{item.startDate || item.endDate}}">
+                  {{item.startDate || ''}} - {{item.endDate || ''}}
+                </view>
+              </view>
+              <view class="arrow-icon"></view>
+            </view>
+          </block>
+          <block wx:else>
+            <view class="empty-state" bindtap="onAddWorkExperience">
+              <text class="empty-text">{{ui.noData}}</text>
+            </view>
+          </block>
+        </view>
+      </view>
+
       <!-- 证书 -->
       <view class="section-group">
         <view class="section-header-row">
@@ -133,10 +168,80 @@
           </block>
         </view>
       </view>
+
+      <!-- 对 AI 说的话 -->
+      <view class="section-group">
+        <view class="section-group-title">{{ui.aiMessageLabel}}</view>
+        <view class="card">
+          <view class="list-item" bindtap="onEditAiMessage">
+            <view class="item-value ai-message-value">
+              <text class="{{aiMessage ? 'value-text' : 'placeholder-text'}} ai-message-text">{{aiMessage || ui.aiMessageDefault}}</text>
+              <view class="arrow-icon"></view>
+            </view>
+          </view>
+        </view>
+      </view>
       
       <view class="bottom-safe-area"></view>
     </view>
   </scroll-view>
+
+  <!-- 工作经历编辑弹窗 (右侧弹出) -->
+  <view class="drawer-mask {{showWorkDrawer ? 'drawer-mask-show' : ''}}" bindtap="closeWorkDrawer"></view>
+  <view class="drawer {{showWorkDrawer ? 'drawer-show' : ''}}">
+    <view class="drawer-header">
+      <text class="drawer-title">{{editingWorkIndex === -1 ? ui.addWorkExperience : ui.workExperience}}</text>
+      <view wx:if="{{editingWorkIndex !== -1}}" class="header-delete" bindtap="onDeleteWorkExperience">
+        <text>{{ui.delete}}</text>
+      </view>
+    </view>
+    
+    <view class="drawer-content">
+      <view class="form-item">
+        <text class="form-label">{{ui.company}}</text>
+        <input class="form-input" placeholder="{{ui.companyPlaceholder}}" value="{{workForm.company}}" bindinput="onWorkCompanyInput" />
+      </view>
+
+      <view class="form-item">
+        <text class="form-label">{{ui.jobTitle}}</text>
+        <input class="form-input" placeholder="{{ui.jobTitlePlaceholder}}" value="{{workForm.jobTitle}}" bindinput="onWorkJobTitleInput" />
+      </view>
+
+      <view class="form-item">
+        <text class="form-label">{{ui.timePeriod}}</text>
+        <view class="date-range-row">
+          <view class="picker-value {{workForm.startDate ? '' : 'placeholder-text'}}" bindtap="openDatePicker" data-field="work_startDate">
+            {{workForm.startDate || ui.startDate}}
+          </view>
+          <text class="date-sep">-</text>
+          <view class="picker-value {{workForm.endDate ? '' : 'placeholder-text'}}" bindtap="openDatePicker" data-field="work_endDate">
+            {{workForm.endDate || ui.endDate}}
+          </view>
+        </view>
+      </view>
+
+      <view class="form-item">
+        <text class="form-label">{{ui.businessDirection}} <text class="optional-hint">({{ui.optional}})</text></text>
+        <textarea 
+          class="form-textarea" 
+          placeholder="{{ui.businessDirectionPlaceholder}}" 
+          value="{{workForm.businessDirection}}" 
+          bindinput="onWorkBusinessDirectionInput"
+          maxlength="200"
+          auto-height
+        />
+      </view>
+    </view>
+
+    <view class="drawer-footer">
+      <view class="btn-secondary" bindtap="closeWorkDrawer">
+        <text>{{ui.cancel}}</text>
+      </view>
+      <view class="btn-primary" bindtap="onSaveWorkExperience">
+        <text>{{ui.save}}</text>
+      </view>
+    </view>
+  </view>
 
   <!-- 教育经历编辑弹窗 (右侧弹出) -->
   <view class="drawer-mask {{showEduDrawer ? 'drawer-mask-show' : ''}}" bindtap="closeEduDrawer"></view>
@@ -247,6 +352,27 @@
     </view>
   </view>
 
+  <!-- 对 AI 说的话编辑弹窗 (底部弹出) -->
+  <view class="picker-mask {{showAiMessageSheet ? 'picker-mask-show' : ''}}" bindtap="closeAiMessageSheet"></view>
+  <view class="custom-picker ai-message-picker {{showAiMessageSheet ? 'custom-picker-show' : ''}}">
+    <view class="custom-picker-header">
+      <view class="custom-picker-cancel" bindtap="closeAiMessageSheet">{{ui.cancel}}</view>
+      <text class="custom-picker-title">{{ui.aiMessageLabel}}</text>
+      <view class="custom-picker-confirm" bindtap="onSaveAiMessageSheet">{{ui.save}}</view>
+    </view>
+    <view class="ai-message-input-content">
+      <textarea 
+        class="ai-message-textarea" 
+        placeholder="{{ui.aiMessageDefault}}" 
+        value="{{aiMessageForm}}" 
+        bindinput="onAiMessageInput"
+        maxlength="500"
+        focus="{{showAiMessageSheet}}"
+        disable-default-padding
+      />
+    </view>
+  </view>
+
   <!-- 自定义性别选择器 (底部弹出) -->
   <view class="picker-mask {{showGenderPicker ? 'picker-mask-show' : ''}}" bindtap="closeGenderPicker"></view>
   <view class="custom-picker {{showGenderPicker ? 'custom-picker-show' : ''}}">
@@ -294,8 +420,11 @@
   <view class="custom-picker {{showDatePicker ? 'custom-picker-show' : ''}}">
     <view class="custom-picker-header">
       <view class="custom-picker-cancel" bindtap="closeDatePicker">{{ui.cancel}}</view>
-      <text class="custom-picker-title">{{currentDatePickingField === 'startDate' ? ui.startDate : (currentDatePickingField === 'endDate' ? ui.endDate : ui.birthday)}}</text>
-      <view class="custom-picker-confirm" bindtap="onConfirmDate">{{ui.save}}</view>
+      <text class="custom-picker-title">{{(currentDatePickingField === 'startDate' || currentDatePickingField === 'work_startDate') ? ui.startDate : ((currentDatePickingField === 'endDate' || currentDatePickingField === 'work_endDate') ? ui.endDate : ui.birthday)}}</text>
+      <view class="header-right-btns">
+        <view wx:if="{{currentDatePickingField === 'work_endDate' || currentDatePickingField === 'endDate'}}" class="btn-present" bindtap="onSetToPresent">{{ui.toPresent}}</view>
+        <view class="custom-picker-confirm" bindtap="onConfirmDate">{{ui.save}}</view>
+      </view>
     </view>
     <view class="picker-view-container">
       <picker-view 
