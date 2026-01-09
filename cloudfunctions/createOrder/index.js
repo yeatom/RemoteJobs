@@ -85,14 +85,45 @@ exports.main = async (event, context) => {
       data: orderData,
     })
 
-    return {
-      success: true,
-      order_id,
-      order: {
-        ...orderData,
-        _id: result._id,
-      },
-      scheme: scheme,
+    // --- 核心改动：接入云支付统一下单 ---
+    // 注意：需先在云开发控制台配置商户号，并在此填入正确的 subMchId
+    const res = await cloud.cloudPay.unifiedOrder({
+      "body": `会员续费-${scheme.name}`,
+      "outTradeNo": order_id,
+      "spbillCreateIp": "127.0.0.1", // 云函数环境下可用 127.0.0.1
+      "subMchId": event.mchId, // 从前端 env.js 中获取，不在代码中硬编码
+      "totalFee": Math.round(actualAmount * 100), // 单位为分
+      "envId": event.envId, // 从前端 env.js 中获取的环境 ID
+      "functionName": "payCallback" // 支付回调云函数名
+    })
+
+    if (res.returnCode === 'SUCCESS' && res.resultCode === 'SUCCESS') {
+      if (!res.payment) {
+        return {
+          success: false,
+          message: '统一下单成功但未返回支付参数，请检查云开发微信支付配置',
+          error: res
+        }
+      }
+      return {
+        success: true,
+        order_id,
+        payment: res.payment, // 返回给前端 wx.requestPayment 使用的参数
+        order: {
+          ...orderData,
+          _id: result._id,
+        },
+        scheme: scheme,
+      }
+    } else {
+      // 这里的 res.returnMsg 在通信成功时通常是 "OK"，
+      // 真正的业务错误信息通常在 res.errCodeDes 中
+      const errorMsg = res.errCodeDes || res.returnMsg || '统一下单失败'
+      return {
+        success: false,
+        message: errorMsg,
+        error: res
+      }
     }
   } catch (err) {
     console.error('创建订单失败:', err)

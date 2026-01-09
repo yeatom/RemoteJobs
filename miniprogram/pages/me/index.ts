@@ -384,12 +384,11 @@ Page({
             wx.showModal({
                 title: 'AI翻译与提炼 🔒',
                 content: '开启 AI 增强模式需要付费解锁。',
-                confirmText: '去付费',
+                confirmText: '去支付',
                 cancelText: '取消',
                 success: (res) => {
                     if (res.confirm) {
-                        // TODO: replace with real payment flow.
-                        wx.showToast({ title: '暂未接入付费流程', icon: 'none' })
+                        this.openMemberHub()
                     }
                 },
             })
@@ -716,60 +715,157 @@ Page({
     },
 
     onRenew() {
-        // TODO: 触发当前等级的续费流程
+        const { memberLevel, memberBadgeText } = this.data
+        if (!memberLevel) return
+
         wx.showModal({
             title: '会员续费',
-            content: `即将为您办理 ${this.data.memberBadgeText} 的续费手续。`,
+            content: `即将为您办理 ${memberBadgeText} 的续费手续。`,
             confirmText: '立即续费',
             success: (res) => {
                 if (res.confirm) {
-                    wx.showToast({ title: '暂未接入支付流程', icon: 'none' })
+                    this.executePaymentFlow(memberLevel)
                 }
             }
         })
     },
 
     onUpgrade() {
-        const level = this.data.memberLevel
-        if (level === 1) {
-            this.onUpgradeToNormal()
-        } else if (level === 2) {
-            this.onUpgradeToPremium()
+        const { memberLevel, upgradeAmount } = this.data
+        let targetLevel = 0
+        let title = ''
+        let content = ''
+
+        if (memberLevel === 1) {
+            targetLevel = 2
+            title = '升级普通会员'
+            content = `补差价 ¥${upgradeAmount} 即可升级为普通会员，享受更多岗位配额及 AI 提炼次数。`
+        } else if (memberLevel === 2) {
+            targetLevel = 3
+            title = '升级高级会员'
+            content = `补差价 ¥${upgradeAmount} 即可升级为高级会员，尊享无限次 AI 提炼及专属视觉效果。`
         }
-    },
 
-    onUpgradeToNormal() {
-        if (this.data.memberLevel !== 1) return
-        
-        const amount = this.data.upgradeAmount
+        if (!targetLevel) return
+
         wx.showModal({
-            title: '升级普通会员',
-            content: `补差价 ¥${amount} 即可升级为普通会员，享受更多岗位配额及 AI 提炼次数。`,
+            title,
+            content,
             confirmText: '立即升级',
             success: (res) => {
                 if (res.confirm) {
-                    // TODO: 触发升级 Level 2 的支付流程
-                    wx.showToast({ title: '暂未接入支付流程', icon: 'none' })
+                    this.executePaymentFlow(targetLevel, upgradeAmount)
                 }
             }
         })
     },
 
-    onUpgradeToPremium() {
-        if (this.data.memberLevel !== 2) return
-        
-        const amount = this.data.upgradeAmount
-        wx.showModal({
-            title: '升级高级会员',
-            content: `补差价 ¥${amount} 即可升级为高级会员，尊享无限次 AI 提炼及专属视觉效果。`,
-            confirmText: '立即升级',
-            success: (res) => {
-                if (res.confirm) {
-                    // TODO: 触发升级 Level 3 的支付流程
-                    wx.showToast({ title: '暂未接入支付流程', icon: 'none' })
-                }
+    async executePaymentFlow(schemeId: number, amount?: number) {
+        wx.showLoading({ title: '正在创建订单...', mask: true })
+
+        try {
+            const env = require('../../env.js')
+            const mchId = env.mchId || env.default?.mchId
+            const envId = env.cloudEnv || env.default?.cloudEnv
+            
+            if (!mchId) {
+                throw new Error('未能在 env.js 中找到商户号 mchId')
             }
-        })
+
+            // 1. 创建订单并获取统一下单参数
+            const orderRes: any = await wx.cloud.callFunction({
+                name: 'createOrder',
+                data: {
+                    scheme_id: schemeId,
+                    amount: amount, // 如果是升级，传补差价金额
+                    mchId: mchId,
+                    envId: envId
+                }
+            })
+
+            console.log('[Payment] createOrder response:', orderRes.result)
+
+            if (!orderRes.result?.success) {
+                throw new Error(orderRes.result?.message || '订单创建失败')
+            }
+
+            const { payment, order_id } = orderRes.result
+            
+            if (!payment || !payment.paySign) {
+                console.error('[Payment] Missing payment parameters:', payment)
+                throw new Error('支付参数缺失，请检查云开发后台微信支付配置')
+            }
+
+            wx.hideLoading()
+
+            // 2. 发起微信支付
+            await new Promise((resolve, reject) => {
+                wx.requestPayment({
+                    timeStamp: payment.timeStamp,
+                    nonceStr: payment.nonceStr,
+                    package: payment.package,
+                    signType: payment.signType,
+                    paySign: payment.paySign,
+                    success: resolve,
+                    fail: (err) => {
+                        console.error('[Payment] wx.requestPayment fail:', err)
+                        reject(err)
+                    }
+                })
+            })
+
+            wx.showLoading({ title: '正在激活会员...', mask: true })
+
+            // 3. 更新订单状态
+            await wx.cloud.callFunction({
+                name: 'updateOrderStatus',
+                data: {
+                    order_id,
+                    status: '已支付'
+                }
+            })
+
+            // 4. 激活会员权益
+            const activateRes: any = await wx.cloud.callFunction({
+                name: 'activateMembership',
+                data: {
+                    order_id
+                }
+            })
+
+            if (!activateRes.result?.success) {
+                throw new Error(activateRes.result?.message || '激活会员失败')
+            }
+
+            // 5. 刷新用户信息
+            const app = getApp<IAppOption>() as any
+            app.globalData.user = activateRes.result.user
+            this.syncUserFromApp()
+
+            wx.hideLoading()
+            wx.showToast({
+                title: '支付成功',
+                icon: 'success',
+                duration: 2000
+            })
+
+            // 如果是在会员中心操作，支付成功后关闭
+            this.closeMemberHub()
+        } catch (err: any) {
+            wx.hideLoading()
+            console.error('[Payment] Error:', err)
+            
+            if (err.errMsg && err.errMsg.includes('requestPayment:fail cancel')) {
+                wx.showToast({ title: '支付已取消', icon: 'none' })
+                return
+            }
+
+            wx.showModal({
+                title: '支付提示',
+                content: err.message || '支付过程出现问题，请稍后再试',
+                showCancel: false
+            })
+        }
     },
 
     formatExpiredDate(expired: any): string {

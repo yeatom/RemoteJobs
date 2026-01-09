@@ -63,7 +63,7 @@
         <!-- 底部：操作按钮与升舱引导 -->
         <view class="vip-card-footer">
           <block wx:if="{{memberLevel === 1 && isQuotaExhausted}}">
-            <view class="upgrade-guide-box" catchtap="onUpgradeToNormal">
+            <view class="upgrade-guide-box" catchtap="onUpgrade">
               <text class="upgrade-text">额度已满？补差价 ¥{{upgradeAmount}} 升级月卡 ❯</text>
             </view>
           </block>

@@ -41,6 +41,14 @@ exports.main = async (event, context) => {
 
     const order = orderResult.data[0]
 
+    // 检查订单是否已激活过，防止重复激活导致有效期异常累加
+    if (order.is_activated) {
+      return {
+        success: true,
+        message: '会员已激活',
+      }
+    }
+
     // 获取会员方案
     const schemeResult = await db.collection('member_schemes')
       .where({ scheme_id: order.scheme_id })
@@ -109,6 +117,14 @@ exports.main = async (event, context) => {
         membership: newMembership,
         updatedAt: db.serverDate(),
       },
+    })
+
+    // 标记订单为已激活
+    await db.collection('orders').doc(order._id).update({
+      data: {
+        is_activated: true,
+        updatedAt: db.serverDate(),
+      }
     })
 
     const updatedUser = await userRef.get()

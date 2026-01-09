@@ -311,36 +311,42 @@ Page({
             config: {
               env: cloudRunEnv
             },
-            path: '/api/generate', // 您的接口路径
+            path: '/api/generate',
             header: {
-              'X-WX-SERVICE': 'express-vyc1', // 您的服务名称
-              'content-type': 'application/json',
-              'accept': 'application/pdf'
+              'X-WX-SERVICE': 'express-vyc1',
+              'content-type': 'application/json'
             },
             method: 'POST',
             data: {
-              jobId: this.data.job?._id, // 岗位 ID
-              userId: user.openid,      // 用户 ID (OpenID)
-              resume_profile: aiProfile, // 传处理后的资料（头像已转为 https）
-              job_data: this.data.job    // 传完整的岗位 JSON
+              jobId: this.data.job?._id,
+              userId: user.openid,
+              resume_profile: aiProfile,
+              job_data: this.data.job
             },
-            // @ts-ignore
-            responseType: 'arraybuffer' 
+            timeout: 60000
           })
 
           wx.hideLoading()
           
-          if (res.statusCode === 200 && res.data) {
-            // 使用新工具处理：暂存 -> 预览 -> 云端持久化
-            const job = this.data.job
-            await processAndSaveAIResume(res.data as ArrayBuffer, {
-              id: job?._id || '',
-              title: job?.title || '',
-              company: job?.source_name || ''
-            })
+          if (res.statusCode === 200 && res.data && (res.data as any).task_id) {
+            const taskId = (res.data as any).task_id
             
-            wx.showToast({ title: '生成成功', icon: 'success' })
+            // 提示用户任务已提交
+            wx.showModal({
+              title: '生成请求已提交',
+              content: 'AI 正在为你深度定制简历，大约需要 30 秒。完成后将在“我的简历”中展示，你可以继续浏览其他岗位。',
+              confirmText: '去看看',
+              cancelText: '留在本页',
+              success: (modalRes) => {
+                if (modalRes.confirm) {
+                  wx.navigateTo({
+                    url: '/pages/generated-resumes/index'
+                  })
+                }
+              }
+            })
           } else {
+            console.error('接口返回异常:', res)
             throw new Error('服务响应异常')
           }
         } catch (err) {

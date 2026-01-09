@@ -114,6 +114,33 @@
   white-space: nowrap;
 }
 
+.processing-tag {
+  font-size: 18rpx;
+  color: #2e5fe9;
+  background: #eff6ff;
+  padding: 4rpx 10rpx;
+  border-radius: 6rpx;
+  font-weight: 700;
+  flex-shrink: 0;
+  animation: pulse 1.5s infinite;
+}
+
+.failed-tag {
+  font-size: 18rpx;
+  color: #ef4444;
+  background: #fef2f2;
+  padding: 4rpx 10rpx;
+  border-radius: 6rpx;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+@keyframes pulse {
+  0% { opacity: 0.6; }
+  50% { opacity: 1; }
+  100% { opacity: 0.6; }
+}
+
 .applied-tag {
   font-size: 18rpx;
   color: #10b981;
@@ -139,6 +166,21 @@
   margin-left: 16rpx;
 }
 
+.mini-spinner {
+  width: 32rpx;
+  height: 32rpx;
+  border: 3rpx solid #e2e8f0;
+  border-top: 3rpx solid #2e5fe9;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+.retry-text {
+  font-size: 24rpx;
+  color: #ef4444;
+  font-weight: 600;
+}
+
 .view-btn {
   font-size: 24rpx;
   font-weight: 600;
@@ -146,6 +188,31 @@
   background: #eff6ff;
   padding: 12rpx 24rpx;
   border-radius: 100rpx;
+}
+
+/* 状态相关颜色 */
+.pdf-icon-processing {
+  background: #f1f5f9;
+}
+
+.pdf-icon-processing .pdf-text {
+  color: #94a3b8;
+}
+
+.pdf-icon-failed {
+  background: #fef2f2;
+}
+
+.pdf-icon-failed .pdf-text {
+  color: #ef4444;
+}
+
+.card-processing {
+  opacity: 0.8;
+}
+
+.card-failed {
+  border-color: rgba(239, 68, 68, 0.2);
 }
 
 .empty-state {

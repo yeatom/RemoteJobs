@@ -12,11 +12,14 @@
     </block>
 
     <block wx:elif="{{resumes.length > 0}}">
-      <view class="resume-card" wx:for="{{resumes}}" wx:key="_id" bindtap="onPreviewResume" data-item="{{item}}" hover-class="card-hover">
+      <view class="resume-card {{item.status === 'processing' ? 'card-processing' : ''}} {{item.status === 'failed' ? 'card-failed' : ''}}" 
+            wx:for="{{resumes}}" wx:key="_id" 
+            bindtap="onPreviewResume" data-item="{{item}}" 
+            hover-class="{{item.status === 'completed' ? 'card-hover' : ''}}">
         <view class="card-left">
-          <view class="pdf-icon-box">
-            <text class="pdf-text">PDF</text>
-            <view class="pdf-decoration"></view>
+          <view class="pdf-icon-box {{item.status === 'processing' ? 'pdf-icon-processing' : ''}} {{item.status === 'failed' ? 'pdf-icon-failed' : ''}}">
+            <text class="pdf-text">{{item.status === 'failed' ? 'ERR' : 'PDF'}}</text>
+            <view class="pdf-decoration" wx:if="{{item.status !== 'failed'}}"></view>
           </view>
         </view>
         
@@ -24,13 +27,23 @@
           <view class="title-row">
             <text class="job-title">{{item.jobTitle}}</text>
             <view wx:if="{{item.isApplied}}" class="applied-tag">已投递</view>
+            <view wx:if="{{item.status === 'processing'}}" class="processing-tag">生成中...</view>
+            <view wx:if="{{item.status === 'failed'}}" class="failed-tag">失败</view>
           </view>
           <text class="company-name">{{item.company || '通用简历'}}</text>
           <text class="date-text">{{item.formattedDate}}</text>
         </view>
 
         <view class="card-right">
-          <view class="view-btn">查看</view>
+          <block wx:if="{{item.status === 'processing'}}">
+            <view class="mini-spinner"></view>
+          </block>
+          <block wx:elif="{{item.status === 'failed'}}">
+            <text class="retry-text">点击重试</text>
+          </block>
+          <block wx:else>
+            <view class="view-btn">查看</view>
+          </block>
         </view>
       </view>
     </block>

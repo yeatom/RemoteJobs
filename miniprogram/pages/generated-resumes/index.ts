@@ -8,8 +8,17 @@ Page({
     hasMore: true,
   },
 
+  watcher: null as any,
+
   onLoad() {
     this.fetchResumes()
+    this.initWatcher()
+  },
+
+  onUnload() {
+    if (this.watcher) {
+      this.watcher.close()
+    }
   },
 
   onPullDownRefresh() {
@@ -18,6 +27,23 @@ Page({
         wx.stopPullDownRefresh()
       })
     })
+  },
+
+  initWatcher() {
+    const db = wx.cloud.database()
+    this.watcher = db.collection('generated_resumes')
+      .orderBy('createTime', 'desc')
+      .watch({
+        onChange: (snapshot) => {
+          console.log('[Watcher] snapshot:', snapshot)
+          if (snapshot.docs) {
+            this.processResumes(snapshot.docs)
+          }
+        },
+        onError: (err) => {
+          console.error('[Watcher] error:', err)
+        }
+      })
   },
 
   async fetchResumes() {
@@ -29,18 +55,8 @@ Page({
         .orderBy('createTime', 'desc')
         .get()
 
-      const formattedResumes = res.data.map((item: any) => {
-        const date = new Date(item.createTime)
-        return {
-          ...item,
-          formattedDate: `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')} ${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`
-        }
-      })
-
-      this.setData({
-        resumes: formattedResumes,
-        loading: false
-      })
+      this.processResumes(res.data)
+      this.setData({ loading: false })
     } catch (err) {
       console.error('获取简历列表失败:', err)
       wx.showToast({ title: '加载失败', icon: 'none' })
@@ -48,8 +64,38 @@ Page({
     }
   },
 
+  processResumes(data: any[]) {
+    const formattedResumes = data.map((item: any) => {
+      const date = item.createTime ? new Date(item.createTime) : new Date()
+      return {
+        ...item,
+        formattedDate: `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')} ${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`
+      }
+    })
+
+    this.setData({
+      resumes: formattedResumes
+    })
+  },
+
   async onPreviewResume(e: any) {
     const item = e.currentTarget.dataset.item
+    
+    // 如果还在生成中，不处理预览
+    if (item.status === 'processing') {
+      wx.showToast({ title: 'AI 正在努力生成中，请稍候', icon: 'none' })
+      return
+    }
+
+    if (item.status === 'failed') {
+      wx.showModal({
+        title: '生成失败',
+        content: item.errorMessage || '请尝试重新生成',
+        showCancel: false
+      })
+      return
+    }
+
     if (!item.fileId) return
 
     wx.showLoading({ title: '正在获取文件...', mask: true })
