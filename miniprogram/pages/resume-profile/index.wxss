@@ -677,7 +677,6 @@
 /* Suggestions Dropdown */
 .form-item-relative {
   position: relative;
-  z-index: 100;
 }
 .suggestions-box {
   position: absolute;
@@ -688,7 +687,7 @@
   border-radius: 20rpx;
   box-shadow: 0 8rpx 32rpx rgba(0,0,0,0.12);
   max-height: 480rpx;
-  z-index: 1000;
+  z-index: 2000;
   margin-top: 12rpx;
   overflow: hidden;
   border: 1rpx solid #f1f5f9;
@@ -707,7 +706,7 @@
 }
 .suggestion-main {
   font-size: 30rpx;
-  color: #38b2ac; /* Teal-like color from screenshot */
+  color: #1d4ed8; 
   display: block;
   font-weight: 500;
 }

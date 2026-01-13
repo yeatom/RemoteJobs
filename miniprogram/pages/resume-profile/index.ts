@@ -28,8 +28,11 @@ Page({
       school: string; 
       school_en?: string;
       school_cn?: string;
+      country?: string;
+      country_en?: string;
       degree: string; 
       major: string; 
+      major_en?: string;
       startDate: string; 
       endDate: string;
       description?: string;
@@ -68,12 +71,18 @@ Page({
     editingWorkIndex: -1, // -1 表示新增
     universitySuggestions: [] as Array<{ chinese_name: string, english_name: string }>,
     showUniversitySuggestions: false,
+    majorSuggestions: [] as Array<{ chinese_name: string, english_name: string }>,
+    showMajorSuggestions: false,
     eduForm: {
       school: '',
       school_en: '',
       school_cn: '',
+      country: '',
+      country_en: '',
       degree: '',
       major: '',
+      major_en: '',
+      major_cn: '',
       startDate: '',
       endDate: '',
       description: '',
@@ -491,8 +500,12 @@ Page({
         school: '',
         school_en: '',
         school_cn: '',
+        country: '',
+        country_en: '',
         degree: '',
         major: '',
+        major_en: '',
+        major_cn: '',
         startDate: '',
         endDate: '',
         description: '',
@@ -504,23 +517,29 @@ Page({
     const edu = this.data.educations[index]
     const isEnglish = this.data.currentLang === 'English'
     
-    // Determine displayed school name
-    let displayedSchool = edu.school || ''
-    if (isEnglish && edu.school_en) {
-        displayedSchool = edu.school_en
-    }
+    // Determine displayed school name (no fallback for inputs)
+    let displayedSchool = isEnglish ? (edu.school_en || '') : (edu.school || '')
+
+    // Determine displayed major name (no fallback for inputs)
+    let displayedMajor = isEnglish ? (edu.major_en || '') : (edu.major || '')
 
     this.setData({
       showEduDrawer: true,
       editingEduIndex: index,
       showUniversitySuggestions: false,
       universitySuggestions: [],
+      showMajorSuggestions: false,
+      majorSuggestions: [],
       eduForm: {
         school: displayedSchool,
         school_en: edu.school_en || '',
         school_cn: edu.school || '',
+        country: edu.country || '',
+        country_en: edu.country_en || '',
         degree: edu.degree || '',
-        major: edu.major || '',
+        major: displayedMajor,
+        major_en: edu.major_en || '',
+        major_cn: edu.major || '',
         startDate: edu.startDate || '',
         endDate: edu.endDate || edu.graduationDate || '', // 兼容
         description: edu.description || '',
@@ -692,6 +711,8 @@ Page({
       'eduForm.school': isEnglish ? item.english_name : item.chinese_name,
       'eduForm.school_en': item.english_name || '',
       'eduForm.school_cn': item.chinese_name || '',
+      'eduForm.country': item.country || '',
+      'eduForm.country_en': item.country_en || item.country || '',
       showUniversitySuggestions: false
     })
   },
@@ -703,13 +724,21 @@ Page({
     }
   },
 
+  onEduSchoolBlur() {
+    // 延迟关闭，确保点击建议项的事件能先触发
+    setTimeout(() => {
+      this.setData({ showUniversitySuggestions: false })
+    }, 200)
+  },
+
   onEduSchoolInput(e: any) {
     const keyword = e.detail.value
     this.setData({ 
       'eduForm.school': keyword,
-      // If user types, we clear the mapped names until a new selection is made
-      'eduForm.school_en': '',
-      'eduForm.school_cn': ''
+      'eduForm.country': '',
+      'eduForm.country_en': '',
+      // We don't automatically clear school_en/school_cn here to respect "no automatic change"
+      // They will only be updated if a new suggestion is selected.
     })
     
     if ((this as any)._searchTimer) clearTimeout((this as any)._searchTimer);
@@ -720,11 +749,83 @@ Page({
   onEduDegreeChange(e: any) {
     this.setData({ 'eduForm.degree': this.data.degreeOptions[e.detail.value] })
   },
-  onEduMajorInput(e: any) {
-    this.setData({ 
-      'eduForm.major': e.detail.value,
-      showUniversitySuggestions: false
+
+  async searchMajors(keyword: string) {
+    if (!keyword || keyword.length < 2) {
+      this.setData({ showMajorSuggestions: false })
+      return
+    }
+
+    const { degree } = this.data.eduForm
+    let levelQuery = ''
+    if (degree.includes('本科')) {
+      levelQuery = 'Bachelor'
+    } else if (degree.includes('硕士')) {
+      levelQuery = 'Master'
+    }
+
+    if (!levelQuery) {
+      this.setData({ showMajorSuggestions: false })
+      return
+    }
+
+    const db = wx.cloud.database()
+    const _ = db.command
+    try {
+      const res = await db.collection('majors').where(
+        _.and([
+          { level: db.RegExp({ regexp: levelQuery, options: 'i' }) },
+          _.or([
+            { chinese_name: db.RegExp({ regexp: keyword, options: 'i' }) },
+            { english_name: db.RegExp({ regexp: keyword, options: 'i' }) }
+          ])
+        ])
+      ).limit(5).get()
+      
+      this.setData({
+        majorSuggestions: res.data as any,
+        showMajorSuggestions: res.data.length > 0
+      })
+    } catch (e) {
+      console.error(e)
+    }
+  },
+
+  onSelectMajor(e: any) {
+    const item = e.currentTarget.dataset.item
+    const isEnglish = this.data.currentLang === 'English'
+    this.setData({
+      'eduForm.major': isEnglish ? (item.english_name || item.chinese_name) : (item.chinese_name || item.english_name),
+      'eduForm.major_en': item.english_name || '',
+      'eduForm.major_cn': item.chinese_name || '',
+      showMajorSuggestions: false
     })
+  },
+
+  onEduMajorFocus(e: any) {
+    const keyword = e.detail.value
+    if (keyword && keyword.length >= 2) {
+      this.searchMajors(keyword)
+    }
+  },
+
+  onEduMajorBlur() {
+    setTimeout(() => {
+      this.setData({ showMajorSuggestions: false })
+    }, 200)
+  },
+
+  onEduMajorInput(e: any) {
+    const keyword = e.detail.value
+    this.setData({ 
+      'eduForm.major': keyword,
+      showMajorSuggestions: false // Fixed typo from showUniversitySuggestions
+    })
+
+    if ((this as any)._majorSearchTimer) clearTimeout((this as any)._majorSearchTimer);
+    (this as any)._majorSearchTimer = setTimeout(() => {
+        this.searchMajors(keyword)
+    }, 500)
   },
   onEduStartDateChange(e: any) {
     this.setData({ 
@@ -879,23 +980,45 @@ Page({
     const newEducations = [...educations]
     const eduData = { ...eduForm }
     
-    // Handle Bilingual School Names
+    // Handle Bilingual Names with manual entry logic
     if (currentLang === 'English') {
         eduData.school_en = eduForm.school
-        // If we have a mapped Chinese name, use it for 'school' (which is the primary/CN field)
-        if (eduForm.school_cn) {
+        eduData.country = eduForm.country
+        eduData.country_en = eduForm.country_en
+        // Only trust the counterpart if the primary field matches our recorded DB source
+        if (eduForm.school === eduForm.school_en && eduForm.school_cn) {
             eduData.school = eduForm.school_cn
-        } else if (!eduData.school) {
-             // If manual entry in English w/o mapping, use it as school as well or let it be
-             eduData.school = eduForm.school
+        }
+        // Note: For English tab, we don't clear the Chinese 'school' if it's manual, 
+        // because we usually want to preserve at least one name.
+        
+        eduData.major_en = eduForm.major
+        if (eduForm.major === eduForm.major_en && eduForm.major_cn) {
+            eduData.major = eduForm.major_cn
         }
     } else {
         eduData.school = eduForm.school
-        // If manual entry in Chinese, we don't zero out school_en, we keep it if it was there (e.g. from existing record)
+        eduData.country = eduForm.country
+        eduData.country_en = eduForm.country_en
+        if (eduForm.school === eduForm.school_cn && eduForm.school_en) {
+            eduData.school_en = eduForm.school_en
+        } else {
+            // Manual/Changed entry in Chinese -> English side should be empty
+            eduData.school_en = ''
+        }
+        
+        eduData.major = eduForm.major
+        if (eduForm.major === eduForm.major_cn && eduForm.major_en) {
+            eduData.major_en = eduForm.major_en
+        } else {
+            // Manual/Changed entry in Chinese -> English side should be empty
+            eduData.major_en = ''
+        }
     }
     
-    // Clean up temporary field
+    // Clean up temporary fields
     delete (eduData as any).school_cn
+    delete (eduData as any).major_cn
 
     if (editingEduIndex === -1) {
       newEducations.push(eduData)

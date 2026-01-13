@@ -106,19 +106,6 @@
           <text class="row-arrow">❯</text>
         </view>
       </view>
-
-      <view class="action-row" bindtap="onAppliedJobsTap" hover-class="row-hover">
-        <view class="row-left">
-          <view class="icon-circle purple-bg">📮</view>
-          <view class="row-text">
-            <text class="row-title">{{ui.appliedJobsEntry}}</text>
-            <text class="row-subtitle">{{ui.appliedJobsSubtitle}}</text>
-          </view>
-        </view>
-        <view class="row-right">
-          <text class="row-arrow">❯</text>
-        </view>
-      </view>
     </view>
 
     <!-- 4. 设置列表 Settings List -->

@@ -136,12 +136,24 @@
             <view class="education-item" wx:for="{{educations}}" wx:key="index" bindtap="onEditEducation" data-index="{{index}}">
               <view class="edu-info">
                 <view class="edu-header">
-                  <view class="edu-school">{{currentLang === 'English' ? (item.school_en || item.school) : item.school || ui.noData}}</view>
+                  <view class="edu-school">
+                    <block wx:if="{{currentLang === 'English'}}">
+                      <text wx:if="{{item.school_en}}">{{item.school_en}}{{item.country_en ? ', ' + item.country_en : ''}}</text>
+                      <text wx:else class="placeholder-text" style="font-size: 26rpx;">请输入学校英文名</text>
+                    </block>
+                    <block wx:else>
+                      {{item.school || ui.noData}}
+                    </block>
+                  </view>
                   <view class="edu-date" wx:if="{{item.startDate || item.endDate || item.graduationDate}}">
                     {{format.formatDate(item.startDate, currentLang, interfaceLang)}} - {{format.formatDate(item.endDate || item.graduationDate, currentLang, interfaceLang)}}
                   </view>
                 </view>
-                <view class="edu-details">
+                <view class="edu-details" wx:if="{{currentLang === 'English'}}">
+                  <text wx:if="{{item.major_en}}">{{item.major_en}}</text>
+                  <text wx:else class="placeholder-text" style="font-size: 26rpx;">请输入专业英文名</text>
+                </view>
+                <view class="edu-details" wx:else>
                   <text wx:if="{{item.degree}}">{{item.degree}}</text>
                   <text wx:if="{{item.degree && item.major}}"> · </text>
                   <text wx:if="{{item.major}}">{{item.major}}</text>
@@ -327,13 +339,12 @@
       </view>
     </view>
     
-    <view class="drawer-content">
       <view class="form-item form-item-relative">
         <text class="form-label">{{ui.education}}</text>
-        <input class="form-input" placeholder="{{ui.schoolPlaceholder}}" value="{{eduForm.school}}" bindinput="onEduSchoolInput" bindfocus="onEduSchoolFocus" />
-        <scroll-view scroll-y class="suggestions-box" wx:if="{{showUniversitySuggestions && universitySuggestions.length > 0}}">
+        <input class="form-input" placeholder="{{ui.schoolPlaceholder}}" value="{{eduForm.school}}" bindinput="onEduSchoolInput" bindfocus="onEduSchoolFocus" bindblur="onEduSchoolBlur" />
+        <scroll-view scroll-y enhanced="true" show-scrollbar="{{false}}" class="suggestions-box" wx:if="{{showUniversitySuggestions && universitySuggestions.length > 0}}">
           <view class="suggestion-item" wx:for="{{universitySuggestions}}" wx:key="_id" bindtap="onSelectUniversity" data-item="{{item}}">
-            <text class="suggestion-main">{{currentLang === 'English' ? item.english_name : item.chinese_name}}</text>
+            <text class="suggestion-main">{{currentLang === 'English' ? (item.english_name + (item.country && item.country !== 'China' ? ' (' + (item.country_en || item.country) + ')' : '')) : (item.chinese_name + (item.country && item.country !== 'China' ? ' (' + item.country + ')' : ''))}}</text>
             <text class="suggestion-sub" wx:if="{{item.english_name && item.chinese_name}}">{{currentLang === 'English' ? item.chinese_name : item.english_name}}</text>
           </view>
         </scroll-view>
@@ -346,9 +357,15 @@
         </view>
       </view>
 
-      <view class="form-item">
+      <view class="form-item form-item-relative">
         <text class="form-label">{{ui.major}}</text>
-        <input class="form-input" placeholder="{{ui.majorPlaceholder}}" value="{{eduForm.major}}" bindinput="onEduMajorInput" />
+        <input class="form-input" placeholder="{{ui.majorPlaceholder}}" value="{{eduForm.major}}" bindinput="onEduMajorInput" bindfocus="onEduMajorFocus" bindblur="onEduMajorBlur" />
+        <scroll-view scroll-y enhanced="true" show-scrollbar="{{false}}" class="suggestions-box" wx:if="{{showMajorSuggestions && majorSuggestions.length > 0}}">
+          <view class="suggestion-item" wx:for="{{majorSuggestions}}" wx:key="_id" bindtap="onSelectMajor" data-item="{{item}}">
+            <text class="suggestion-main">{{currentLang === 'English' ? item.english_name : item.chinese_name}}</text>
+            <text class="suggestion-sub" wx:if="{{item.english_name && item.chinese_name}}">{{currentLang === 'English' ? item.chinese_name : item.english_name}}</text>
+          </view>
+        </scroll-view>
       </view>
 
       <view class="form-item">

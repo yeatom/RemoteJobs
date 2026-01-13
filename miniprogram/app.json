@@ -1,6 +1,8 @@
 {
+  "entryPagePath": "pages/tools/index",
   "pages": [
     "pages/index/index",
+    "pages/tools/index",
     "pages/community/index",
     "pages/me/index",
     "pages/logs/logs",
@@ -32,13 +34,13 @@
     "borderStyle": "white",
     "list": [
       {
-        "pagePath": "pages/community/index",
-        "text": "社区",
+        "pagePath": "pages/index/index",
+        "text": "职位",
         "iconPath": "assets/tabbar/community.png",
         "selectedIconPath": "assets/tabbar/community-active.png"
       },
       {
-        "pagePath": "pages/index/index",
+        "pagePath": "pages/tools/index",
         "text": "岗位",
         "iconPath": "assets/tabbar/jobs.png",
         "selectedIconPath": "assets/tabbar/jobs-active.png"

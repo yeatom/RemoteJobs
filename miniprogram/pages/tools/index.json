@@ -1,0 +1,6 @@
+{
+  "usingComponents": {
+    "ui-feedback": "/components/ui-feedback/index"
+  },
+  "navigationBarTitleText": "岗位工具"
+}

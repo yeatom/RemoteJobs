@@ -69,7 +69,7 @@ App<IAppOption>({
 
     // Tabbar text
     try {
-      wx.setTabBarItem({ index: 0, text: t('tab.community', lang) })
+      wx.setTabBarItem({ index: 0, text: t('tab.positions', lang) })
       wx.setTabBarItem({ index: 1, text: t('tab.jobs', lang) })
       wx.setTabBarItem({ index: 2, text: t('tab.me', lang) })
     } catch {

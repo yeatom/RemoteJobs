@@ -76,13 +76,6 @@
         <view class="apply-menu-content-padding">
           <!-- AI 增强功能区 -->
           <view class="apply-menu-section ai-section">
-            <view class="apply-menu-item ai-item" bindtap="onOneClickResumeSubmit">
-              <view class="apply-menu-item-left">
-                <image class="apply-menu-item-icon ai-icon" src="/assets/icons/four-point-star-twin.png" mode="aspectFit"></image>
-                <text class="apply-menu-item-text ai-text">{{oneClickSubmitResumeText}}</text>
-              </view>
-            </view>
-            
             <view class="apply-menu-item ai-item" bindtap="onGenerateResume">
               <view class="apply-menu-item-left">
                 <image class="apply-menu-item-icon ai-icon" src="/assets/icons/four-point-star-twin.png" mode="aspectFit"></image>

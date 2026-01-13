@@ -1,0 +1,70 @@
+<view class="page">
+  <ui-feedback id="ui-feedback" />
+  
+  <view class="header">
+    <text class="title">求职助手</text>
+    <text class="subtitle">让 AI 帮你搞定简历与面试</text>
+  </view>
+
+  <view class="tools-grid">
+    <!-- 1. 截图生成 -->
+    <view class="tool-card" bindtap="onUploadScreenshot">
+      <view class="icon-box blue">
+        <image src="/assets/icons/camera.png" mode="aspectFit" class="tool-icon"/>
+      </view>
+      <view class="tool-info">
+        <text class="tool-name">截图生成简历</text>
+        <text class="tool-desc">上传岗位截图，AI 自动生成匹配简历</text>
+      </view>
+      <view class="arrow">></view>
+    </view>
+
+    <!-- 2. JD 关键词优化 -->
+    <view class="tool-card" bindtap="toggleJdInput">
+      <view class="icon-box purple">
+        <image src="/assets/icons/magic.png" mode="aspectFit" class="tool-icon"/>
+      </view>
+      <view class="tool-info">
+        <text class="tool-name">ATS 关键词优化</text>
+        <text class="tool-desc">粘贴 JD，提升简历通过率</text>
+      </view>
+      <view class="arrow">></view>
+    </view>
+
+    <!-- JD Input Area -->
+    <view class="jd-input-box" wx:if="{{showJdInput}}">
+      <textarea 
+        class="jd-textarea" 
+        placeholder="请粘贴目标岗位的 JD (职位描述)..." 
+        bindinput="onInputJd"
+        value="{{jdText}}"
+        maxlength="5000"
+      ></textarea>
+      <button class="action-btn" bindtap="onOptimizeKeywords">开始优化</button>
+    </view>
+
+    <!-- 3. 解析旧简历 -->
+    <view class="tool-card" bindtap="onRefineOldResume">
+      <view class="icon-box green">
+        <image src="/assets/icons/upload.png" mode="aspectFit" class="tool-icon"/>
+      </view>
+      <view class="tool-info">
+        <text class="tool-name">简历润色</text>
+        <text class="tool-desc">上传旧简历，AI 帮你重写升级</text>
+      </view>
+      <view class="arrow">></view>
+    </view>
+
+    <!-- 4. 私人代投服务 (新增) -->
+    <view class="tool-card" bindtap="onContactService">
+      <view class="icon-box purple">
+        <image src="/assets/icons/telegram.png" mode="aspectFit" class="tool-icon"/>
+      </view>
+      <view class="tool-info">
+        <text class="tool-name">人工代投服务</text>
+        <text class="tool-desc">专家一对一服务，省时省心</text>
+      </view>
+      <view class="arrow">></view>
+    </view>
+  </view>
+</view>

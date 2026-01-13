@@ -9,6 +9,7 @@ const dict = {
     tab: {
         community: { Chinese: '社区', English: 'Community' },
         jobs: { Chinese: '岗位', English: 'Jobs' },
+        positions: { Chinese: '职位', English: 'Positions' },
         me: { Chinese: '我', English: 'Me' },
     },
     me: {
