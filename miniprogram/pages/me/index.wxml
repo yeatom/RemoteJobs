@@ -13,7 +13,7 @@
       <view class="user-container" bindtap="onAvatarTap">
         <view class="avatar-wrapper member-color-{{memberLevel}}">
           <block wx:if="{{userInfo}}">
-            <image class="avatar-large" src="{{userInfo.avatarUrl}}" />
+            <image class="avatar-large" src="{{userInfo.avatar}}" />
           </block>
           <block wx:else>
             <view class="avatar-placeholder-large"></view>
@@ -42,24 +42,28 @@
             <text class="vip-identity-title">{{isMember ? memberBadgeText : ui.regularUser}}</text>
             <view wx:if="{{isMember}}" class="vip-badge-icon badge-level-{{memberLevel}}"></view>
           </view>
-          <text class="vip-expiry-date" wx:if="{{isMember}}">{{memberExpiryText}}</text>
         </view>
 
-        <!-- 中部：权益描述或配额进度 -->
+        <!-- 中部：简要描述与到期提醒 -->
         <view class="vip-card-body">
-          <block wx:if="{{memberLevel === 1}}">
-            <view class="quota-container">
-              <view class="quota-label-row">
-                <text class="quota-label">{{ui.jobQuota}}</text>
-                <text class="quota-value">{{jobQuotaUsed}}/{{jobQuotaLimit}}</text>
-              </view>
-              <view class="quota-progress-bar">
-                <view class="quota-progress-inner {{isQuotaExhausted ? 'quota-full' : ''}}" style="width: {{jobQuotaProgress}}%"></view>
+          <block wx:if="{{isMember}}">
+            <view class="vip-status-display">
+              <text class="vip-desc">{{ui.memberFullAccess}}</text>
+              <view class="vip-info-row">
+                <view class="info-item">
+                  <text class="info-label">{{ui.memberExpiredDate}}</text>
+                  <text class="info-value">{{expiredDateText}}</text>
+                </view>
+                <view class="info-sep"></view>
+                <view class="info-item">
+                  <text class="info-label">{{ui.jobQuota}}</text>
+                  <text class="info-value">{{resumeQuotaText}}</text>
+                </view>
               </view>
             </view>
           </block>
           <block wx:else>
-            <text class="vip-desc">{{isMember ? ui.memberFullAccess : ui.unlockAIFeatures}}</text>
+            <text class="vip-desc">{{ui.unlockAIFeatures}}</text>
           </block>
         </view>
 
@@ -75,7 +79,6 @@
         </view>
       </view>
 
-      <view class="vip-card-bg-icon member-color-{{memberLevel}}"></view>
       <view wx:if="{{memberLevel === 3}}" class="shimmer-effect"></view>
     </view>
 
@@ -261,75 +264,61 @@
           <view class="bottom-sheet-header-btn" bindtap="closeMemberHub">{{ui.confirm}}</view>
         </view>
       </view>
-      <view class="bottom-sheet-content member-hub-content">
-        
-        <!-- 1. Header: Status & Expiry -->
-        <view class="hub-header">
-          <view class="hub-user-info">
-            <view class="vip-badge-icon badge-level-{{memberLevel}}"></view>
-            <text class="hub-level-name">{{memberBadgeText || ui.regularUser}}</text>
-          </view>
-          <text class="hub-expiry-date" wx:if="{{isMember}}">{{expiredDateText}}{{ui.expiresSuffix}}</text>
-        </view>
-
-        <!-- 2. Quota Dashboard -->
-        <view class="hub-quota-card">
-          <view class="quota-title-row">
-            <text class="quota-title">{{ui.aiQuotaTitle}}</text>
-            <text class="quota-infinite-tag" wx:if="{{memberLevel === 3}}">{{ui.unlimited}}</text>
+      <view class="bottom-sheet-content member-hub-content v2-design">
+        <!-- 1. Status Section - Tiered Background -->
+        <view class="hub-status-section tier-{{memberLevel}}">
+          <view class="status-main-info">
+            <view class="tier-identity">
+              <view class="vip-badge-icon badge-level-{{memberLevel}}"></view>
+              <text class="tier-name">{{memberBadgeText || ui.regularUser}}</text>
+            </view>
           </view>
           
-          <block wx:if="{{memberLevel === 3}}">
-            <view class="quota-infinite-box">
-              <text class="quota-infinite-text">{{ui.unlimitedUse}}</text>
-              <view class="infinite-sparkle">✨</view>
+          <view class="status-info-box" wx:if="{{isMember}}">
+            <view class="status-data-item">
+              <text class="data-label">{{ui.memberExpiredDate}}</text>
+              <text class="data-value">{{expiredDateText}}</text>
             </view>
-          </block>
-          <block wx:else>
-            <view class="hub-progress-section">
-              <view class="hub-progress-bar">
-                <view class="hub-progress-inner {{isQuotaExhausted ? 'quota-full' : ''}}" style="width: {{jobQuotaProgress}}%"></view>
-              </view>
-              <view class="hub-quota-labels">
-                <text class="hub-quota-used">{{ui.quotaUsed}} {{jobQuotaUsed}}</text>
-                <text class="hub-quota-limit">{{ui.totalQuota}} {{jobQuotaLimit}}</text>
-              </view>
-            </view>
-          </block>
-        </view>
-
-        <!-- 3. Privileges List -->
-        <view class="hub-benefit-list">
-          <view class="hub-benefit-item {{memberLevel >= 1 ? 'benefit-active' : ''}}">
-            <icon type="{{memberLevel >= 1 ? 'success' : 'waiting'}}" size="16" color="{{memberLevel >= 1 ? '#2e5fe9' : '#cbd5e1'}}" />
-            <view class="benefit-info">
-              <text class="benefit-name">{{ui.benefitTranslateTitle}}</text>
-              <text class="benefit-sub">{{ui.benefitTranslateSub}}</text>
-            </view>
-          </view>
-          <view class="hub-benefit-item {{memberLevel >= 2 ? 'benefit-active' : ''}}">
-            <icon type="{{memberLevel >= 2 ? 'success' : 'waiting'}}" size="16" color="{{memberLevel >= 2 ? '#2e5fe9' : '#cbd5e1'}}" />
-            <view class="benefit-info">
-              <text class="benefit-name">{{ui.benefitResumeTitle}}</text>
-              <text class="benefit-sub">{{ui.benefitResumeSub}}</text>
-            </view>
-          </view>
-          <view class="hub-benefit-item {{memberLevel >= 3 ? 'benefit-active' : ''}}">
-            <icon type="{{memberLevel >= 3 ? 'success' : 'waiting'}}" size="16" color="{{memberLevel >= 3 ? '#2e5fe9' : '#cbd5e1'}}" />
-            <view class="benefit-info">
-              <text class="benefit-name">{{ui.benefitApplyTitle}}</text>
-              <text class="benefit-sub">{{ui.benefitApplySub}}</text>
+            <view class="status-data-item">
+              <text class="data-label">{{ui.jobQuota}}</text>
+              <text class="data-value">{{resumeQuotaText}}</text>
             </view>
           </view>
         </view>
 
-        <!-- 4. Action Bar -->
-        <view class="hub-action-bar">
-          <view class="hub-action-left {{memberLevel === 3 ? 'full-width' : ''}}" bindtap="onRenew">
-            <text class="action-btn-text secondary">{{ui.renewNow}}</text>
+        <!-- 2. Grid-based Privileges -->
+        <view class="hub-privilege-section">
+          <view class="section-title">EXCLUSIVE PRIVILEGES</view>
+          <view class="privilege-grid">
+            <view class="privilege-card {{memberLevel >= 1 ? 'is-active' : ''}}">
+              <view class="privilege-icon-box blue">
+                <text class="p-icon">🌍</text>
+              </view>
+              <view class="privilege-text">
+                <text class="p-name">{{ui.benefitTranslateTitle}}</text>
+                <text class="p-desc">{{ui.benefitTranslateSub}}</text>
+              </view>
+            </view>
+
+            <view class="privilege-card {{memberLevel >= 2 ? 'is-active' : ''}}">
+              <view class="privilege-icon-box purple">
+                <text class="p-icon">📄</text>
+              </view>
+              <view class="privilege-text">
+                <text class="p-name">{{ui.benefitResumeTitle}}</text>
+                <text class="p-desc">{{ui.benefitResumeSub}}</text>
+              </view>
+            </view>
           </view>
-          <view class="hub-action-right" wx:if="{{memberLevel < 3}}" bindtap="onUpgrade">
-            <text class="action-btn-text primary">{{ui.upgradeAmountText}} ¥{{upgradeAmount}}</text>
+        </view>
+
+        <!-- 3. Dynamic Action Bar -->
+        <view class="hub-v2-actions">
+          <view class="action-btn-v2 secondary" bindtap="onRenew">
+            <text>{{ui.renewNow}}</text>
+          </view>
+          <view class="action-btn-v2 primary" wx:if="{{memberLevel < 3}}" bindtap="onUpgrade">
+            <text>{{ui.upgradeAmountText}} ¥{{upgradeAmount}}</text>
           </view>
         </view>
 

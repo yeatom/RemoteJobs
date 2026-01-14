@@ -440,13 +440,6 @@
       </view>
 
       <view class="form-item" wx:if="{{currentLang === 'English'}}">
-        <text class="form-label">{{ui.identity}}</text>
-        <view class="picker-value {{basicInfoForm.identity ? '' : 'placeholder-text'}}" bindtap="openIdentityPicker">
-          {{basicInfoForm.identity || ui.identityPlaceholder}}
-        </view>
-      </view>
-
-      <view class="form-item" wx:if="{{currentLang === 'English'}}">
         <text class="form-label">{{ui.location}}</text>
         <input class="form-input" placeholder="{{ui.locationPlaceholder || ui.location}}" value="{{basicInfoForm.location}}" bindinput="onBasicLocationInput" />
       </view>
@@ -569,31 +562,6 @@
       >
         <text class="option-text">{{item}}</text>
         <view class="check-icon" wx:if="{{basicInfoForm.gender === item}}"></view>
-      </view>
-    </scroll-view>
-  </view>
-
-  <!-- 自定义身份选择器 (底部弹出) -->
-  <view class="bottom-sheet-mask {{showIdentityPicker ? 'bottom-sheet-mask-open' : ''}}" bindtap="closeIdentityPicker"></view>
-  <view class="bottom-sheet {{showIdentityPicker ? 'bottom-sheet-open' : ''}}">
-    <view class="bottom-sheet-header">
-      <view class="bottom-sheet-header-left">
-        <view class="bottom-sheet-header-btn" bindtap="closeIdentityPicker">{{ui.cancel || '取消'}}</view>
-      </view>
-      <text class="bottom-sheet-title">{{ui.identityPlaceholder}}</text>
-      <view class="bottom-sheet-header-right">
-      </view>
-    </view>
-    <scroll-view class="bottom-sheet-content custom-picker-body" scroll-y enhanced="true" show-scrollbar="{{false}}">
-      <view 
-        wx:for="{{identityOptions}}" 
-        wx:key="*this" 
-        class="picker-option {{basicInfoForm.identity === item ? 'picker-option-active' : ''}}"
-        bindtap="onSelectIdentity"
-        data-value="{{item}}"
-      >
-        <text class="option-text">{{item}}</text>
-        <view class="check-icon" wx:if="{{basicInfoForm.identity === item}}"></view>
       </view>
     </scroll-view>
   </view>

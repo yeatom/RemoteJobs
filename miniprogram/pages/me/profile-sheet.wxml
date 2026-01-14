@@ -18,7 +18,7 @@
         <view class="profile-avatar-content">
           <block wx:if="{{userInfo}}">
             <view class="profile-avatar-wrapper profile-avatar-bordered">
-              <image class="profile-avatar-preview" src="{{userInfo.avatarUrl}}" mode="aspectFill"/>
+              <image class="profile-avatar-preview" src="{{userInfo.avatar}}" mode="aspectFill"/>
             </view>
           </block>
           <block wx:else>

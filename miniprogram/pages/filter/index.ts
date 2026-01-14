@@ -74,14 +74,7 @@ Page({
 
     sourceSelected: {} as Record<string, boolean>,
 
-    ui: {
-      salaryTitle: '薪资',
-      experienceTitle: '经验',
-      regionTitle: '工作类型',
-      sourceTitle: '招聘软件',
-      clear: '清除',
-      confirm: '确定',
-    } as Record<string, string>,
+    ui: {} as Record<string, string>,
   },
 
   onLoad() {
@@ -103,8 +96,8 @@ Page({
     let regionOptions = ['全部', '国内', '国外', 'web3']
     
     if (tabIndex === 0) {
-      // 公开 tab: 去掉工作类型
-      navTabs = navTabs.filter(t => t.key !== 'region')
+      // 公开 tab: 去掉工作类型和招聘软件
+      navTabs = navTabs.filter(t => t.key !== 'region' && t.key !== 'source')
     } else if (tabIndex === 1) {
       // 精选 tab: 去掉国内，且国外改名海外
       regionOptions = ['全部', '国外', 'web3']

@@ -140,10 +140,6 @@ const UI_MAP = {
     benefitResumeTitle: 'me.benefitResumeTitle',
     /** AI 简历权益描述 */
     benefitResumeSub: 'me.benefitResumeSub',
-    /** 一键投递权益标题 */
-    benefitApplyTitle: 'me.benefitApplyTitle',
-    /** 一键投递权益描述 */
-    benefitApplySub: 'me.benefitApplySub',
 
     // --- 系统操作反馈 ---
     /** 加载中 */

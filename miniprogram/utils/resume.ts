@@ -2,6 +2,8 @@
  * 简历相关服务工具
  */
 
+import { request, callApi } from './request'
+
 export interface ResumeRecordParams {
   fileId: string;
   jobId?: string;
@@ -53,16 +55,15 @@ export const processAndSaveAIResume = async (arrayBuffer: ArrayBuffer, jobInfo?:
       resumeInfo: userProfile
     };
 
-    const res = await wx.cloud.callFunction({
-      name: 'saveResumeRecord',
-      data: recordParams
-    });
+    const res = await callApi('saveResumeRecord', recordParams);
+
+    const result = res.result || (res as any)
 
     return {
       success: true,
       fileId,
       localPath: tempFilePath,
-      result: (res.result as any)
+      result: result
     };
   } catch (err) {
     console.error('处理简历持久化失败:', err);

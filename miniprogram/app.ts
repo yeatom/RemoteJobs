@@ -1,5 +1,6 @@
 // app.ts
 import { normalizeLanguage, type AppLanguage, t } from './utils/i18n'
+import { request, callApi } from './utils/request'
 
 type LangListener = (lang: AppLanguage) => void
 
@@ -21,15 +22,6 @@ App<IAppOption>({
   } as any,
 
   async onLaunch() {
-    if (!wx.cloud) {
-      return
-    }
-
-    wx.cloud.init({
-      env: require('./env.js').cloudEnv,
-      traceUser: true,
-    })
-
     // Fetch remote configuration for Maintenance and Beta modes
     this.refreshSystemConfig()
 
@@ -43,11 +35,19 @@ App<IAppOption>({
     this.emitLanguageChange(lang)
   },
 
+  onShow() {
+    // 每次进入小程序都确保用户已在数据库中存在
+    this.refreshUser().catch(() => null)
+  },
+
   async refreshSystemConfig() {
     try {
-      const db = wx.cloud.database()
-      const res = await db.collection('system_config').where({ id: 'global_settings' }).limit(1).get()
-      const config = (res.data && res.data[0]) as any
+      const res: any = await request({
+        url: '/system-config',
+        method: 'POST',
+        data: {}
+      })
+      const config = res?.result?.data || res?.data || res
       
       this.globalData.systemConfig = config || { isBeta: true, isMaintenance: false }
 
@@ -59,7 +59,6 @@ App<IAppOption>({
         })
       }
     } catch (err) {
-      console.warn('System config not found or accessible, using defaults.')
       this.globalData.systemConfig = { isBeta: true, isMaintenance: false }
     }
   },
@@ -109,11 +108,8 @@ App<IAppOption>({
     this.emitLanguageChange(language)
 
     try {
-      const res: any = await wx.cloud.callFunction({
-        name: 'updateUserLanguage',
-        data: { language },
-      })
-      const updatedUser = res?.result?.user
+      const res = await callApi('updateUserLanguage', { language })
+      const updatedUser = res?.result?.user || (res as any)?.user
       if (updatedUser) {
         ;(this as any).globalData.user = updatedUser
       }
@@ -123,37 +119,40 @@ App<IAppOption>({
   },
 
   async refreshUser() {
-    const res: any = await wx.cloud.callFunction({
-      name: 'initUser',
-      data: {},
-    })
-
-    const openid = res?.result?.openid
-    const user = (res?.result?.user || null) as any
-
-    const merged = user ? { ...user, openid } : (openid ? { openid } : null)
-    
-    // 检查会员状态并更新
     try {
-      const memberStatusRes: any = await wx.cloud.callFunction({
-        name: 'checkMemberStatus',
-        data: {},
-      })
+      const res = await callApi('initUser', {})
+
+      const openid = res?.result?.openid || (res as any)?.openid
+      const user = (res?.result?.user || (res as any)?.user || null) as any
+
+      const merged = user ? { ...user, openid } : (openid ? { openid } : null)
       
-      if (memberStatusRes?.result?.success && merged) {
-        merged.membership = memberStatusRes.result.membership
+      // 检查会员状态并更新
+      try {
+        const memberStatusRes = await callApi('checkMemberStatus', {})
+        
+        const result = memberStatusRes?.result || (memberStatusRes as any)
+        if (result?.success && merged) {
+          merged.membership = result.membership
+        }
+      } catch (err) {
+        // ignore
       }
+      
+      this.globalData.user = merged
+
+      // Normalize database/user-provided language (handles 'english'/'chinese' etc.)
+      const lang = normalizeLanguage(merged?.language)
+      this.globalData.language = lang
+
+      return merged
     } catch (err) {
-      // 如果检查失败，使用原有数据
-      console.error('检查会员状态失败:', err)
+      // Try to fallback to what we have in storage if we can't hit server
+      const openid = wx.getStorageSync('user_openid');
+      if (openid && !this.globalData.user) {
+         this.globalData.user = { openid };
+      }
+      return this.globalData.user;
     }
-    
-    ;(this as any).globalData.user = merged
-
-    // Normalize database/user-provided language (handles 'english'/'chinese' etc.)
-    const lang = normalizeLanguage(merged?.language)
-    ;(this as any).globalData.language = lang
-
-    return merged
   },
 })

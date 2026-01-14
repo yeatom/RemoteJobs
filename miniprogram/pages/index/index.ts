@@ -3,6 +3,7 @@ import { normalizeLanguage, t } from '../../utils/i18n'
 import { attachLanguageAware } from '../../utils/languageAware'
 import { toDateMs } from '../../utils/time'
 import { isAiChineseUnlocked } from '../../utils/subscription'
+import { request, callApi } from '../../utils/request'
 
 Page({
   data: {
@@ -189,20 +190,13 @@ Page({
     if (!openid) return
 
       try {
-        const db = wx.cloud.database()
-        
-        // 只查询当前tab的搜索条件
-        const res = await db
-          .collection('saved_search_conditions')
-          .where({ 
-            openid,
-            tabIndex: tabType, // 只查询当前tab的搜索条件
-          })
-          .orderBy('createdAt', 'desc')
-          .limit(20)
-          .get()
+        const res = await callApi('getSavedSearchConditions', {
+          tabIndex: tabType,
+          openid
+        })
 
-        const savedConditions = (res.data || []) as any[]
+        const result = res.result || (res as any)
+        const savedConditions = (result.conditions || []) as any[]
         
         // 如果没有保存的搜索条件，只显示toast，不弹窗
         if (savedConditions.length === 0) {
@@ -247,13 +241,13 @@ Page({
           if (keyword) {
             parts.push(`${keywordLabel}: ${keyword}`)
           }
-          if (filter.region && filter.region !== '全部') {
+          if (filter.region && filter.region !== '全部' && tabType !== 0) {
             const regionText = useEnglish 
               ? (filter.region === '国内' ? 'Domestic' : filter.region === '国外' ? 'Abroad' : filter.region === 'web3' ? 'Web3' : filter.region)
               : filter.region
             parts.push(`${regionLabel}: ${regionText}`)
           }
-          if (filter.source_name && Array.isArray(filter.source_name) && filter.source_name.length > 0) {
+          if (filter.source_name && Array.isArray(filter.source_name) && filter.source_name.length > 0 && tabType !== 0) {
             const validSources = filter.source_name.filter((s: string) => ['BOSS直聘', '智联招聘'].includes(s))
             if (validSources.length > 0) {
               const sourceTexts = validSources.map((s: string) => (useEnglish ? (EN_SOURCE[s] || s) : s))
@@ -331,8 +325,7 @@ Page({
       this.setData({ savedSearchConditions: updatedConditions })
 
       try {
-        const db = wx.cloud.database()
-        await db.collection('saved_search_conditions').doc(condition._id).remove()
+        await callApi('deleteSearchCondition', { id: condition._id })
 
         setTimeout(() => {
           if (isLastItem) {
@@ -372,19 +365,7 @@ Page({
         success: async (res) => {
           if (res.confirm) {
             try {
-              const db = wx.cloud.database()
-              const queryRes = await db
-                .collection('saved_search_conditions')
-                .where({ openid })
-                .get()
-
-              const ids = (queryRes.data || []).map((item: any) => item._id).filter(Boolean)
-              
-              if (ids.length > 0) {
-                await Promise.all(
-                  ids.map((id: string) => db.collection('saved_search_conditions').doc(id).remove())
-                )
-              }
+              await callApi('clearAllSearchConditions', { openid })
 
               this.setData({ savedSearchConditions: [] })
               this.closeRestoreSheet()

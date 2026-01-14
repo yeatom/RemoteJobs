@@ -3,6 +3,7 @@ import { normalizeLanguage, t } from '../../utils/i18n'
 import { normalizeJobTags, translateFieldValue } from '../../utils/job'
 import { attachLanguageAware } from '../../utils/languageAware'
 import { processAndSaveAIResume } from '../../utils/resume'
+import { request, callApi } from '../../utils/request'
 import { ui } from '../../utils/ui'
 const { cloudRunEnv } = require('../../env.js')
 
@@ -57,11 +58,11 @@ Page({
     loadFailedText: '加载失败',
     saveText: 'Saved',
     unsaveText: 'Save',
-    oneClickApplyText: 'One-Click Apply',
+    oneClickApplyText: 'Resume Support',
     applyMenuTitle: 'Quick Apply',
     copySourceLinkText: 'Copy Source Link',
     aiResumeGenerateText: 'AI Resume Builder',
-    oneClickSubmitResumeText: 'One-Click Apply with Resume',
+    oneClickSubmitResumeText: '',
     noSourceLinkText: 'No source link available',
     linkCopiedText: 'Link copied',
     featureDevelopingText: 'Feature under development',
@@ -157,7 +158,7 @@ Page({
       loadFailedText: t('jobs.loadFailed', lang),
       saveText: lang === 'Chinese' || lang === 'AIChinese' ? '已收藏' : 'Saved',
       unsaveText: lang === 'Chinese' || lang === 'AIChinese' ? '收藏' : 'Save',
-      oneClickApplyText: lang === 'Chinese' || lang === 'AIChinese' ? '一键申请' : 'One-Click Apply',
+      oneClickApplyText: lang === 'Chinese' || lang === 'AIChinese' ? '简历服务' : 'Resume Support',
       applyMenuTitle: t('jobs.applyMenuTitle', lang),
       copySourceLinkText: t('jobs.copySourceLink', lang),
       aiResumeGenerateText: t('jobs.aiResumeGenerate', lang),
@@ -372,45 +373,18 @@ Page({
             aiProfile.en = profile.en
           }
           
-          // 如果有头像，换取临时链接，确保后端能跨环境访问
-          const photoUrl = aiProfile.photo || profile.zh?.photo || profile.en?.photo
-          if (photoUrl && photoUrl.startsWith('cloud://')) {
-            try {
-              const fileRes = await wx.cloud.getTempFileURL({
-                fileList: [profile.photo]
-              })
-              if (fileRes.fileList && fileRes.fileList[0].tempFileURL) {
-                aiProfile.photo = fileRes.fileList[0].tempFileURL
-              }
-            } catch (fileErr) {
-              console.error('换取头像链接失败:', fileErr)
-            }
-          }
-
-          const res = await wx.cloud.callContainer({
-            config: {
-              env: cloudRunEnv
-            },
-            path: '/api/generate',
-            header: {
-              'X-WX-SERVICE': 'express-vyc1',
-              'content-type': 'application/json'
-            },
-            method: 'POST',
-            data: {
-              jobId: this.data.job?._id, // 岗位 ID
-              userId: user.openid,      // 用户 ID (OpenID)
-              resume_profile: aiProfile, // 传处理后的资料
-              job_data: this.data.job    // 传完整的岗位 JSON
-            },
-            timeout: 15000 // 15秒等待，专门为唤醒冷启动设计的阈值
+          const res: any = await callApi('generate', {
+            jobId: this.data.job?._id, // 岗位 ID
+            userId: user.openid,      // 用户 ID (OpenID)
+            resume_profile: aiProfile, // 传处理后的资料
+            job_data: this.data.job    // 传完整的岗位 JSON
           })
 
           ui.hideLoading()
           this.setData({ isGenerating: false })
           
-          if (res.statusCode === 200 && res.data && (res.data as any).task_id) {
-            const taskId = (res.data as any).task_id
+          if (res && res.task_id) {
+            const taskId = res.task_id
             
             // 提示用户任务已提交
             wx.showModal({
@@ -434,23 +408,17 @@ Page({
           ui.hideLoading()
           this.setData({ isGenerating: false })
           
-          // 处理冷启动超时
-          if (err.errMsg?.includes('timeout') || err.errCode === 102002) {
-            wx.showModal({
-              title: 'AI 正在准备中',
-              content: '由于服务刚刚唤醒，AI 正在进行最后的热身。您可以稍等 10 秒后再次点击，或者直接前往“我的简历”列表查看。',
-              confirmText: '去查看',
-              cancelText: '知道了',
-              success: (modalRes) => {
-                if (modalRes.confirm) {
-                  wx.navigateTo({ url: '/pages/generated-resumes/index' })
-                }
-              }
-            })
-          } else {
-            console.error('调用云托管失败:', err)
-            ui.showError('AI 服务暂时繁忙')
+          // 如果是配额不足
+          if (err?.message?.includes('Quota') || err?.status === 403) {
+            ui.showError(err.message || '配额不足')
+            return
           }
+
+          wx.showModal({
+            title: '生成失败',
+            content: err.message || '系统繁忙，请稍后再试',
+            showCancel: false
+          })
         }
       } else {
         ui.hideLoading()
@@ -496,105 +464,19 @@ Page({
     }
   },
 
-  async onOneClickResumeSubmit() {
-    const job = this.data.job
-    if (!job) {
-      ui.showError(this.data.dataLoadFailedText)
-      return
-    }
-
-    // 检查认证状态
-    const app = getApp<IAppOption>() as any
-    const user = app?.globalData?.user
-    const isVerified = !!(user && (user.isAuthed || user.phone))
-    if (!isVerified) {
-      this.closeApplyMenu()
-      ui.showError(this.data.pleaseLoginText)
-      return
-    }
-
-    // 确保用户已初始化（确保有 openid）
-    if (!user?.openid) {
-      try {
-        await app.refreshUser()
-      } catch (err) {
-        console.error('刷新用户信息失败:', err)
-      }
-    }
-
-    this.closeApplyMenu()
-
-    try {
-      ui.showLoading('投递中...')
-
-      const res: any = await wx.cloud.callFunction({
-        name: 'submitResume',
-        data: {
-          job_id: job._id,
-          job_title: job.title,
-          job_data: {
-            title: job.title,
-            summary: job.summary,
-            description: job.description,
-            salary: job.salary,
-            source_name: job.source_name,
-            source_url: job.source_url,
-            type: job.type,
-            team: job.team,
-            tags: job.tags,
-          },
-        },
-      })
-
-      ui.hideLoading()
-
-      if (res?.result?.success) {
-        ui.showSuccess('投递成功')
-      } else if (res?.result?.alreadyApplied) {
-        wx.showModal({
-          title: '提示',
-          content: res.result.message || '您已经投递过该岗位，请耐心等待，可以在"我"的页面查看',
-          showCancel: false,
-          confirmText: '知道了',
-        })
-      } else if (res?.result?.needUpgrade) {
-        wx.showModal({
-          title: '配额不足',
-          content: res.result.message || '您的投递次数已用完，请升级会员',
-          confirmText: '去升级',
-          cancelText: '取消',
-          success: (modalRes) => {
-            if (modalRes.confirm) {
-              // TODO: 跳转到会员购买页面
-              ui.showError('暂未接入付费流程')
-            }
-          },
-        })
-      } else {
-        ui.showError(res?.result?.message || '投递失败')
-      }
-    } catch (err: any) {
-      ui.hideLoading()
-      console.error('投递失败:', err)
-      ui.showError('投递失败，请重试')
-    }
-  },
-
   async addSavedRecord(job: JobDetailItem) {
     const app = getApp<IAppOption>() as any
     const openid = app?.globalData?.user?.openid
     if (!openid) throw new Error('missing openid')
 
-    const db = wx.cloud.database()
-    const recordData = {
-      openid,
+    const res = await callApi('saveJob', {
       jobId: job._id,
       type: job.type,
       createdAt: job.createdAt,
-    }
+    })
 
-    const result = await db.collection(SAVED_COLLECTION).add({ data: recordData })
-    this.setData({ saveDocId: String((result as any)._id || '') })
+    const result = res.result || (res as any)
+    this.setData({ saveDocId: String(result?._id || '') })
   },
 
   async removeSavedRecord(_id: string) {
@@ -602,14 +484,7 @@ Page({
     const openid = app?.globalData?.user?.openid
     if (!openid) return
 
-    const db = wx.cloud.database()
-    let docId = this.data.saveDocId
-    if (!docId) {
-      const lookup = await db.collection(SAVED_COLLECTION).where({ openid, jobId: _id }).limit(1).get()
-      docId = String((lookup.data?.[0] as any)?._id || '')
-    }
-    if (!docId) return
-    await db.collection(SAVED_COLLECTION).doc(docId).remove()
+    await callApi('unsaveJob', { jobId: _id })
     this.setData({ saveDocId: '' })
   },
 
@@ -623,13 +498,12 @@ Page({
       return false
     }
 
-    const db = wx.cloud.database()
     try {
-      const res = await db.collection(SAVED_COLLECTION).where({ openid, jobId: _id }).limit(1).get()
-      const doc = res.data?.[0] as any
-      const exists = !!doc
+      const res = await callApi('checkJobSaved', { jobId: _id })
+      const result = res.result || (res as any)
+      const exists = !!result?.exists
       const updates: Partial<typeof this.data> = {
-        saveDocId: String(doc?._id || ''),
+        saveDocId: String(result?._id || ''),
       }
       if (!silent) updates.saved = exists
       this.setData(updates)

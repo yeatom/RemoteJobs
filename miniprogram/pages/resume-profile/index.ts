@@ -2,6 +2,7 @@
 import { normalizeLanguage, t } from '../../utils/i18n'
 import { attachLanguageAware } from '../../utils/languageAware'
 import { ui } from '../../utils/ui'
+import { callApi, formatFileUrl } from '../../utils/request'
 import { buildPageUI } from './ui.config'
 
 Page({
@@ -11,7 +12,6 @@ Page({
     photo: '',
     gender: '',
     birthday: '',
-    identity: '',
     location: '',
     wechat: '',
     email: '',
@@ -55,7 +55,6 @@ Page({
     degreePickerValue: [0, 0],
     studyTypes: [] as string[],
     showGenderPicker: false,
-    showIdentityPicker: false,
     showDatePicker: false,
     currentDatePickingField: '', // 'startDate' | 'endDate' | 'birthday'
     datePickerValue: [0, 0],
@@ -101,7 +100,6 @@ Page({
       name: '',
       gender: '',
       birthday: '',
-      identity: '',
       location: '',
     },
     contactInfoForm: {
@@ -116,7 +114,6 @@ Page({
     },
     degreeOptions: [] as string[],
     genderOptions: [] as string[],
-    identityOptions: [] as string[],
     
     // UI 文本
     ui: {} as Record<string, any>,
@@ -185,6 +182,12 @@ Page({
           // 将中文数据整体移动到英文侧进行保存
           const syncData = JSON.parse(JSON.stringify(zh))
           
+          // 排除基本信息，保持独立性
+          delete syncData.name;
+          delete syncData.gender;
+          delete syncData.birthday;
+          delete syncData.photo;
+
           // 特殊处理 1：教育经历中的 school_en/major_en 需要转正
           if (syncData.educations) {
             syncData.educations = syncData.educations.map((e: any) => ({
@@ -215,10 +218,9 @@ Page({
     
     this.setData({
       name: profile.name || '',
-      photo: profile.photo || '',
+      photo: formatFileUrl(profile.photo) || '',
       gender: profile.gender || '',
       birthday: profile.birthday || '',
-      identity: profile.identity || '',
       location: profile.location || '',
       wechat: profile.wechat || '',
       email: profile.email || '',
@@ -298,14 +300,12 @@ Page({
     const degreeOptions = t<string[]>('resume.degreeOptions', lang)
     const studyTypes = t<string[]>('resume.studyTypes', lang)
     const genderOptions = t<string[]>('resume.genderOptions', lang)
-    const identityOptions = t<string[]>('resume.identityOptions', lang)
 
     this.setData({ 
       ui: uiStrings, 
       degreeOptions, 
       studyTypes, 
       genderOptions, 
-      identityOptions, 
       interfaceLang: lang 
     })
   },
@@ -399,14 +399,11 @@ Page({
         }
       }
 
-      const res: any = await wx.cloud.callFunction({
-        name: 'updateUserProfile',
-        data: { 
-          resume_profile: updates
-        }
+      const res: any = await callApi('updateUserProfile', { 
+        resume_profile: updates
       })
       
-      if (res.result?.ok) {
+      if (res?.result?.ok) {
         const app = getApp<IAppOption>() as any
         app.globalData.user = res.result.user
         this.loadResumeData()
@@ -433,21 +430,32 @@ Page({
         const tempFilePath = res.tempFilePaths[0]
         wx.showLoading({ title: uiStrings.uploading })
         try {
-          const cloudPath = `resume_photos/${Date.now()}-${Math.floor(Math.random() * 1000)}.jpg`
-          const uploadRes = await wx.cloud.uploadFile({
-            cloudPath,
+          wx.uploadFile({
+            url: 'http://127.0.0.1:3000/api/upload',
             filePath: tempFilePath,
+            name: 'file',
+            header: {
+              'x-openid': wx.getStorageSync('user_openid')
+            },
+            success: async (uploadRes) => {
+              const data = JSON.parse(uploadRes.data)
+              if (data.success) {
+                const payload: any = { photo: data.url }
+                await this.saveResumeProfile(payload)
+              } else {
+                wx.showToast({ title: uiStrings.uploadFailed, icon: 'none' })
+              }
+            },
+            fail: () => {
+              wx.showToast({ title: uiStrings.uploadFailed, icon: 'none' })
+            },
+            complete: () => {
+              wx.hideLoading()
+            }
           })
-          
-          const payload: any = { photo: uploadRes.fileID }
-          if (this.data.currentLang === 'Chinese') {
-            payload._en_sync = { photo: uploadRes.fileID }
-          }
-          await this.saveResumeProfile(payload)
         } catch (e) {
-          wx.showToast({ title: uiStrings.uploadFailed, icon: 'none' })
-        } finally {
           wx.hideLoading()
+          wx.showToast({ title: uiStrings.uploadFailed, icon: 'none' })
         }
       }
     })
@@ -461,7 +469,6 @@ Page({
         name: this.data.name,
         gender: this.data.gender,
         birthday: this.data.birthday,
-        identity: this.data.identity,
         location: this.data.location,
       }
     })
@@ -506,20 +513,6 @@ Page({
       personal_website: contactInfoForm.personal_website,
     }
 
-    if (currentLang === 'Chinese') {
-      // 中文同步到英文的基础联系方式 (通用字段自动同步)
-      payload._en_sync = {
-        email: contactInfoForm.email,
-        phone_en: contactInfoForm.phone_en,
-        phone: contactInfoForm.phone,
-        whatsapp: contactInfoForm.whatsapp,
-        telegram: contactInfoForm.telegram,
-        linkedin: contactInfoForm.linkedin,
-        personal_website: contactInfoForm.personal_website,
-        wechat: contactInfoForm.wechat,
-      }
-    }
-
     await this.saveResumeProfile(payload)
     this.closeContactInfoDrawer()
   },
@@ -559,18 +552,6 @@ Page({
       datePickerValue: [yearIndex, monthIndex]
     })
   },
-  openIdentityPicker() {
-    this.setData({ showIdentityPicker: true })
-  },
-  closeIdentityPicker() {
-    this.setData({ showIdentityPicker: false })
-  },
-  onSelectIdentity(e: any) {
-    this.setData({ 
-      'basicInfoForm.identity': e.currentTarget.dataset.value,
-      showIdentityPicker: false
-    })
-  },
   async onSaveBasicInfo() {
     const { basicInfoForm, ui, currentLang } = this.data
     const isEnglish = currentLang === 'English'
@@ -586,19 +567,9 @@ Page({
       name: basicInfoForm.name,
     }
 
-    // 仅英文侧有身份和所在地字段
+    // 仅英文侧有所在地字段
     if (isEnglish) {
-      dataToUpdate.identity = basicInfoForm.identity
       dataToUpdate.location = basicInfoForm.location
-    }
-
-    if (!isEnglish) {
-      // 中文同步到英文的逻辑
-      dataToUpdate._en_sync = {
-        gender: basicInfoForm.gender,
-        birthday: basicInfoForm.birthday,
-        // 姓名通常不同（中文名 vs 英文名），故不在此同步，由用户手动在英文版修改或通过 Sync 按钮
-      }
     }
 
     await this.saveResumeProfile(dataToUpdate)
@@ -796,12 +767,9 @@ Page({
     }
 
     try {
-      const res: any = await wx.cloud.callFunction({
-        name: 'searchUniversities',
-        data: { keyword }
-      })
+      const res: any = await callApi('searchUniversities', { keyword })
       
-      const items = res.result?.data || []
+      const items = res?.result?.data || []
       this.setData({
         universitySuggestions: items,
         showUniversitySuggestions: items.length > 0
@@ -831,6 +799,9 @@ Page({
   },
 
   onEduSchoolBlur() {
+    // 清除可能存在的搜索定时器，防止失焦后搜索结果回来重新打开列表
+    if ((this as any)._searchTimer) clearTimeout((this as any)._searchTimer);
+
     // 延迟关闭，确保点击建议项的事件能先触发
     setTimeout(() => {
       this.setData({ showUniversitySuggestions: false })
@@ -876,12 +847,9 @@ Page({
     }
 
     try {
-      const res: any = await wx.cloud.callFunction({
-        name: 'searchMajors',
-        data: { keyword, level: levelQuery }
-      })
+      const res: any = await callApi('searchMajors', { keyword, level: levelQuery })
       
-      const items = res.result?.data || []
+      const items = res?.result?.data || []
       this.setData({
         majorSuggestions: items,
         showMajorSuggestions: items.length > 0
@@ -909,6 +877,8 @@ Page({
   },
 
   onEduMajorBlur() {
+    if ((this as any)._majorSearchTimer) clearTimeout((this as any)._majorSearchTimer);
+    
     setTimeout(() => {
       this.setData({ showMajorSuggestions: false })
     }, 200)

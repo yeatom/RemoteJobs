@@ -77,7 +77,7 @@
           </view>
         </view>
 
-        <view class="filter-section filter-section-source" id="section-source" wx:if="{{sourceOptions && sourceOptions.length > 0}}">
+        <view class="filter-section filter-section-source" id="section-source" wx:if="{{_tabIndex !== 0 && sourceOptions && sourceOptions.length > 0}}">
           <view class="filter-section-title">{{ui.sourceTitle}}</view>
           <view class="filter-grid filter-grid-source">
             <view

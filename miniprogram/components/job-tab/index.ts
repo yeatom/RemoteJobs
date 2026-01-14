@@ -3,6 +3,7 @@ import type { JobItem, ResolvedSavedJob } from '../../utils/job'
 import { mapJobs, getJobFieldsByLanguage, mapJobFieldsToStandard } from '../../utils/job'
 import { normalizeLanguage, t } from '../../utils/i18n'
 import { matchSalary } from '../../utils/salary'
+import { request, callApi } from '../../utils/request'
 
 type DrawerFilterValue = {
   salary: string
@@ -248,17 +249,15 @@ Component({
       // 根据 tabType 选择不同的云函数
       const cloudFunctionName = tabType === 0 ? 'getPublicJobList' : 'getFeaturedJobList'
       
-      const res = await wx.cloud.callFunction({
-        name: cloudFunctionName,
-        data: {
-          pageSize: this.data.pageSize,
-          skip,
-          ...filterParams,
-        },
+      const res = await callApi(cloudFunctionName, {
+        pageSize: this.data.pageSize,
+        skip,
+        ...filterParams,
       })
       
-      if (res.result && (res.result as any).ok) {
-        const jobs = (res.result as any).jobs || []
+      const result = res.result || (res as any)
+      if (result && result.ok) {
+        const jobs = result.jobs || []
         const newJobs = mapJobs(jobs, currentLang) as JobItem[]
         const merged = reset ? newJobs : [...existingJobs, ...newJobs]
         const hasMore = newJobs.length >= this.data.pageSize
@@ -300,127 +299,23 @@ Component({
       }
       
       try {
-        const db = wx.cloud.database()
         const existingJobs = reset ? [] : this.data.jobs
         const skip = existingJobs.length
         
-        const savedRes = await db
-          .collection('saved_jobs')
-          .where({ openid })
-          .orderBy('createdAt', 'desc')
-          .skip(skip)
-          .limit(this.data.pageSize)
-          .get()
+        const res = await callApi('getSavedJobs', {
+          skip,
+          limit: this.data.pageSize,
+          openid
+        })
         
-        const savedRecords = (savedRes.data || []) as any[]
-        const hasMore = savedRecords.length >= this.data.pageSize
+        const result = res.result || (res as any)
+        const savedJobs = (result.jobs || []) as any[]
+        const hasMore = savedJobs.length >= this.data.pageSize
         
-        if (savedRecords.length === 0) {
-          this.setData({
-            jobs: reset ? [] : existingJobs,
-            loading: false,
-            hasMore: false,
-            hasLoaded: true,
-          })
-          this.triggerEvent('dataupdate', { jobs: reset ? [] : existingJobs, hasMore: false })
-          return
-        }
-        
-        const jobIds = savedRecords.map(row => row?.jobId).filter(Boolean) as string[]
-        
-        if (jobIds.length === 0) {
-          this.setData({
-            jobs: reset ? [] : existingJobs,
-            loading: false,
-            hasMore: false,
-            hasLoaded: true,
-          })
-          this.triggerEvent('dataupdate', { jobs: reset ? [] : existingJobs, hasMore: false })
-          return
-        }
-        
-        // 获取用户语言设置并确定字段名
+        // 获取用户语言设置
         const userLanguage = normalizeLanguage(app?.globalData?.language || 'Chinese')
-        const { titleField, summaryField, descriptionField, salaryField, sourceNameField } = getJobFieldsByLanguage(userLanguage)
         
-        // 从 remote_jobs collection 查询所有收藏的职位
-        const results = await Promise.all(
-          jobIds.map(async (id) => {
-            try {
-              let query: any = db.collection('remote_jobs').doc(id)
-              
-              // 根据语言选择字段，只查询需要的字段
-              const fieldSelection: any = {
-                _id: true,
-                createdAt: true,
-                source_url: true,
-                team: true,
-                type: true,
-                tags: true,
-                [titleField]: true,
-                [summaryField]: true,
-                [descriptionField]: true,
-                experience: true,
-              }
-              
-              // 根据语言选择 salary 和 source_name 字段
-              if (salaryField) {
-                fieldSelection[salaryField] = true
-                if (userLanguage === 'AIEnglish' && salaryField !== 'salary') {
-                  fieldSelection.salary = true
-                }
-              } else {
-                fieldSelection.salary = true
-              }
-              
-              if (sourceNameField) {
-                fieldSelection[sourceNameField] = true
-                if (userLanguage === 'AIEnglish' && sourceNameField !== 'source_name') {
-                  fieldSelection.source_name = true
-                }
-              } else {
-                fieldSelection.source_name = true
-              }
-              
-              query = query.field(fieldSelection)
-              
-              const res = await query.get()
-              let jobData = res.data
-              
-              // 将查询的字段名映射回标准字段名
-              if (jobData) {
-                jobData = mapJobFieldsToStandard(jobData, titleField, summaryField, descriptionField, salaryField, sourceNameField)
-              }
-              
-              return { id, data: jobData }
-            } catch {
-              return null
-            }
-          })
-        )
-        
-        const jobByKey = new Map<string, any>()
-        for (const r of results) {
-          if (!r?.data) continue
-          jobByKey.set(r.id, { ...r.data, _id: r.id })
-        }
-        
-        const merged: ResolvedSavedJob[] = []
-        for (const row of savedRecords) {
-          const _id = row?.jobId
-          if (!_id) continue
-          
-          const job = jobByKey.get(_id)
-          if (!job) continue
-          
-          merged.push({
-            ...(job as any),
-            _id,
-            sourceCollection: 'remote_jobs',
-          })
-        }
-        
-        const normalized = mapJobs(merged, userLanguage) as JobItem[]
+        const normalized = mapJobs(savedJobs, userLanguage) as JobItem[]
         const finalJobs = reset ? normalized : [...existingJobs, ...normalized]
         
         this.setData({
@@ -453,124 +348,28 @@ Component({
       }
       
       try {
-        const db = wx.cloud.database()
-        
-        // 获取用户语言设置并确定字段名
-        const app = getApp<IAppOption>() as any
-        const userLanguage = normalizeLanguage(app?.globalData?.language || 'Chinese')
-        const { titleField, summaryField, descriptionField, salaryField, sourceNameField } = getJobFieldsByLanguage(userLanguage)
-        
-        const escapedKeyword = keyword.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
-        const searchRegex = db.RegExp({ regexp: escapedKeyword, options: 'i' })
-        
-        // 构建 where 条件
-        const whereCondition: any = {
-          [titleField]: searchRegex,
-        }
-        
-        // 应用区域筛选
-        const tabType = this.properties.tabType as number
-        if (tabType === 1) {
-          // 精选 tab
-          whereCondition.type = db.command.in(['国外', 'web3'])
-        } else if (tabType === 0) {
-          // 公开 tab
-          whereCondition.type = '国内'
-        } else {
-          // 收藏或其他
-          const region = this.data.drawerFilter?.region || '全部'
-          if (region !== '全部') {
-            whereCondition.type = region
-          } else {
-            whereCondition.type = db.command.in(['国内', '国外', 'web3'])
-          }
-        }
-        
-        // 应用来源筛选
-        const source_names = this.data.drawerFilter?.source_name || []
-        if (Array.isArray(source_names) && source_names.length > 0) {
-          if (source_names.length === 1) {
-            whereCondition.source_name = source_names[0]
-          } else {
-            whereCondition.source_name = db.command.in(source_names)
-          }
-        }
-        
         const existingJobs = reset ? [] : this.data.jobs
         const skip = existingJobs.length
         
-        let query: any = db.collection('remote_jobs')
-        if (Object.keys(whereCondition).length > 0) {
-          query = query.where(whereCondition)
-        }
+        // 获取语言和筛选参数
+        const app = getApp<IAppOption>() as any
+        const userLanguage = normalizeLanguage(app?.globalData?.language || 'Chinese')
         
-        // 根据语言选择字段
-        const fieldSelection: any = {
-          _id: true,
-          createdAt: true,
-          source_url: true,
-          team: true,
-          type: true,
-          tags: true,
-          [titleField]: true,
-          [summaryField]: true,
-          [descriptionField]: true,
-          experience: true,
-        }
+        const res = await callApi('searchJobs', {
+          keyword,
+          skip,
+          limit: this.data.pageSize,
+          tabType: this.properties.tabType,
+          drawerFilter: this.data.drawerFilter,
+          language: userLanguage
+        })
         
-        if (salaryField) {
-          fieldSelection[salaryField] = true
-          if (userLanguage === 'AIEnglish' && salaryField !== 'salary') {
-            fieldSelection.salary = true
-          }
-        } else {
-          fieldSelection.salary = true
-        }
+        const result = res.result || (res as any)
+        const jobs = result.jobs || []
+        const hasMore = jobs.length >= this.data.pageSize
         
-        if (sourceNameField) {
-          fieldSelection[sourceNameField] = true
-          if (userLanguage === 'AIEnglish' && sourceNameField !== 'source_name') {
-            fieldSelection.source_name = true
-          }
-        } else {
-          fieldSelection.source_name = true
-        }
-        
-        query = query.field(fieldSelection)
-        
-        const res = await query
-          .orderBy('createdAt', 'desc')
-          .get()
-        
-        let allJobs = res.data || []
-        
-        // 将查询的字段名映射回标准字段名
-        allJobs = allJobs.map((job: any) => mapJobFieldsToStandard(job, titleField, summaryField, descriptionField, salaryField, sourceNameField))
-        
-        // 应用经验筛选
-        const experience = this.data.drawerFilter?.experience || '全部'
-        if (experience && experience !== '全部') {
-          allJobs = allJobs.filter((job: any) => {
-            const jobExperience = job.experience || ''
-            return jobExperience === experience
-          })
-        }
-        
-        // 应用薪资筛选
-        const salary = this.data.drawerFilter?.salary || '全部'
-        if (salary && salary !== '全部') {
-          allJobs = allJobs.filter((job: any) => {
-            const jobSalary = job.salary || ''
-            return matchSalary(jobSalary, salary)
-          })
-        }
-        
-        // 分页处理
-        const paginatedJobs = allJobs.slice(skip, skip + this.data.pageSize)
-        const mappedJobs = mapJobs(paginatedJobs, userLanguage) as JobItem[]
+        const mappedJobs = mapJobs(jobs, userLanguage) as JobItem[]
         const mergedJobs = reset ? mappedJobs : [...existingJobs, ...mappedJobs]
-        
-        const hasMore = allJobs.length > skip + mappedJobs.length
         
         this.setData({
           jobs: mergedJobs,
@@ -759,16 +558,13 @@ Component({
           }
         })
         
-        const res = await wx.cloud.callFunction({
-          name: 'batchSaveJobs',
-          data: {
-            jobIds,
-            jobData,
-          },
+        const res = await callApi('batchSaveJobs', {
+          jobIds,
+          jobData,
         })
         
         let successCount = 0
-        if (res.result && (res.result as any).success) {
+        if (res?.result && (res.result as any).success) {
           const result = res.result as any
           successCount = result.savedCount || 0
         } else {

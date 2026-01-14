@@ -82,7 +82,7 @@
         </view>
       </view>
 
-      <view class="drawer-section drawer-section-region" id="section-region">
+      <view class="drawer-section drawer-section-region" id="section-region" wx:if="{{tabType !== 0}}">
         <view class="drawer-section-title">{{ui.regionTitle}}</view>
         <view class="drawer-grid">
           <view
@@ -98,7 +98,7 @@
         </view>
       </view>
 
-      <view class="drawer-section drawer-section-source" id="section-source" wx:if="{{sourceOptions && sourceOptions.length > 0}}">
+      <view class="drawer-section drawer-section-source" id="section-source" wx:if="{{tabType !== 0 && sourceOptions && sourceOptions.length > 0}}">
         <view class="drawer-section-title">{{ui.sourceTitle}}</view>
         <view class="drawer-grid drawer-grid-source">
           <view

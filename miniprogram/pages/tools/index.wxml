@@ -55,16 +55,5 @@
       <view class="arrow">></view>
     </view>
 
-    <!-- 4. 私人代投服务 (新增) -->
-    <view class="tool-card" bindtap="onContactService">
-      <view class="icon-box purple">
-        <image src="/assets/icons/telegram.png" mode="aspectFit" class="tool-icon"/>
-      </view>
-      <view class="tool-info">
-        <text class="tool-name">人工代投服务</text>
-        <text class="tool-desc">专家一对一服务，省时省心</text>
-      </view>
-      <view class="arrow">></view>
-    </view>
   </view>
 </view>

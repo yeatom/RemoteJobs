@@ -52,6 +52,7 @@ Component({
   
   properties: {
     show: { type: Boolean, value: false },
+    tabType: { type: Number, value: 0 },
     value: {
       type: Object,
       value: { salary: '全部', experience: '全部', source_name: [], region: '全部' },
@@ -74,12 +75,7 @@ Component({
     displaySourceOptions: [] as string[],
 
     // 导航tab相关
-    navTabs: [
-      { key: 'salary', label: '薪资' },
-      { key: 'experience', label: '经验' },
-      { key: 'region', label: '工作类型' },
-      { key: 'source', label: '招聘软件' },
-    ] as Array<{ key: string; label: string }>,
+    navTabs: [] as Array<{ key: string; label: string }>,
 
     // 滚动定位
     scrollIntoView: '',
@@ -90,14 +86,7 @@ Component({
     // 是否正在手动切换tab（防止滚动监听覆盖手动选择）
     isManualTabSwitch: false,
 
-    ui: {
-      salaryTitle: '薪资',
-      experienceTitle: '经验',
-      regionTitle: '工作类型',
-      sourceTitle: '招聘软件',
-      clear: '清除',
-      confirm: '确定',
-    } as Record<string, string>,
+    ui: {} as Record<string, string>,
   },
 
   observers: {
@@ -109,9 +98,27 @@ Component({
         this.syncLanguageFromApp()
 
         const v = (this.properties && (this.properties.value as any)) || { salary: '全部', experience: '全部', source_name: [], region: '全部' }
+        const tabType = this.properties.tabType || 0
         const region = v.region || '全部'
         const source_name = Array.isArray(v.source_name) ? v.source_name : (v.source_name === '全部' ? [] : (v.source_name ? [v.source_name] : []))
         
+        // 分离 navTabs 逻辑
+        let navTabs = [
+          { key: 'salary', label: '薪资' },
+          { key: 'experience', label: '经验' },
+          { key: 'region', label: '工作类型' },
+          { key: 'source', label: '招聘软件' },
+        ]
+        let regionOptions = ['全部', '国内', '国外', 'web3']
+        
+        if (tabType === 0) {
+          // 公开 tab: 去掉工作类型和招聘软件
+          navTabs = navTabs.filter(t => t.key !== 'region' && t.key !== 'source')
+        } else if (tabType === 1) {
+          // 精选 tab: 去掉国内
+          regionOptions = ['全部', '国外', 'web3']
+        }
+
         // 计算每个来源的选中状态
         const sourceSelected: Record<string, boolean> = {}
         for (const sourceKey of ALL_SOURCE_OPTIONS) {
@@ -129,6 +136,8 @@ Component({
             source_name: source_name,
             region: region,
           },
+          navTabs,
+          regionOptions,
           sourceOptions: ALL_SOURCE_OPTIONS,
           sourceSelected: sourceSelected,
         })

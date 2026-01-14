@@ -1,5 +1,6 @@
 // miniprogram/utils/phoneAuth.ts
 // 手机号授权相关工具函数（仅使用 code 方式）
+import { callApi } from './request'
 
 interface PhoneAuthDetail {
     code?: string
@@ -41,16 +42,13 @@ export async function getPhoneNumberFromAuth(detail: PhoneAuthDetail): Promise<s
  * 使用 code 方式获取手机号
  */
 async function getPhoneNumberByCode(code: string): Promise<string | undefined> {
-    console.log('[PhoneAuth] Calling cloud function with code')
+    console.log('[PhoneAuth] Calling backend with code')
     
-    const res: any = await wx.cloud.callFunction({
-        name: 'getPhoneNumber',
-        data: { code },
-    })
+    const res = await callApi('getPhoneNumber', { code })
 
-    console.log('[PhoneAuth] Cloud function response:', res?.result)
+    const result = (res.result || (res as any)) as GetPhoneNumberResult
+    console.log('[PhoneAuth] API response:', result)
 
-    const result: GetPhoneNumberResult = res?.result
     if (!result?.ok) {
         const errorMsg = result?.error || '获取手机号失败'
         const errcode = result?.errcode
@@ -82,17 +80,15 @@ async function getPhoneNumberByCode(code: string): Promise<string | undefined> {
  * 更新用户手机号
  */
 export async function updatePhoneNumber(phone: string): Promise<void> {
-    const updateRes: any = await wx.cloud.callFunction({
-        name: 'updateUserProfile',
-        data: { phone, isAuthed: true },
-    })
+    const updateRes = await callApi('updateUserProfile', { phone, isAuthed: true })
 
-    if (!updateRes?.result?.ok) {
-        console.error('[PhoneAuth] Update profile failed:', updateRes?.result)
+    const result = updateRes.result || (updateRes as any)
+    if (!result?.ok) {
+        console.error('[PhoneAuth] Update profile failed:', result)
         throw new Error('更新用户信息失败')
     }
 
-    const updatedUser = updateRes?.result?.user
+    const updatedUser = result?.user
     if (!updatedUser) {
         console.error('[PhoneAuth] No user data returned:', updateRes?.result)
         throw new Error('更新用户信息失败：未返回用户数据')

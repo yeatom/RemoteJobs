@@ -5,13 +5,14 @@ import {normalizeLanguage, type AppLanguage} from '../../utils/i18n'
 import {attachLanguageAware} from '../../utils/languageAware'
 import {toDateMs} from '../../utils/time'
 import {getPhoneNumberFromAuth, updatePhoneNumber} from '../../utils/phoneAuth'
+import {request, callApi, formatFileUrl} from '../../utils/request'
 import {ui} from '../../utils/ui'
 import {buildPageUI} from './ui.config'
 
 
 Page({
     data: {
-        userInfo: null as WechatMiniprogram.UserInfo | null,
+        userInfo: null as { avatar: string, nickName: string } | null,
         isInitialLoading: true,
         phoneAuthBusy: false,
 
@@ -38,9 +39,9 @@ Page({
         memberExpiryText: '', // 会员到期时间文案
 
         // Quota info
-        jobQuotaUsed: 0,
-        jobQuotaLimit: 0,
-        jobQuotaProgress: 0,
+        resumeQuotaUsed: 0,
+        resumeQuotaLimit: 0,
+        resumeQuotaProgress: 0,
         
         // Upgrade info
         upgradeAmount: 0, // 补差价金额
@@ -116,7 +117,7 @@ Page({
         // 使用新包裹字段 membership
         const membership = user?.membership
         const memberLevel = membership?.level || 0
-        const memberExpireAt = membership?.expire_at
+        const memberExpireAt = membership?.expireTime
         
         // 判断是否是有效会员：memberLevel > 0 且未过期
         let isMember = false
@@ -129,8 +130,11 @@ Page({
             }
         }
 
-        const userInfo = user && (user.avatar || user.nickname)
-            ? ({ avatarUrl: user.avatar || '', nickName: user.nickname || '' } as WechatMiniprogram.UserInfo)
+        const userInfo = (user && (user.avatar || user.nickname))
+            ? ({ 
+                avatar: formatFileUrl(user.avatar) || '', 
+                nickName: user.nickname || '' 
+              })
             : null
 
         const isAiUnlocked = isAiChineseUnlocked(user)
@@ -148,10 +152,19 @@ Page({
         const maskedPhone = this.formatPhoneNumber(rawPhone)
 
         // Quota logic
-        const jobQuotaUsed = membership?.job_quota?.used || 0
-        const jobQuotaLimit = membership?.job_quota?.limit || 0
-        const jobQuotaProgress = jobQuotaLimit > 0 ? Math.min(100, (jobQuotaUsed / jobQuotaLimit) * 100) : 0
-        const isQuotaExhausted = jobQuotaLimit > 0 && jobQuotaUsed >= jobQuotaLimit
+        const resumeQuotaUsed = membership?.resume_quota?.used || 0
+        let resumeQuotaLimit = membership?.resume_quota?.limit || 0
+
+        // Level 3 is now 100 limit, not unlimited
+        if (memberLevel === 3 && (resumeQuotaLimit === -1 || resumeQuotaLimit === 0)) {
+            resumeQuotaLimit = 100
+        }
+        
+        const resumeQuotaProgress = resumeQuotaLimit > 0 ? Math.min(100, (resumeQuotaUsed / resumeQuotaLimit) * 100) : 0
+        const isQuotaExhausted = resumeQuotaLimit > 0 && resumeQuotaUsed >= resumeQuotaLimit
+        
+        // Format quota text
+        const resumeQuotaText = (resumeQuotaLimit === -1) ? (uiStrings.unlimited || '∞') : `${resumeQuotaUsed}/${resumeQuotaLimit}`
 
         const systemConfig = app?.globalData?.systemConfig || { isBeta: true }
 
@@ -167,9 +180,10 @@ Page({
             expiredDateText,
             memberExpiryText,
             maskedPhone,
-            jobQuotaUsed,
-            jobQuotaLimit,
-            jobQuotaProgress,
+            resumeQuotaUsed,
+            resumeQuotaLimit,
+            resumeQuotaText,
+            resumeQuotaProgress,
             isQuotaExhausted,
             isBeta: !!systemConfig.isBeta
         })
@@ -212,13 +226,11 @@ Page({
 
         try {
             // 获取会员方案列表
-            const res: any = await wx.cloud.callFunction({
-                name: 'getMemberSchemes',
-                data: {},
-            })
+            const res = await callApi('getMemberSchemes', {})
 
-            if (res?.result?.success && res.result.schemes) {
-                const schemes = res.result.schemes
+            const result = res.result || (res as any)
+            if (result?.success && result.schemes) {
+                const schemes = result.schemes
                 // 根据 memberLevel 找到对应的方案
                 const scheme = schemes.find((s: any) => s.scheme_id === memberLevel)
                 const memberBadgeText = (scheme && scheme.displayName) ? scheme.displayName : ''
@@ -277,20 +289,16 @@ Page({
 
         this.setData({ phoneAuthBusy: true })
         try {
-            const res: any = await wx.cloud.callFunction({
-                name: 'getPhoneNumber',
-                data: { encryptedData, iv, mode: 'realtime' },
-            })
+            const res = await callApi('getPhoneNumber', { encryptedData, iv, mode: 'realtime' })
 
-            const phone = res?.result?.phone
+            const result = res.result || (res as any)
+            const phone = result?.phone
             if (!phone) throw new Error('no phone in getPhoneNumber result')
 
-            const updateRes: any = await wx.cloud.callFunction({
-                name: 'updateUserProfile',
-                data: { phone, isAuthed: true },
-            })
+            const updateRes = await callApi('updateUserProfile', { phone, isAuthed: true })
 
-            const updatedUser = updateRes?.result?.user
+            const updateResult = updateRes.result || (updateRes as any)
+            const updatedUser = updateResult?.user
             const app = getApp<IAppOption>() as any
             if (app?.globalData) app.globalData.user = updatedUser
 
@@ -317,18 +325,12 @@ Page({
 
         this.setData({ phoneAuthBusy: true })
         try {
-            const res: any = await wx.cloud.callFunction({
-                name: 'getPhoneNumber',
-                data: { code },
-            })
+            const res: any = await callApi('getPhoneNumber', { code })
 
             const phone = res?.result?.phone
             if (!phone) throw new Error('no phone in getPhoneNumber result')
 
-            const updateRes: any = await wx.cloud.callFunction({
-                name: 'updateUserProfile',
-                data: { phone, isAuthed: true },
-            })
+            const updateRes: any = await callApi('updateUserProfile', { phone, isAuthed: true })
 
             const updatedUser = updateRes?.result?.user
             const app = getApp<IAppOption>() as any
@@ -457,12 +459,9 @@ Page({
             }
             else {
                 // Generate invite code if not exists
-                const result = await wx.cloud.callFunction({
-                    name: 'generateInviteCode',
-                    data: {}
-                })
+                const result = await callApi('generateInviteCode', {})
 
-                const resultData = result.result as any
+                const resultData = result?.result as any
                 if (resultData?.inviteCode) {
                     this.setData({ myInviteCode: resultData.inviteCode })
                     // Update global user data
@@ -524,12 +523,9 @@ Page({
         }
 
         try {
-            const result = await wx.cloud.callFunction({
-                name: 'applyInviteCode',
-                data: { inviteCode: inputInviteCode }
-            })
+            const result = await callApi('applyInviteCode', { targetInviteCode: inputInviteCode })
 
-            const resultData = result.result as any
+            const resultData = result?.result as any
             if (resultData?.success) {
                 wx.showToast({ title: ui.inviteCodeApplied, icon: 'success' })
                 this.setData({ inputInviteCode: '' })
@@ -586,35 +582,48 @@ Page({
 
             ui.showLoading(uiStrings.uploading)
 
-            // Upload to cloud storage
-            const cloudPath = `avatars/${Date.now()}-${Math.random().toString(36).substr(2, 9)}.jpg`
-            const uploadRes = await wx.cloud.uploadFile({
-                cloudPath,
+            // Upload to our Express server instead of cloud storage
+            wx.uploadFile({
+                url: 'http://127.0.0.1:3000/api/upload',
                 filePath: tempFilePath,
+                name: 'file',
+                header: {
+                    'x-openid': wx.getStorageSync('user_openid')
+                },
+                success: async (uploadRes) => {
+                    try {
+                        const data = JSON.parse(uploadRes.data)
+                        if (data.success) {
+                            const fileID = data.url
+                            const updateRes: any = await callApi('updateUserProfile', { avatar: fileID })
+                            const updatedUser = updateRes?.result?.user
+                            const app = getApp<IAppOption>() as any
+                            if (app?.globalData) app.globalData.user = updatedUser
+
+                            this.syncUserFromApp()
+                            ui.hideLoading()
+                            ui.showSuccess(uiStrings.uploadSuccess)
+                        } else {
+                            throw new Error(data.message || 'Upload failed')
+                        }
+                    } catch (e) {
+                        ui.hideLoading()
+                        wx.showToast({ title: uiStrings.uploadFailed, icon: 'none' })
+                    }
+                },
+                fail: (err) => {
+                    console.error('Upload failed:', err)
+                    ui.hideLoading()
+                    wx.showToast({ title: uiStrings.uploadFailed, icon: 'none' })
+                }
             })
-
-            const fileID = uploadRes.fileID
-
-            // Update user profile
-            const updateRes: any = await wx.cloud.callFunction({
-                name: 'updateUserProfile',
-                data: { avatar: fileID },
-            })
-
-            const updatedUser = updateRes?.result?.user
-            const app = getApp<IAppOption>() as any
-            if (app?.globalData) app.globalData.user = updatedUser
-
-            this.syncUserFromApp()
-            ui.hideLoading()
-            ui.showSuccess(uiStrings.uploadSuccess)
         }
         catch (err: any) {
-            ui.hideLoading()
             if (err.errMsg && err.errMsg.includes('cancel')) {
                 // User cancelled, do nothing
                 return
             }
+            ui.hideLoading()
             wx.showToast({ title: uiStrings.uploadFailed, icon: 'none' })
         }
     },
@@ -672,10 +681,7 @@ Page({
 
         try {
             ui.showLoading(uiStrings.saving)
-            const updateRes: any = await wx.cloud.callFunction({
-                name: 'updateUserProfile',
-                data: { nickname: trimmedNickname },
-            })
+            const updateRes: any = await callApi('updateUserProfile', { nickname: trimmedNickname })
 
             const updatedUser = updateRes?.result?.user
             const app = getApp<IAppOption>() as any
@@ -803,23 +809,21 @@ Page({
             }
 
             // 1. 创建订单并获取统一下单参数
-            const orderRes: any = await wx.cloud.callFunction({
-                name: 'createOrder',
-                data: {
-                    scheme_id: schemeId,
-                    amount: amount, // 如果是升级，传补差价金额
-                    mchId: mchId,
-                    envId: envId
-                }
+            const orderRes = await callApi('createOrder', {
+                scheme_id: schemeId,
+                amount: amount, // 如果是升级，传补差价金额
+                mchId: mchId,
+                envId: envId
             })
 
-            console.log('[Payment] createOrder response:', orderRes.result)
+            const orderResult = orderRes.result || (orderRes as any)
+            console.log('[Payment] createOrder response:', orderResult)
 
-            if (!orderRes.result?.success) {
-                throw new Error(orderRes.result?.message || uiStrings.orderCreateFailed)
+            if (!orderResult?.success) {
+                throw new Error(orderResult?.message || uiStrings.orderCreateFailed)
             }
 
-            const { payment, order_id } = orderRes.result
+            const { payment, order_id } = orderResult
             
             if (!payment || !payment.paySign) {
                 console.error('[Payment] Missing payment parameters:', payment)
@@ -847,29 +851,24 @@ Page({
             ui.showLoading(uiStrings.activatingMember)
 
             // 3. 更新订单状态
-            await wx.cloud.callFunction({
-                name: 'updateOrderStatus',
-                data: {
-                    order_id,
-                    status: '已支付'
-                }
+            await callApi('updateOrderStatus', {
+                order_id,
+                status: '已支付'
             })
 
             // 4. 激活会员权益
-            const activateRes: any = await wx.cloud.callFunction({
-                name: 'activateMembership',
-                data: {
-                    order_id
-                }
+            const activateRes = await callApi('activateMembership', {
+                order_id
             })
 
-            if (!activateRes.result?.success) {
-                throw new Error(activateRes.result?.message || uiStrings.activateMemberFailed)
+            const activateResult = activateRes.result || (activateRes as any)
+            if (!activateResult?.success) {
+                throw new Error(activateResult?.message || uiStrings.activateMemberFailed)
             }
 
             // 5. 刷新用户信息
             const app = getApp<IAppOption>() as any
-            app.globalData.user = activateRes.result.user
+            app.globalData.user = activateResult.user
             this.syncUserFromApp()
 
             ui.hideLoading()
