@@ -13,7 +13,7 @@
     </view>
   </view>
 
-  <scroll-view class="drawer-body" scroll-y>
+  <scroll-view class="drawer-body" scroll-y enhanced="true" show-scrollbar="{{false}}">
     <view class="form-group">
       <view class="form-label">{{ui.school}}</view>
       <input 

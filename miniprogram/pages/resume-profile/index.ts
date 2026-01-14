@@ -6,9 +6,8 @@ import { buildPageUI } from './ui.config'
 
 Page({
   data: {
-    // 个人信息
+    // 个人信息 (当前显示的数据)
     name: '',
-    name_en: '', // English Name
     photo: '',
     gender: '',
     birthday: '',
@@ -23,13 +22,19 @@ Page({
     telegram: '',
     linkedin: '',
     currentLang: 'Chinese', // 'Chinese' or 'English'
+    zh: {} as any,
+    en: {} as any,
+    showSkillsDrawer: false,
+    showCertificatesDrawer: false,
+    skillsForm: [] as string[],
+    certificatesForm: [] as string[],
     // 教育经历（可以有多个）
     educations: [] as Array<{ 
       school: string; 
       school_en?: string;
       school_cn?: string;
-      country?: string;
-      country_en?: string;
+      country_chinese?: string;
+      country_english?: string;
       degree: string; 
       major: string; 
       major_en?: string;
@@ -76,13 +81,11 @@ Page({
     eduForm: {
       school: '',
       school_en: '',
-      school_cn: '',
-      country: '',
-      country_en: '',
+      country_chinese: '',
+      country_english: '',
       degree: '',
       major: '',
       major_en: '',
-      major_cn: '',
       startDate: '',
       endDate: '',
       description: '',
@@ -119,6 +122,9 @@ Page({
     ui: {} as Record<string, any>,
     completeness_cn: 0,
     completeness_en: 0,
+    percent_cn: 0,
+    percent_en: 0,
+    currentPercent: 0,
   },
 
   onLoad() {
@@ -163,7 +169,124 @@ Page({
     const lang = e.currentTarget.dataset.lang
     this.setData({ currentLang: lang }, () => {
       this.updateLanguage()
+      this.refreshDisplayData()
     })
+  },
+
+  async onSyncFromChinese() {
+    const { zh, ui: uiStrings, interfaceLang } = this.data
+    if (!zh || Object.keys(zh).length === 0) return
+
+    wx.showModal({
+      title: uiStrings.syncFromCn || '同步确认',
+      content: interfaceLang === 'English' ? 'Sync from Chinese resume? Current English content will be overwritten.' : '确定要从中文简历同步吗？这会覆盖当前的英文简历内容。',
+      success: async (res) => {
+        if (res.confirm) {
+          // 将中文数据整体移动到英文侧进行保存
+          const syncData = JSON.parse(JSON.stringify(zh))
+          
+          // 特殊处理 1：教育经历中的 school_en/major_en 需要转正
+          if (syncData.educations) {
+            syncData.educations = syncData.educations.map((e: any) => ({
+              ...e,
+              school: e.school_en || e.school,
+              major: e.major_en || e.major
+            }))
+          }
+
+          // 特殊处理 2：所在地，如果中文没填，英文默认中国
+          if (!syncData.location) {
+            syncData.location = 'China'
+          }
+
+          await this.saveResumeProfile(syncData)
+          ui.showSuccess(interfaceLang === 'English' ? 'Synced' : '同步成功')
+          
+          // 重新加载数据
+          await this.loadResumeData()
+        }
+      }
+    })
+  },
+
+  refreshDisplayData() {
+    const { currentLang, zh, en, completeness_cn, completeness_en } = this.data
+    const profile = currentLang === 'English' ? en : zh
+    
+    this.setData({
+      name: profile.name || '',
+      photo: profile.photo || '',
+      gender: profile.gender || '',
+      birthday: profile.birthday || '',
+      identity: profile.identity || '',
+      location: profile.location || '',
+      wechat: profile.wechat || '',
+      email: profile.email || '',
+      phone: profile.phone || '',
+      phone_en: profile.phone_en || profile.phone || '',
+      personal_website: profile.personal_website || '',
+      whatsapp: profile.whatsapp || '',
+      telegram: profile.telegram || '',
+      linkedin: profile.linkedin || '',
+      educations: profile.educations || [],
+      certificates: profile.certificates || [],
+      skills: profile.skills || [],
+      workExperiences: profile.workExperiences || [],
+      aiMessage: profile.aiMessage || '',
+      currentCompleteness: currentLang === 'English' ? completeness_en : completeness_cn,
+      currentPercent: currentLang === 'English' ? this.data.percent_en : this.data.percent_cn
+    })
+  },
+
+  calculateCompleteness(profile: any, lang: string) {
+    let score = 0;
+    
+    // 1. Name: 10%
+    if (profile.name) score += 10;
+    
+    // 2. Photo: 5%
+    if (profile.photo) score += 5;
+    
+    // 3. Gender/Birthday: 5% + 5%
+    if (profile.gender) score += 5;
+    if (profile.birthday) score += 5;
+    
+    // 4. Contact: 15% (CN: Phone/Email/Wechat, EN: Email/Phone/etc)
+    if (lang === 'Chinese') {
+      if (profile.wechat || profile.phone || profile.email) score += 15;
+    } else {
+      if (profile.email) score += 10;
+      if (profile.location) score += 5;
+    }
+    
+    // 5. Educations: 20%
+    if ((profile.educations || []).length > 0) score += 20;
+    
+    // 6. Work Experiences: 20%
+    if ((profile.workExperiences || []).length > 0) score += 20;
+    
+    // 7. Skills: 10%
+    if ((profile.skills || []).length > 0) score += 10;
+    
+    // 8. Certificates: 5%
+    if ((profile.certificates || []).length > 0) score += 5;
+    
+    // 9. AI Message: 5%
+    if (profile.aiMessage) score += 5;
+    
+    // Map score to backend levels (0, 1, 2)
+    // Level 1: Meets basic requirements (Name, Contact, Education, Work)
+    const hasBasic = !!profile.name && 
+                     (lang === 'Chinese' ? (profile.wechat || profile.phone || profile.email) : profile.email) &&
+                     (profile.educations || []).length > 0 &&
+                     (profile.workExperiences || []).length > 0;
+                     
+    let level = 0;
+    if (hasBasic) {
+      level = (score === 100) ? 2 : 1;
+    }
+    
+    return { score, level };
   },
 
   updateLanguage() {
@@ -201,118 +324,85 @@ Page({
     const user = app?.globalData?.user
 
     if (user) {
-      // 核心改动：使用新的 resume_profile 字段
       const profile = user.resume_profile || {}
       
-      const name = profile.name || ''
-      const name_en = profile.name_en || ''
-      const photo = profile.photo || ''
-      const gender = profile.gender || ''
-      const birthday = profile.birthday || ''
-      const identity = profile.identity || ''
-      const location = profile.location || ''
-      const wechat = profile.wechat || ''
-      const email = profile.email || ''
-      const phone = profile.phone || ''
-      const phone_en = profile.phone_en || ''
-      const personal_website = profile.personal_website || ''
-      const whatsapp = profile.whatsapp || ''
-      const telegram = profile.telegram || ''
-      const linkedin = profile.linkedin || ''
-      const educations = profile.educations || []
-      const certificates = profile.certificates || []
-      const workExperiences = profile.workExperiences || []
-      
-      const uiStrings = this.data.ui || {}
-      const aiMessage = profile.aiMessage !== undefined ? profile.aiMessage : uiStrings.aiMessageDefault || ''
+      // 直接从 zh/en 字段获取，不再考虑旧的扁平结构
+      const zh = (profile.zh || {}) as any
+      const en = (profile.en || {}) as any
 
-      // 计算完整度 (各自计算各自 shared 的基础信息)
-      const isSharedBasicComplete = !!(photo && gender && birthday && identity)
-      const isEducationComplete = educations.length > 0
-      const isCertificatesComplete = certificates.length > 0
-
-      // 中文版逻辑：要有姓名，联系方式(微信/电话/邮箱任一)，教育经历
-      const isBasicCompleteCn = !!(name && isSharedBasicComplete)
-      const isContactCompleteCn = !!(wechat || phone || email)
-      let completeness_cn = 0
-      if (isBasicCompleteCn && isContactCompleteCn && isEducationComplete) {
-        completeness_cn = isCertificatesComplete ? 2 : 1
+      // 设置英文版所在地默认值
+      if (!en.location) {
+        en.location = 'China'
       }
 
-      // 英文版逻辑：要有英文名、所在地，联系方式(邮箱/领英/英文手机任一)，教育经历
-      const isBasicCompleteEn = !!(name_en && location && isSharedBasicComplete)
-      const isContactCompleteEn = !!(email || linkedin || phone_en)
-      let completeness_en = 0
-      if (isBasicCompleteEn && isContactCompleteEn && isEducationComplete) {
-        completeness_en = isCertificatesComplete ? 2 : 1
+      // 如果后端有计算好的百分比则优先使用，否则本地计算兜底
+      let score_cn = user.resume_percent;
+      let score_en = user.resume_percent_en;
+      let level_cn = user.resume_completeness;
+      let level_en = user.resume_completeness_en;
+
+      if (score_cn === undefined) {
+        const res = this.calculateCompleteness(zh, 'Chinese');
+        score_cn = res.score;
+        level_cn = res.level;
+      }
+      if (score_en === undefined) {
+        const res = this.calculateCompleteness(en, 'English');
+        score_en = res.score;
+        level_en = res.level;
       }
 
       this.setData({
-        name,
-        name_en,
-        photo,
-        gender,
-        birthday,
-        identity,
-        location,
-        wechat,
-        email,
-        phone,
-        phone_en,
-        personal_website,
-        whatsapp,
-        telegram,
-        linkedin,
-        educations,
-        certificates,
-        skills: profile.skills || [],
-        workExperiences,
-        aiMessage,
-        completeness_cn,
-        completeness_en
+        zh,
+        en,
+        completeness_cn: level_cn,
+        completeness_en: level_en,
+        percent_cn: score_cn,
+        percent_en: score_en
       }, () => {
+        this.refreshDisplayData()
         this.updateTips()
       })
     }
   },
 
   async saveResumeProfile(data: any) {
-    const { ui: uiStrings } = this.data
+    const { ui: uiStrings, currentLang, zh, en } = this.data
     try {
       ui.showLoading(uiStrings.saving)
 
-      // 合并现有数据计算新的完整度
-      const app = getApp<IAppOption>() as any
-      const user = app.globalData.user || {}
-      const currentProfile = user.resume_profile || {}
-      const newProfile = { ...currentProfile, ...data }
+      const isChinese = currentLang === 'Chinese'
+      const updates: any = {}
       
-      const isSharedBasicComplete = !!(newProfile.photo && newProfile.gender && newProfile.birthday && newProfile.identity)
-      const isEducationComplete = newProfile.educations?.length > 0
-      const isCertificatesComplete = newProfile.certificates?.length > 0
-
-      // 中文版逻辑
-      const isBasicCompleteCn = !!(newProfile.name && isSharedBasicComplete)
-      const isContactCompleteCn = !!(newProfile.wechat || newProfile.phone || newProfile.email)
-      let completeness_cn = 0
-      if (isBasicCompleteCn && isContactCompleteCn && isEducationComplete) {
-        completeness_cn = isCertificatesComplete ? 2 : 1
-      }
-
-      // 英文版逻辑
-      const isBasicCompleteEn = !!(newProfile.name_en && newProfile.location && isSharedBasicComplete)
-      const isContactCompleteEn = !!(newProfile.email || newProfile.linkedin || newProfile.phone_en)
-      let completeness_en = 0
-      if (isBasicCompleteEn && isContactCompleteEn && isEducationComplete) {
-        completeness_en = isCertificatesComplete ? 2 : 1
+      if (isChinese) {
+        // 1. Prepare updates for zh
+        for (const key in data) {
+          updates[`zh.${key}`] = data[key]
+        }
+        
+        // 2. Handle one-way sync (CN -> EN)
+        // Note: For education/work lists, we already handled potential English fields in onSaveEducation
+        // but since we want they to be independent, we only push what was specifically prepared.
+        // If data contains 'en_sync', we apply it to 'en'.
+        if (data._en_sync) {
+          const syncData = data._en_sync
+          for (const key in syncData) {
+            updates[`en.${key}`] = syncData[key]
+          }
+          delete data._en_sync // remove from zh updates
+          delete updates[`zh._en_sync`]
+        }
+      } else {
+        // Prepare updates for en only (no sync to zh)
+        for (const key in data) {
+          updates[`en.${key}`] = data[key]
+        }
       }
 
       const res: any = await wx.cloud.callFunction({
         name: 'updateUserProfile',
         data: { 
-          resume_profile: data,
-          resume_completeness: completeness_cn,
-          resume_completeness_en: completeness_en
+          resume_profile: updates
         }
       })
       
@@ -348,7 +438,12 @@ Page({
             cloudPath,
             filePath: tempFilePath,
           })
-          await this.saveResumeProfile({ photo: uploadRes.fileID })
+          
+          const payload: any = { photo: uploadRes.fileID }
+          if (this.data.currentLang === 'Chinese') {
+            payload._en_sync = { photo: uploadRes.fileID }
+          }
+          await this.saveResumeProfile(payload)
         } catch (e) {
           wx.showToast({ title: uiStrings.uploadFailed, icon: 'none' })
         } finally {
@@ -360,13 +455,10 @@ Page({
   
   // 个人基本信息相关逻辑
   onEditBasicInfo() {
-    // Determine which name to show in the form
-    const currentName = this.data.currentLang === 'English' ? this.data.name_en : this.data.name
-    
     this.setData({
       showBasicInfoDrawer: true,
       basicInfoForm: {
-        name: currentName,
+        name: this.data.name,
         gender: this.data.gender,
         birthday: this.data.birthday,
         identity: this.data.identity,
@@ -402,8 +494,8 @@ Page({
     })
   },
   async onSaveContactInfo() {
-    const { contactInfoForm } = this.data
-    await this.saveResumeProfile({
+    const { contactInfoForm, currentLang } = this.data
+    const payload: any = {
       wechat: contactInfoForm.wechat,
       email: contactInfoForm.email,
       phone: contactInfoForm.phone,
@@ -412,7 +504,23 @@ Page({
       telegram: contactInfoForm.telegram,
       linkedin: contactInfoForm.linkedin,
       personal_website: contactInfoForm.personal_website,
-    })
+    }
+
+    if (currentLang === 'Chinese') {
+      // 中文同步到英文的基础联系方式 (通用字段自动同步)
+      payload._en_sync = {
+        email: contactInfoForm.email,
+        phone_en: contactInfoForm.phone_en,
+        phone: contactInfoForm.phone,
+        whatsapp: contactInfoForm.whatsapp,
+        telegram: contactInfoForm.telegram,
+        linkedin: contactInfoForm.linkedin,
+        personal_website: contactInfoForm.personal_website,
+        wechat: contactInfoForm.wechat,
+      }
+    }
+
+    await this.saveResumeProfile(payload)
     this.closeContactInfoDrawer()
   },
   onBasicNameInput(e: any) {
@@ -475,14 +583,22 @@ Page({
     const dataToUpdate: any = {
       gender: basicInfoForm.gender,
       birthday: basicInfoForm.birthday,
-      identity: basicInfoForm.identity,
-      location: basicInfoForm.location,
+      name: basicInfoForm.name,
     }
 
+    // 仅英文侧有身份和所在地字段
     if (isEnglish) {
-      dataToUpdate.name_en = basicInfoForm.name
-    } else {
-      dataToUpdate.name = basicInfoForm.name
+      dataToUpdate.identity = basicInfoForm.identity
+      dataToUpdate.location = basicInfoForm.location
+    }
+
+    if (!isEnglish) {
+      // 中文同步到英文的逻辑
+      dataToUpdate._en_sync = {
+        gender: basicInfoForm.gender,
+        birthday: basicInfoForm.birthday,
+        // 姓名通常不同（中文名 vs 英文名），故不在此同步，由用户手动在英文版修改或通过 Sync 按钮
+      }
     }
 
     await this.saveResumeProfile(dataToUpdate)
@@ -499,15 +615,11 @@ Page({
       eduForm: {
         school: '',
         school_en: '',
-        school_cn: '',
-        country: '',
-        country_en: '',
+        country_chinese: '',
+        country_english: '',
         degree: '',
         major: '',
-        major_en: '',
-        major_cn: '',
-        startDate: '',
-        endDate: '',
+        major_e: '',
         description: '',
       }
     })
@@ -517,11 +629,10 @@ Page({
     const edu = this.data.educations[index]
     const isEnglish = this.data.currentLang === 'English'
     
-    // Determine displayed school name (no fallback for inputs)
-    let displayedSchool = isEnglish ? (edu.school_en || '') : (edu.school || '')
-
-    // Determine displayed major name (no fallback for inputs)
-    let displayedMajor = isEnglish ? (edu.major_en || '') : (edu.major || '')
+    // Regardless of language, 'edu.school' should contain the school name for the current profile.
+    // We use a fallback to school_en/major_en just in case of inconsistent data.
+    let displayedSchool = edu.school || edu.school_en || ''
+    let displayedMajor = edu.major || edu.major_en || ''
 
     this.setData({
       showEduDrawer: true,
@@ -533,13 +644,11 @@ Page({
       eduForm: {
         school: displayedSchool,
         school_en: edu.school_en || '',
-        school_cn: edu.school || '',
-        country: edu.country || '',
-        country_en: edu.country_en || '',
+        country_chinese: edu.country_chinese || '',
+        country_english: edu.country_english || '',
         degree: edu.degree || '',
         major: displayedMajor,
         major_en: edu.major_en || '',
-        major_cn: edu.major || '',
         startDate: edu.startDate || '',
         endDate: edu.endDate || edu.graduationDate || '', // 兼容
         description: edu.description || '',
@@ -685,19 +794,17 @@ Page({
       this.setData({ showUniversitySuggestions: false })
       return
     }
-    const db = wx.cloud.database()
-    const _ = db.command
+
     try {
-      const res = await db.collection('universities').where(
-        _.or([
-          { chinese_name: db.RegExp({ regexp: keyword, options: 'i' }) },
-          { english_name: db.RegExp({ regexp: keyword, options: 'i' }) }
-        ])
-      ).limit(5).get()
+      const res: any = await wx.cloud.callFunction({
+        name: 'searchUniversities',
+        data: { keyword }
+      })
       
+      const items = res.result?.data || []
       this.setData({
-        universitySuggestions: res.data as any,
-        showUniversitySuggestions: res.data.length > 0
+        universitySuggestions: items,
+        showUniversitySuggestions: items.length > 0
       })
     } catch (e) {
       console.error(e)
@@ -710,9 +817,8 @@ Page({
     this.setData({
       'eduForm.school': isEnglish ? item.english_name : item.chinese_name,
       'eduForm.school_en': item.english_name || '',
-      'eduForm.school_cn': item.chinese_name || '',
-      'eduForm.country': item.country || '',
-      'eduForm.country_en': item.country_en || item.country || '',
+      'eduForm.country_chinese': item.country_chinese || '',
+      'eduForm.country_english': item.country_english || '',
       showUniversitySuggestions: false
     })
   },
@@ -735,8 +841,8 @@ Page({
     const keyword = e.detail.value
     this.setData({ 
       'eduForm.school': keyword,
-      'eduForm.country': '',
-      'eduForm.country_en': '',
+      'eduForm.country_chinese': '',
+      'eduForm.country_english': '',
       // We don't automatically clear school_en/school_cn here to respect "no automatic change"
       // They will only be updated if a new suggestion is selected.
     })
@@ -769,22 +875,16 @@ Page({
       return
     }
 
-    const db = wx.cloud.database()
-    const _ = db.command
     try {
-      const res = await db.collection('majors').where(
-        _.and([
-          { level: db.RegExp({ regexp: levelQuery, options: 'i' }) },
-          _.or([
-            { chinese_name: db.RegExp({ regexp: keyword, options: 'i' }) },
-            { english_name: db.RegExp({ regexp: keyword, options: 'i' }) }
-          ])
-        ])
-      ).limit(5).get()
+      const res: any = await wx.cloud.callFunction({
+        name: 'searchMajors',
+        data: { keyword, level: levelQuery }
+      })
       
+      const items = res.result?.data || []
       this.setData({
-        majorSuggestions: res.data as any,
-        showMajorSuggestions: res.data.length > 0
+        majorSuggestions: items,
+        showMajorSuggestions: items.length > 0
       })
     } catch (e) {
       console.error(e)
@@ -797,7 +897,6 @@ Page({
     this.setData({
       'eduForm.major': isEnglish ? (item.english_name || item.chinese_name) : (item.chinese_name || item.english_name),
       'eduForm.major_en': item.english_name || '',
-      'eduForm.major_cn': item.chinese_name || '',
       showMajorSuggestions: false
     })
   },
@@ -888,7 +987,7 @@ Page({
     this.setData({ 'workForm.businessDirection': e.detail.value })
   },
   async onSaveWorkExperience() {
-    const { workForm, editingWorkIndex, workExperiences, ui } = this.data
+    const { workForm, editingWorkIndex, workExperiences, ui, currentLang } = this.data
     
     if (!workForm.company.trim()) {
       wx.showToast({ title: ui.companyPlaceholder || '请输入公司名称', icon: 'none' })
@@ -923,7 +1022,13 @@ Page({
       newWorks[editingWorkIndex] = workData
     }
 
-    await this.saveResumeProfile({ workExperiences: newWorks })
+    const payload: any = { workExperiences: newWorks }
+    if (currentLang === 'Chinese') {
+      // 一并同步到英文版
+      payload._en_sync = { workExperiences: newWorks }
+    }
+
+    await this.saveResumeProfile(payload)
     this.closeWorkDrawer()
   },
   async onDeleteWorkExperience() {
@@ -937,7 +1042,13 @@ Page({
         if (res.confirm) {
           const newWorks = [...workExperiences]
           newWorks.splice(editingWorkIndex, 1)
-          await this.saveResumeProfile({ workExperiences: newWorks })
+          
+          const payload: any = { workExperiences: newWorks }
+          if (this.data.currentLang === 'Chinese') {
+            payload._en_sync = { workExperiences: newWorks }
+          }
+          
+          await this.saveResumeProfile(payload)
           this.closeWorkDrawer()
         }
       }
@@ -945,7 +1056,7 @@ Page({
   },
 
   async onSaveEducation() {
-    const { eduForm, editingEduIndex, educations, ui, currentLang } = this.data
+    const { eduForm, editingEduIndex, educations, ui, currentLang, en } = this.data
     
     // 全字段校验
     if (!eduForm.school.trim()) {
@@ -980,99 +1091,104 @@ Page({
     const newEducations = [...educations]
     const eduData = { ...eduForm }
     
-    // Handle Bilingual Names with manual entry logic
-    if (currentLang === 'English') {
-        eduData.school_en = eduForm.school
-        eduData.country = eduForm.country
-        eduData.country_en = eduForm.country_en
-        // Only trust the counterpart if the primary field matches our recorded DB source
-        if (eduForm.school === eduForm.school_en && eduForm.school_cn) {
-            eduData.school = eduForm.school_cn
-        }
-        // Note: For English tab, we don't clear the Chinese 'school' if it's manual, 
-        // because we usually want to preserve at least one name.
+    // 准备更新的对象
+    const updatePayload: any = {}
+
+    if (currentLang === 'Chinese') {
+        // 如果是中文模式，正常更新中文列表
+        const finalEdu = { ...eduData }
         
-        eduData.major_en = eduForm.major
-        if (eduForm.major === eduForm.major_en && eduForm.major_cn) {
-            eduData.major = eduForm.major_cn
+        if (editingEduIndex === -1) {
+          newEducations.push(finalEdu)
+        } else {
+          newEducations[editingEduIndex] = finalEdu
+        }
+        updatePayload.educations = newEducations
+
+        // 同步逻辑：如果有英文选项，同步到英文简历
+        // 只有当有明确的英文名称（来自建议）时才同步，或者第一次创建时顺带同步基础结构
+        if (eduForm.school_en || eduForm.major_en || editingEduIndex === -1) {
+          const newEnEducations = [...(en.educations || [])]
+          const enEduEntry = {
+            ...(editingEduIndex !== -1 && newEnEducations[editingEduIndex] ? newEnEducations[editingEduIndex] : {}),
+            school: eduForm.school_en || eduForm.school, // 优先用英文名，没有则用当前输入的
+            major: eduForm.major_en || eduForm.major,
+            degree: eduForm.degree,
+            startDate: eduForm.startDate,
+            endDate: eduForm.endDate,
+            description: eduForm.description,
+            country_chinese: eduForm.country_chinese,
+            country_english: eduForm.country_english
+          }
+
+          if (editingEduIndex === -1) {
+            newEnEducations.push(enEduEntry)
+          } else {
+            newEnEducations[editingEduIndex] = enEduEntry
+          }
+          updatePayload._en_sync = { educations: newEnEducations }
         }
     } else {
-        eduData.school = eduForm.school
-        eduData.country = eduForm.country
-        eduData.country_en = eduForm.country_en
-        if (eduForm.school === eduForm.school_cn && eduForm.school_en) {
-            eduData.school_en = eduForm.school_en
+        // 英文模式：仅更新英文列表，绝不影响中文
+        if (editingEduIndex === -1) {
+          newEducations.push(eduData)
         } else {
-            // Manual/Changed entry in Chinese -> English side should be empty
-            eduData.school_en = ''
+          newEducations[editingEduIndex] = eduData
         }
-        
-        eduData.major = eduForm.major
-        if (eduForm.major === eduForm.major_cn && eduForm.major_en) {
-            eduData.major_en = eduForm.major_en
-        } else {
-            // Manual/Changed entry in Chinese -> English side should be empty
-            eduData.major_en = ''
-        }
-    }
-    
-    // Clean up temporary fields
-    delete (eduData as any).school_cn
-    delete (eduData as any).major_cn
-
-    if (editingEduIndex === -1) {
-      newEducations.push(eduData)
-    } else {
-      newEducations[editingEduIndex] = eduData
+        updatePayload.educations = newEducations
     }
 
-    await this.saveResumeProfile({ educations: newEducations })
+    await this.saveResumeProfile(updatePayload)
     this.closeEduDrawer()
   },
 
   // 技能相关逻辑
-  onAddSkill() {
-    wx.showModal({
-      title: this.data.ui.addSkill,
-      placeholderText: this.data.ui.skillPlaceholder,
-      editable: true,
-      success: async (res) => {
-        if (res.confirm && res.content.trim()) {
-          const newSkills = [...this.data.skills, res.content.trim()]
-          await this.saveResumeProfile({ skills: newSkills })
-        }
-      }
+  onEditSkills() {
+    this.setData({
+      showSkillsDrawer: true,
+      skillsForm: this.data.skills.length > 0 ? [...this.data.skills] : ['']
     })
   },
-  onEditSkill(e: any) {
+  
+  onSkillInput(e: any) {
     const index = e.currentTarget.dataset.index
-    const currentSkill = this.data.skills[index]
-    wx.showModal({
-      title: '编辑技能',
-      editable: true,
-      content: currentSkill,
-      success: async (res) => {
-        if (res.confirm && res.content.trim()) {
-          const newSkills = [...this.data.skills]
-          newSkills[index] = res.content.trim()
-          await this.saveResumeProfile({ skills: newSkills })
-        }
-      }
+    const value = e.detail.value
+    const skillsForm = [...this.data.skillsForm]
+    skillsForm[index] = value
+    this.setData({ skillsForm })
+  },
+
+  addSkillRow() {
+    this.setData({
+      skillsForm: [...this.data.skillsForm, '']
     })
   },
-  onDeleteSkill(e: any) {
+
+  removeSkillRow(e: any) {
     const index = e.currentTarget.dataset.index
-    wx.showModal({
-      title: '确认删除',
-      content: `确定要删除“${this.data.skills[index]}”吗？`,
-      success: async (res) => {
-        if (res.confirm) {
-          const newSkills = [...this.data.skills]
-          newSkills.splice(index, 1)
-          await this.saveResumeProfile({ skills: newSkills })
-        }
-      }
-    })
+    const skillsForm = [...this.data.skillsForm]
+    skillsForm.splice(index, 1)
+    // 保持至少一行
+    if (skillsForm.length === 0) skillsForm.push('')
+    this.setData({ skillsForm })
+  },
+
+  closeSkillsDrawer() {
+    this.setData({ showSkillsDrawer: false })
+  },
+
+  async onSaveSkills() {
+    const { skillsForm, currentLang } = this.data
+    // 过滤掉空项
+    const newSkills = skillsForm.map(s => s.trim()).filter(s => s !== '')
+    
+    const payload: any = { skills: newSkills }
+    if (currentLang === 'Chinese') {
+      payload._en_sync = { skills: newSkills }
+    }
+    
+    await this.saveResumeProfile(payload)
+    this.closeSkillsDrawer()
   },
 
   async onDeleteEducation() {
@@ -1086,55 +1202,66 @@ Page({
         if (res.confirm) {
           const newEducations = [...educations]
           newEducations.splice(editingEduIndex, 1)
-          await this.saveResumeProfile({ educations: newEducations })
+          
+          const payload: any = { educations: newEducations }
+          if (this.data.currentLang === 'Chinese') {
+            payload._en_sync = { educations: newEducations }
+          }
+          
+          await this.saveResumeProfile(payload)
           this.closeEduDrawer()
         }
       }
     })
   },
   
-  onAddCertificate() {
-    wx.showModal({
-      title: '添加证书',
-      placeholderText: '请输入证书名称，如：CET-6',
-      editable: true,
-      success: async (res) => {
-        if (res.confirm && res.content.trim()) {
-          const newCertificates = [...this.data.certificates, res.content.trim()]
-          await this.saveResumeProfile({ certificates: newCertificates })
-        }
-      }
+  // 证书相关逻辑
+  onEditCertificates() {
+    this.setData({
+      showCertificatesDrawer: true,
+      certificatesForm: this.data.certificates.length > 0 ? [...this.data.certificates] : ['']
     })
   },
-  onEditCertificate(e: any) {
+
+  onCertificateInput(e: any) {
     const index = e.currentTarget.dataset.index
-    const currentCert = this.data.certificates[index]
-    wx.showModal({
-      title: '编辑证书',
-      editable: true,
-      content: currentCert,
-      success: async (res) => {
-        if (res.confirm && res.content.trim()) {
-          const newCertificates = [...this.data.certificates]
-          newCertificates[index] = res.content.trim()
-          await this.saveResumeProfile({ certificates: newCertificates })
-        }
-      }
+    const value = e.detail.value
+    const certificatesForm = [...this.data.certificatesForm]
+    certificatesForm[index] = value
+    this.setData({ certificatesForm })
+  },
+
+  addCertificateRow() {
+    this.setData({
+      certificatesForm: [...this.data.certificatesForm, '']
     })
   },
-  onDeleteCertificate(e: any) {
+
+  removeCertificateRow(e: any) {
     const index = e.currentTarget.dataset.index
-    wx.showModal({
-      title: '确认删除',
-      content: `确定要删除“${this.data.certificates[index]}”吗？`,
-      success: async (res) => {
-        if (res.confirm) {
-          const newCertificates = [...this.data.certificates]
-          newCertificates.splice(index, 1)
-          await this.saveResumeProfile({ certificates: newCertificates })
-        }
-      }
-    })
+    const certificatesForm = [...this.data.certificatesForm]
+    certificatesForm.splice(index, 1)
+    // 保持至少一行
+    if (certificatesForm.length === 0) certificatesForm.push('')
+    this.setData({ certificatesForm })
+  },
+
+  closeCertificatesDrawer() {
+    this.setData({ showCertificatesDrawer: false })
+  },
+
+  async onSaveCertificates() {
+    const { certificatesForm, currentLang } = this.data
+    // 过滤掉空项
+    const newCertificates = certificatesForm.map(c => c.trim()).filter(c => c !== '')
+    
+    const payload: any = { certificates: newCertificates }
+    if (currentLang === 'Chinese') {
+      payload._en_sync = { certificates: newCertificates }
+    }
+    
+    await this.saveResumeProfile(payload)
+    this.closeCertificatesDrawer()
   },
 
   onEditAiMessage() {
@@ -1153,7 +1280,8 @@ Page({
   },
 
   async onSaveAiMessageSheet() {
-    await this.saveResumeProfile({ aiMessage: this.data.aiMessageForm || '' })
+    const payload: any = { aiMessage: this.data.aiMessageForm || '' }
+    await this.saveResumeProfile(payload)
     this.closeAiMessageSheet()
   },
 })

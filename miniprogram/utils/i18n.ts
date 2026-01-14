@@ -177,6 +177,11 @@ const dict = {
         graduationDate: { Chinese: '毕业时间', English: 'Graduation Date' },
         timePeriod: { Chinese: '时间段', English: 'Time Period' },
         workExperience: { Chinese: '工作经历', English: 'Work Experience' },
+        skills: { Chinese: '专业技能', English: 'Skills' },
+        addSkill: { Chinese: '添加技能', English: 'Add Skill' },
+        skillPlaceholder: { Chinese: '请输入技能，如：TypeScript', English: 'e.g. TypeScript' },
+        addCertificate: { Chinese: '添加证书', English: 'Add Certificate' },
+        certificatesPlaceholder: { Chinese: '请输入证书，如：CET-6', English: 'e.g. CET-6' },
         company: { Chinese: '公司名称', English: 'Company' },
         companyPlaceholder: { Chinese: '请输入公司名称', English: 'Enter company name' },
         jobTitle: { Chinese: '职位名称', English: 'Job Title' },
@@ -187,10 +192,6 @@ const dict = {
         aiMessageLabel: { Chinese: '想对 AI 说的话', English: 'Message to AI' },
         aiMessageDefault: { Chinese: '当工作经验不足时，自动补充工作经历；当过往职位名称与目标岗位不匹配时，根据公司业务方向，灵活变更过往职位名称与工作内容。', English: 'Automatically supplement work experience when experience is insufficient; when past job titles do not match the target position, flexibly change past job titles and work contents based on the company\'s business direction.' },
         addEducation: { Chinese: '添加教育经历', English: 'Add Education' },
-        skills: { Chinese: '专业技能', English: 'Professional Skills' },
-        addSkill: { Chinese: '添加技能', English: 'Add Skill' },
-        skillPlaceholder: { Chinese: '请输入技能名称，如：Python, Figma', English: 'Enter skill name, e.g., Python, Figma' },
-        addCertificate: { Chinese: '添加证书', English: 'Add Certificate' },
         noData: { Chinese: '暂无数据', English: 'No data' },
         save: { Chinese: '保存', English: 'Save' },
         saveSuccess: { Chinese: '保存成功', English: 'Saved successfully' },
@@ -471,7 +472,9 @@ export type I18nKey =
     | 'resume.skills'
     | 'resume.addSkill'
     | 'resume.skillPlaceholder'
+    | 'resume.certificates'
     | 'resume.addCertificate'
+    | 'resume.certificatesPlaceholder'
     | 'resume.noData'
     | 'resume.save'
     | 'resume.saveSuccess'

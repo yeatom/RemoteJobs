@@ -354,15 +354,27 @@ Page({
       const user = await app.refreshUser()
       
       const profile = user?.resume_profile || {}
-      const completeness = user?.resume_completeness || 0
+      const comp_cn = user?.resume_completeness || 0
+      const comp_en = user?.resume_completeness_en || 0
 
-      if (completeness >= 1) {
+      // 只要有一方达到 60% (1) 或 100% (2) 就可以生成
+      if (comp_cn >= 1 || comp_en >= 1) {
         // 简历完整，调用云托管接口
         try {
-          let aiProfile = { ...profile }
+          // 这里的 aiProfile 为了兼容后端，可能需要选取其中一方，或者全部传过去
+          // 考虑到目前大部分是海外岗位，优先采用英文侧数据，但同时附带中文侧作为参考
+          let aiProfile: any = {}
+          if (comp_en >= 1) {
+            aiProfile = { ...profile.en }
+            aiProfile.zh = profile.zh // 附带中文作为辅助参考
+          } else {
+            aiProfile = { ...profile.zh }
+            aiProfile.en = profile.en
+          }
           
           // 如果有头像，换取临时链接，确保后端能跨环境访问
-          if (profile.photo && profile.photo.startsWith('cloud://')) {
+          const photoUrl = aiProfile.photo || profile.zh?.photo || profile.en?.photo
+          if (photoUrl && photoUrl.startsWith('cloud://')) {
             try {
               const fileRes = await wx.cloud.getTempFileURL({
                 fileList: [profile.photo]
@@ -444,14 +456,22 @@ Page({
         ui.hideLoading()
         this.setData({ isGenerating: false })
         
+        // 检查具体缺什么（以中文侧或英文侧均可作为基础）
+        const p_zh = profile.zh || {}
+        const p_en = profile.en || {}
+        
+        const hasBasicZh = p_zh.name && (p_zh.email || p_zh.phone || p_zh.wechat) && (p_zh.educations?.length > 0) && (p_zh.workExperiences?.length > 0)
+        const hasBasicEn = p_en.name && (p_en.email || p_en.phone || p_en.wechat) && (p_en.educations?.length > 0) && (p_en.workExperiences?.length > 0)
+
         const missing = []
-        if (!(profile.name && profile.photo && profile.gender && profile.birthday && profile.identity)) missing.push('基本信息')
-        if (!(profile.wechat || profile.email || profile.phone)) missing.push('联系方式')
-        if (!(profile.educations?.length > 0)) missing.push('教育经历')
+        if (!p_zh.name && !p_en.name) missing.push(this.data.isStandardChinese || this.data.isAIChinese ? '姓名' : 'Name')
+        if (!(p_zh.email || p_zh.phone || p_zh.wechat || p_en.email || p_en.phone || p_en.wechat)) missing.push(this.data.isStandardChinese || this.data.isAIChinese ? '联系方式' : 'Contact')
+        if (!(p_zh.educations?.length > 0 || p_en.educations?.length > 0)) missing.push(this.data.isStandardChinese || this.data.isAIChinese ? '教育经历' : 'Education')
+        if (!(p_zh.workExperiences?.length > 0 || p_en.workExperiences?.length > 0)) missing.push(this.data.isStandardChinese || this.data.isAIChinese ? '工作经历' : 'Experience')
         
         const content = missing.length > 0 
-          ? `为了更好的生成效果，请完善: ${missing.join('、')}`
-          : '为了更好的生成效果，请先完善简历资料'
+          ? `${this.data.isStandardChinese || this.data.isAIChinese ? '为了生成效果，请至少补全一份简历的' : 'To generate resume, please complete at least'}: ${missing.join('、')}`
+          : (this.data.isStandardChinese || this.data.isAIChinese ? '请先完善简历资料（需包含姓名、联系方式、教育及工作经历）' : 'Please complete your profile (Name, Contact, Education, and Work)')
 
         // 简历不完整，跳转到简历资料页
         wx.showModal({

@@ -72,7 +72,7 @@
         </view>
       </view>
       
-      <scroll-view class="apply-menu-scroll" scroll-y>
+      <scroll-view class="apply-menu-scroll" scroll-y enhanced="true" show-scrollbar="{{false}}">
         <view class="apply-menu-content-padding">
           <!-- AI 增强功能区 -->
           <view class="apply-menu-section ai-section">

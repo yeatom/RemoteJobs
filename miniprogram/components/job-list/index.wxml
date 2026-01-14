@@ -2,6 +2,8 @@
 <scroll-view
   class="job-list {{className}}"
   scroll-y="{{scrollY}}"
+  enhanced="true"
+  show-scrollbar="{{false}}"
   scroll-top="{{scrollTop}}"
   scroll-with-animation="{{scrollWithAnimation}}"
   lower-threshold="{{lowerThreshold}}"

@@ -63,15 +63,27 @@ exports.main = async (event, context) => {
 
         // --- 核心改动：简历资料包裹字段 ---
         resume_profile: {
-          name: '',
-          photo: '',
-          wechat: '',
-          email: '',
-          phone: '',
-          educations: [],
-          workExperiences: [],
-          certificates: [],
-          aiMessage: '当工作经验不足时，自动补充工作经历；当过往职位名称与目标岗位不匹配时，根据公司业务方向，灵活变更过往职位名称与工作内容。'
+          zh: {
+            name: '',
+            photo: '',
+            wechat: '',
+            email: '',
+            phone: '',
+            educations: [],
+            workExperiences: [],
+            certificates: [],
+            aiMessage: '当工作经验不足时，自动补充工作经历；当过往职位名称与目标岗位不匹配时，根据公司业务方向，灵活变更过往职位名称与工作内容。'
+          },
+          en: {
+            name: '',
+            photo: '',
+            email: '',
+            location: 'China',
+            educations: [],
+            workExperiences: [],
+            certificates: [],
+            aiMessage: 'When experience is insufficient, it automatically supplements work experience; when past job titles do not match the target position, it flexibly changes past job titles and work descriptions based on the company\'s business direction.'
+          }
         },
         resume_completeness: 0,
         resume_completeness_en: 0,

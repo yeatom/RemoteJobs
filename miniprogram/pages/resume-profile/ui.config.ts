@@ -33,6 +33,8 @@ const UI_MAP = {
     certificates: 'resume.certificates',
     /** AI 寄语标题 */
     aiMessageLabel: 'resume.aiMessageLabel',
+    /** 编辑文本 */
+    edit: 'resume.editLabel',
 
     // --- 字段 Label ---
     /** 性别 */
@@ -97,6 +99,8 @@ const UI_MAP = {
     descriptionPlaceholder: 'resume.descriptionPlaceholder',
     /** 技能输入提示 */
     skillPlaceholder: 'resume.skillPlaceholder',
+    /** 证书输入提示 */
+    certificatesPlaceholder: 'resume.certificatesPlaceholder',
     /** 公司输入提示 */
     companyPlaceholder: 'resume.companyPlaceholder',
     /** 职位输入提示 */

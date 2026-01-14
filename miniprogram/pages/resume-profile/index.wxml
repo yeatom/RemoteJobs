@@ -23,18 +23,27 @@
   <scroll-view     
     class="resume-content" 
     scroll-y="{{true}}"
+    enhanced="true"
     show-scrollbar="{{false}}"
   >
     <view class="resume-body">
       <!-- 基本信息 -->
       <view class="section-group">
-        <view class="section-group-title">{{ui.personalInfo}}</view>
+        <view class="section-header-row">
+          <view class="section-group-title">{{ui.personalInfo}}</view>
+          <view class="sync-btn-small" wx:if="{{currentLang === 'English'}}" bindtap="onSyncFromChinese">
+            <text class="sync-icon">🔄</text>
+            <text>{{ui.syncFromCn}}</text>
+          </view>
+        </view>
         <view class="card">
           <!-- 照片 -->
           <view class="list-item photo-item" bindtap="onEditPhoto">
-            <view class="item-label">{{ui.photo}}</view>
+            <view class="item-label">
+              <text>{{ui.photo}}</text>
+            </view>
             <view class="item-value">
-              <view class="avatar-progress-container" style="background-image: conic-gradient(#3b82f6 {{(currentLang === 'English' ? completeness_en : completeness_cn) === 2 ? 100 : ((currentLang === 'English' ? completeness_en : completeness_cn) === 1 ? 66 : 15)}}%, #e2e8f0 0)">
+              <view class="avatar-progress-container" style="background-image: conic-gradient(#3b82f6 {{currentPercent}}%, #e2e8f0 0)">
                 <block wx:if="{{photo}}">
                   <image class="avatar-img shadow-none" src="{{photo}}" mode="aspectFill"></image>
                 </block>
@@ -50,7 +59,7 @@
           <view class="list-item" bindtap="onEditBasicInfo">
             <view class="item-label">{{ui.nameLabel}}</view>
             <view class="item-value">
-              <text class="{{(currentLang === 'English' ? name_en : name) ? 'value-text' : 'placeholder-text'}}">{{(currentLang === 'English' ? name_en : name) || ui.noData}}</text>
+              <text class="{{name ? 'value-text' : 'placeholder-text'}}">{{name || ui.noData}}</text>
               <view class="arrow-icon"></view>
             </view>
           </view>
@@ -138,8 +147,8 @@
                 <view class="edu-header">
                   <view class="edu-school">
                     <block wx:if="{{currentLang === 'English'}}">
-                      <text wx:if="{{item.school_en}}">{{item.school_en}}{{item.country_en ? ', ' + item.country_en : ''}}</text>
-                      <text wx:else class="placeholder-text" style="font-size: 26rpx;">请输入学校英文名</text>
+                      <text wx:if="{{item.school}}">{{item.school}}{{item.country_english ? ', ' + item.country_english : ''}}</text>
+                      <text wx:else class="placeholder-text" style="font-size: 26rpx;">{{ui.schoolPlaceholder}}</text>
                     </block>
                     <block wx:else>
                       {{item.school || ui.noData}}
@@ -150,8 +159,8 @@
                   </view>
                 </view>
                 <view class="edu-details" wx:if="{{currentLang === 'English'}}">
-                  <text wx:if="{{item.major_en}}">{{item.major_en}}</text>
-                  <text wx:else class="placeholder-text" style="font-size: 26rpx;">请输入专业英文名</text>
+                  <text wx:if="{{item.major}}">{{item.major}}</text>
+                  <text wx:else class="placeholder-text" style="font-size: 26rpx;">{{ui.majorPlaceholder}}</text>
                 </view>
                 <view class="edu-details" wx:else>
                   <text wx:if="{{item.degree}}">{{item.degree}}</text>
@@ -207,24 +216,23 @@
         </view>
       </view>
 
-      <!-- 证书 -->
+      <!-- 技能 -->
       <view class="section-group">
         <view class="section-header-row">
           <view class="section-group-title">{{ui.skills}}</view>
-          <view class="add-btn" bindtap="onAddSkill">
+          <view class="add-btn" bindtap="onEditSkills">
             <text class="add-btn-text">{{ui.addSkill}}</text>
           </view>
         </view>
         
-        <view class="tags-wrapper">
+        <view class="tags-wrapper" bindtap="onEditSkills">
           <block wx:if="{{skills && skills.length > 0}}">
-            <view class="tag-item skill-tag" wx:for="{{skills}}" wx:key="index" bindtap="onEditSkill" data-index="{{index}}">
+            <view class="tag-item skill-tag" wx:for="{{skills}}" wx:key="index">
               <text class="tag-text">{{item}}</text>
-              <view class="tag-del" catchtap="onDeleteSkill" data-index="{{index}}">×</view>
             </view>
           </block>
           <block wx:else>
-            <view class="empty-tags" bindtap="onAddSkill">
+            <view class="empty-tags">
               <text class="empty-text">{{ui.noData}}</text>
             </view>
           </block>
@@ -235,20 +243,19 @@
       <view class="section-group">
         <view class="section-header-row">
           <view class="section-group-title">{{ui.certificates}}</view>
-          <view class="add-btn" bindtap="onAddCertificate">
+          <view class="add-btn" bindtap="onEditCertificates">
             <text class="add-btn-text">{{ui.addCertificate}}</text>
           </view>
         </view>
         
-        <view class="tags-wrapper">
+        <view class="tags-wrapper" bindtap="onEditCertificates">
           <block wx:if="{{certificates && certificates.length > 0}}">
-            <view class="tag-item" wx:for="{{certificates}}" wx:key="index" bindtap="onEditCertificate" data-index="{{index}}">
+            <view class="tag-item cert-tag" wx:for="{{certificates}}" wx:key="index">
               <text class="tag-text">{{item}}</text>
-              <view class="tag-del" catchtap="onDeleteCertificate" data-index="{{index}}">×</view>
             </view>
           </block>
           <block wx:else>
-            <view class="empty-tags" bindtap="onAddCertificate">
+            <view class="empty-tags">
               <text class="empty-text">{{ui.noData}}</text>
             </view>
           </block>
@@ -339,13 +346,14 @@
       </view>
     </view>
     
+    <view class="drawer-content">
       <view class="form-item form-item-relative">
         <text class="form-label">{{ui.education}}</text>
         <input class="form-input" placeholder="{{ui.schoolPlaceholder}}" value="{{eduForm.school}}" bindinput="onEduSchoolInput" bindfocus="onEduSchoolFocus" bindblur="onEduSchoolBlur" />
         <scroll-view scroll-y enhanced="true" show-scrollbar="{{false}}" class="suggestions-box" wx:if="{{showUniversitySuggestions && universitySuggestions.length > 0}}">
           <view class="suggestion-item" wx:for="{{universitySuggestions}}" wx:key="_id" bindtap="onSelectUniversity" data-item="{{item}}">
-            <text class="suggestion-main">{{currentLang === 'English' ? (item.english_name + (item.country && item.country !== 'China' ? ' (' + (item.country_en || item.country) + ')' : '')) : (item.chinese_name + (item.country && item.country !== 'China' ? ' (' + item.country + ')' : ''))}}</text>
-            <text class="suggestion-sub" wx:if="{{item.english_name && item.chinese_name}}">{{currentLang === 'English' ? item.chinese_name : item.english_name}}</text>
+            <text class="suggestion-main">{{currentLang === 'English' ? (item.english_name + (item.country_english && item.country_english !== 'China' ? ' (' + item.country_english + ')' : '')) : (item.chinese_name + (item.country_chinese && item.country_chinese !== '中国' ? ' (' + item.country_chinese + ')' : ''))}}</text>
+            <text class="suggestion-sub" wx:if="{{item.english_name && item.chinese_name}}">{{currentLang === 'English' ? (item.chinese_name + (item.country_chinese && item.country_chinese !== '中国' ? ' (' + item.country_chinese + ')' : '')) : (item.english_name + (item.country_english && item.country_english !== 'China' ? ' (' + item.country_english + ')' : ''))}}</text>
           </view>
         </scroll-view>
       </view>
@@ -431,7 +439,7 @@
         </view>
       </view>
 
-      <view class="form-item">
+      <view class="form-item" wx:if="{{currentLang === 'English'}}">
         <text class="form-label">{{ui.identity}}</text>
         <view class="picker-value {{basicInfoForm.identity ? '' : 'placeholder-text'}}" bindtap="openIdentityPicker">
           {{basicInfoForm.identity || ui.identityPlaceholder}}
@@ -551,7 +559,7 @@
       <view class="bottom-sheet-header-right">
       </view>
     </view>
-    <scroll-view class="bottom-sheet-content custom-picker-body" scroll-y>
+    <scroll-view class="bottom-sheet-content custom-picker-body" scroll-y enhanced="true" show-scrollbar="{{false}}">
       <view 
         wx:for="{{genderOptions}}" 
         wx:key="*this" 
@@ -576,7 +584,7 @@
       <view class="bottom-sheet-header-right">
       </view>
     </view>
-    <scroll-view class="bottom-sheet-content custom-picker-body" scroll-y>
+    <scroll-view class="bottom-sheet-content custom-picker-body" scroll-y enhanced="true" show-scrollbar="{{false}}">
       <view 
         wx:for="{{identityOptions}}" 
         wx:key="*this" 
@@ -588,6 +596,56 @@
         <view class="check-icon" wx:if="{{basicInfoForm.identity === item}}"></view>
       </view>
     </scroll-view>
+  </view>
+
+  <!-- 技能编辑弹窗 -->
+  <view class="drawer-mask {{showSkillsDrawer ? 'drawer-mask-show' : ''}}" bindtap="closeSkillsDrawer"></view>
+  <view class="drawer {{showSkillsDrawer ? 'drawer-show' : ''}}">
+    <view class="drawer-header">
+      <text class="drawer-title">{{ui.skills}}</text>
+    </view>
+    <view class="drawer-content">
+      <view class="form-item-list" wx:for="{{skillsForm}}" wx:key="index">
+        <input class="form-input list-input" placeholder="{{ui.skillPlaceholder}}" value="{{item}}" data-index="{{index}}" bindinput="onSkillInput" />
+        <view class="list-action-btn {{index === skillsForm.length - 1 ? 'add-action' : 'remove-action'}}" 
+              bindtap="{{index === skillsForm.length - 1 ? 'addSkillRow' : 'removeSkillRow'}}" data-index="{{index}}">
+          <text class="action-icon">{{index === skillsForm.length - 1 ? '+' : '-'}}</text>
+        </view>
+      </view>
+    </view>
+    <view class="drawer-footer">
+      <view class="btn-secondary" bindtap="closeSkillsDrawer">
+        <text>{{ui.cancel}}</text>
+      </view>
+      <view class="btn-primary" bindtap="onSaveSkills">
+        <text>{{ui.save}}</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 证书编辑弹窗 -->
+  <view class="drawer-mask {{showCertificatesDrawer ? 'drawer-mask-show' : ''}}" bindtap="closeCertificatesDrawer"></view>
+  <view class="drawer {{showCertificatesDrawer ? 'drawer-show' : ''}}">
+    <view class="drawer-header">
+      <text class="drawer-title">{{ui.certificates}}</text>
+    </view>
+    <view class="drawer-content">
+      <view class="form-item-list" wx:for="{{certificatesForm}}" wx:key="index">
+        <input class="form-input list-input" placeholder="{{ui.certificatesPlaceholder}}" value="{{item}}" data-index="{{index}}" bindinput="onCertificateInput" />
+        <view class="list-action-btn {{index === certificatesForm.length - 1 ? 'add-action' : 'remove-action'}}" 
+              bindtap="{{index === certificatesForm.length - 1 ? 'addCertificateRow' : 'removeCertificateRow'}}" data-index="{{index}}">
+          <text class="action-icon">{{index === certificatesForm.length - 1 ? '+' : '-'}}</text>
+        </view>
+      </view>
+    </view>
+    <view class="drawer-footer">
+      <view class="btn-secondary" bindtap="closeCertificatesDrawer">
+        <text>{{ui.cancel}}</text>
+      </view>
+      <view class="btn-primary" bindtap="onSaveCertificates">
+        <text>{{ui.save}}</text>
+      </view>
+    </view>
   </view>
 
   <!-- 自定义年月选择器 (底部弹出) -->
