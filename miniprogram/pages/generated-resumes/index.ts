@@ -1,5 +1,6 @@
 import { normalizeLanguage, t } from '../../utils/i18n'
 import { ui } from '../../utils/ui'
+import { callApi, formatFileUrl } from '../../utils/request'
 
 Page({
   data: {
@@ -15,7 +16,6 @@ Page({
   onLoad() {
     this.syncLanguage()
     this.fetchResumes()
-    this.initWatcher()
   },
 
   syncLanguage() {
@@ -52,33 +52,16 @@ Page({
     })
   },
 
-  initWatcher() {
-    const db = wx.cloud.database()
-    this.watcher = db.collection('generated_resumes')
-      .orderBy('createTime', 'desc')
-      .watch({
-        onChange: (snapshot) => {
-          console.log('[Watcher] snapshot:', snapshot)
-          if (snapshot.docs) {
-            this.processResumes(snapshot.docs)
-          }
-        },
-        onError: (err) => {
-          console.error('[Watcher] error:', err)
-        }
-      })
-  },
-
   async fetchResumes() {
     this.setData({ loading: true })
-    const db = wx.cloud.database()
     
     try {
-      const res = await db.collection('generated_resumes')
-        .orderBy('createTime', 'desc')
-        .get()
+      const res = await callApi('getGeneratedResumes', {
+        limit: 20
+      })
 
-      this.processResumes(res.data)
+      const list = (res.result && res.result.data) || []
+      this.processResumes(list)
       this.setData({ loading: false })
     } catch (err) {
       console.error('获取简历列表失败:', err)
@@ -121,29 +104,52 @@ Page({
       return
     }
 
-    if (!item.fileId) return
+    if (!item.fileUrl && !item.fileId) return
 
     ui.showLoading('正在获取文件...')
 
     try {
-      // 1. 从云存储下载
-      const downloadRes = await wx.cloud.downloadFile({
-        fileID: item.fileId
-      })
+      let tempFilePath = '';
+      
+      // 优先使用 fileUrl
+      if (item.fileUrl) {
+         const url = formatFileUrl(item.fileUrl);
+         console.log('Downloading resume from:', url);
+         const downloadRes = await new Promise<any>((resolve, reject) => {
+             wx.downloadFile({
+                 url,
+                 success: resolve,
+                 fail: reject
+             })
+         });
+         if (downloadRes.statusCode === 200) {
+             tempFilePath = downloadRes.tempFilePath;
+         } else {
+             throw new Error('Download failed status ' + downloadRes.statusCode);
+         }
+      } else if (item.fileId) {
+        ui.showError('Old file unavailable (Cloud)');
+        ui.hideLoading();
+        return;
+      }
+
+      if (!tempFilePath) throw new Error('No file path obtained');
 
       // 2. 预览
       wx.openDocument({
-        filePath: downloadRes.tempFilePath,
+        filePath: tempFilePath,
         showMenu: true,
         success: () => {
           ui.hideLoading()
         },
         fail: (err) => {
+          console.error(err)
           ui.hideLoading()
           ui.showError('无法打开该文档')
         }
       })
     } catch (err) {
+      console.error(err)
       ui.hideLoading()
       ui.showError('下载失败')
     }

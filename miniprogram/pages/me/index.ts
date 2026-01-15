@@ -1206,12 +1206,6 @@ Page({
         })
     },
 
-    onAppliedJobsTap() {
-        wx.navigateTo({
-            url: '/pages/applied-jobs/index',
-        })
-    },
-
     onGeneratedResumesTap() {
         wx.navigateTo({
             url: '/pages/generated-resumes/index',

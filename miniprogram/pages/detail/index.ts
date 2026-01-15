@@ -2,6 +2,7 @@
 import { normalizeLanguage, t } from '../../utils/i18n'
 import { attachLanguageAware } from '../../utils/languageAware'
 import { getJobFieldsByLanguage, mapJobFieldsToStandard } from '../../utils/job'
+import { callApi } from '../../utils/request'
 
 Page({
   data: {
@@ -61,54 +62,20 @@ Page({
 
   async fetchJobDetails(id: string, collection: string) {
     try {
-      const db = wx.cloud.database()
-      
       // 获取用户语言设置并确定字段名
       const app = getApp() as any
       const userLanguage = normalizeLanguage(app?.globalData?.language || 'Chinese')
+      
+      const res = await callApi('getJobDetail', { id, collection })
+      
+      if (!res.result || !res.result.data) {
+        throw new Error('Job not found');
+      }
+
+      let jobData = res.result.data
+      
+      // 映射字段
       const { titleField, summaryField, descriptionField, salaryField, sourceNameField } = getJobFieldsByLanguage(userLanguage)
-      
-      let query: any = db.collection(collection).doc(id)
-      
-      // 根据语言选择字段，只查询需要的字段
-      const fieldSelection: any = {
-        _id: true,
-        createdAt: true,
-        source_url: true,
-        team: true,
-        type: true,
-        tags: true,
-        [titleField]: true,
-        [summaryField]: true,
-        [descriptionField]: true,
-        experience: true,
-      }
-      
-      // 根据语言选择 salary 和 source_name 字段
-      if (salaryField) {
-        fieldSelection[salaryField] = true
-        if (userLanguage === 'AIEnglish' && salaryField !== 'salary') {
-          fieldSelection.salary = true
-        }
-      } else {
-        fieldSelection.salary = true
-      }
-      
-      if (sourceNameField) {
-        fieldSelection[sourceNameField] = true
-        if (userLanguage === 'AIEnglish' && sourceNameField !== 'source_name') {
-          fieldSelection.source_name = true
-        }
-      } else {
-        fieldSelection.source_name = true
-      }
-      
-      query = query.field(fieldSelection)
-      
-      const res = await query.get()
-      let jobData = res.data
-      
-      // 将查询的字段名映射回标准字段名
       if (jobData) {
         jobData = mapJobFieldsToStandard(jobData, titleField, summaryField, descriptionField, salaryField, sourceNameField)
       }

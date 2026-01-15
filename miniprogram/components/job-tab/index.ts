@@ -489,70 +489,23 @@ Component({
       
       wx.showLoading({ title: '收藏中...', mask: true })
       try {
-        const db = wx.cloud.database()
+        // 构建批量保存参数
+        // 直接提交所有有效职位，让后端去重
+        const jobsToCheck = currentJobs.filter(job => job._id && job._id.trim())
         
-        // 获取已收藏的职位ID
-        const savedIds = new Set<string>()
-        const pageSize = 100
-        let hasMore = true
-        let skip = 0
-        
-        while (hasMore) {
-          const savedRes = await db
-            .collection('saved_jobs')
-            .where({ openid })
-            .skip(skip)
-            .limit(pageSize)
-            .get()
-          
-          const batch = (savedRes.data || []).map((item: any) => item.jobId).filter(Boolean)
-          batch.forEach(id => savedIds.add(id))
-          
-          if (batch.length < pageSize) {
-            hasMore = false
-          } else {
-            skip += pageSize
-          }
-        }
-        
-        // 去重并筛选未收藏的职位
-        const seenJobIds = new Set<string>()
-        const jobsToCheck = currentJobs.filter(job => {
-          if (!job._id) return false
-          if (seenJobIds.has(job._id)) return false
-          seenJobIds.add(job._id)
-          return true
-        })
-        
-        const jobIdsToCheck = jobsToCheck.map(job => job._id).filter(Boolean)
-        if (jobIdsToCheck.length > 0) {
-          const checkRes = await db
-            .collection('saved_jobs')
-            .where({
-              openid,
-              jobId: db.command.in(jobIdsToCheck),
-            })
-            .get()
-          
-          const existingJobIds = (checkRes.data || []).map((item: any) => item.jobId)
-          existingJobIds.forEach(id => savedIds.add(id))
-        }
-        
-        const jobsToSave = jobsToCheck.filter(job => !savedIds.has(job._id))
-        
-        if (jobsToSave.length === 0) {
+        if (jobsToCheck.length === 0) {
           wx.hideLoading()
-          wx.showToast({ title: '已收藏全部', icon: 'success', duration: 2000 })
+          wx.showToast({ title: '当前列表为空', icon: 'none' })
           return
         }
-        
-        // 使用云函数批量插入
-        const jobIds = jobsToSave.map(job => job._id).filter(Boolean)
+
+        const jobIds = jobsToCheck.map(job => job._id)
         const jobData: Record<string, { type: string; createdAt: any }> = {}
-        jobsToSave.forEach(job => {
+        jobsToCheck.forEach(job => {
           if (job._id) {
             jobData[job._id] = {
               type: job.type || '',
+              // 兼容字符串或 Date 对象
               createdAt: job.createdAt || new Date(),
             }
           }
@@ -563,37 +516,19 @@ Component({
           jobData,
         })
         
-        let successCount = 0
-        if (res?.result && (res.result as any).success) {
-          const result = res.result as any
-          successCount = result.savedCount || 0
-        } else {
-          wx.hideLoading()
-          wx.showToast({ title: '收藏失败', icon: 'none' })
-          return
-        }
-        
         wx.hideLoading()
-        if (successCount === 0) {
-          wx.showToast({ 
-            title: '已收藏全部', 
-            icon: 'success',
-            duration: 2000,
-          })
-        } else {
-          wx.showToast({ 
-            title: `成功收藏 ${successCount} 个职位`, 
-            icon: 'success',
-            duration: 2000,
-          })
-        }
+        wx.showToast({ 
+          title: '收藏成功', 
+          icon: 'success',
+          duration: 2000,
+        })
         
         // 更新职位列表的isSaved状态
-        const savedJobIds = new Set(jobsToSave.slice(0, successCount).map(j => j._id))
+        const savedJobIds = new Set(jobIds)
         this.setData({
           jobs: this.data.jobs.map(job => ({
             ...job,
-            isSaved: savedIds.has(job._id) || savedJobIds.has(job._id),
+            isSaved: job.isSaved || savedJobIds.has(job._id),
           }))
         })
         
@@ -647,16 +582,9 @@ Component({
       }
       
       try {
-        const db = wx.cloud.database()
-        const timestamp = Date.now()
-        
-        await db.collection('saved_search_conditions').add({
-          data: {
-            openid,
-            ...searchCondition,
-            createdAt: timestamp,
-            updatedAt: timestamp,
-          },
+        await callApi('saveSearchCondition', {
+          openid,
+          ...searchCondition,
         })
         
         wx.showToast({ title: '搜索条件已保存', icon: 'success' })

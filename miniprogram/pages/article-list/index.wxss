@@ -1,8 +1,0 @@
-.page { background: #fff; min-height:100vh; }
-.content { padding: 24rpx; }
-.article-list { display:flex; flex-direction:column; gap:16rpx; }
-.article-card { display:flex; gap:12rpx; background:#fff; border-radius:12rpx; padding:16rpx; box-shadow:0 2rpx 8rpx rgba(0,0,0,0.04); align-items:center; }
-.article-image { width:96rpx; height:96rpx; border-radius:8rpx; flex-shrink:0; }
-.article-title-text { font-size:28rpx; font-weight:600; color:#111827; }
-.article-description { font-size:24rpx; color:#6b7280; margin-top:6rpx; }
-

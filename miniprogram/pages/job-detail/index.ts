@@ -2,7 +2,7 @@
 import { normalizeLanguage, t } from '../../utils/i18n'
 import { normalizeJobTags, translateFieldValue } from '../../utils/job'
 import { attachLanguageAware } from '../../utils/languageAware'
-import { processAndSaveAIResume } from '../../utils/resume'
+// import { processAndSaveAIResume } from '../../utils/resume'
 import { request, callApi } from '../../utils/request'
 import { ui } from '../../utils/ui'
 const { cloudRunEnv } = require('../../env.js')
@@ -303,16 +303,14 @@ Page({
       ui.showLoading('检查状态...')
       
       // 1. 前置检查：是否已经为该岗位生成过简历
-      const db = wx.cloud.database()
-      const existingRes = await db.collection('generated_resumes')
-        .where({
-          jobId: jobId,
-          status: 'completed'
-        })
-        .limit(1)
-        .get()
+      const checkRes = await callApi('getGeneratedResumes', {
+        jobId,
+        status: 'completed',
+        limit: 1
+      })
+      const existingList = (checkRes.result && checkRes.result.data) || []
 
-      if (existingRes.data && existingRes.data.length > 0) {
+      if (existingList.length > 0) {
         ui.hideLoading()
         wx.showModal({
           title: '已生成过简历',

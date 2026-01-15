@@ -12,7 +12,6 @@ App<IAppOption>({
     _langListeners: new Set<LangListener>(),
     // 页面跳转临时数据存储
     _pageData: {
-      articleData: null as any,
       jobData: null as any,
       filterValue: null as any,
       filterTabIndex: 0,

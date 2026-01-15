@@ -3,22 +3,13 @@
   "pages": [
     "pages/index/index",
     "pages/tools/index",
-    "pages/community/index",
     "pages/me/index",
     "pages/logs/logs",
-    "pages/article-list/index",
-    "pages/article-detail/index",
     "pages/job-detail/index",
     "pages/filter/index",
     "pages/resume-profile/index",
-    "pages/applied-jobs/index",
     "pages/generated-resumes/index"
   ],
-  "page": {
-    "pages/community/index": {
-      "disableScroll": true
-    }
-  },
   "window": {
     "navigationBarTextStyle": "black",
     "navigationBarTitleText": "",

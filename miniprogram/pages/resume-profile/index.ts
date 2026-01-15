@@ -3,7 +3,7 @@ import { normalizeLanguage, t } from '../../utils/i18n'
 import { attachLanguageAware } from '../../utils/languageAware'
 import { ui } from '../../utils/ui'
 import { callApi, formatFileUrl } from '../../utils/request'
-import { buildPageUI } from './ui.config'
+const { serverUrl } = require('../../env.js')
 
 Page({
   data: {
@@ -431,7 +431,7 @@ Page({
         wx.showLoading({ title: uiStrings.uploading })
         try {
           wx.uploadFile({
-            url: 'http://127.0.0.1:3000/api/upload',
+            url: `${serverUrl}/api/upload`,
             filePath: tempFilePath,
             name: 'file',
             header: {
