@@ -14,7 +14,7 @@ type AppUser = {
       used: number
       limit: number
     }
-    job_quota: {
+    pts_quota: {
       used: number
       limit: number
     }

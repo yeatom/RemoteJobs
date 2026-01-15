@@ -53,7 +53,7 @@ exports.main = async (event, context) => {
 
     if (!is_edit) {
         // 首次生成：检查岗位槽位
-        if (!currentJob && membership.job_quota.used >= limits.jobs) {
+        if (!currentJob && membership.pts_quota.used >= limits.jobs) {
           return { success: false, message: `岗位数量已达上限 (${limits.jobs}个)`, needUpgrade: true }
         }
       } else {
@@ -74,9 +74,9 @@ exports.main = async (event, context) => {
     if (level === 1 || level === 2) {
       const jobPath = `membership.job_details.${job_id}`
       if (!is_edit) {
-        // 首次生成：如果该岗位是第一次出现在 job_details 中，增加 job_quota.used
+        // 首次生成：如果该岗位是第一次出现在 job_details 中，增加 pts_quota.used
         if (!membership.job_details || !membership.job_details[job_id]) {
-          updateData['membership.job_quota.used'] = _.inc(1)
+          updateData['membership.pts_quota.used'] = _.inc(1)
           updateData[jobPath] = {
             tweak_count: 0,
             email_count: 0,
@@ -93,7 +93,7 @@ exports.main = async (event, context) => {
        // 高级会员不记录详细槽位限制，但为了展示方便，还是可以记录一下
        const jobPath = `membership.job_details.${job_id}`
        if (!membership.job_details || !membership.job_details[job_id]) {
-         updateData['membership.job_quota.used'] = _.inc(1)
+         updateData['membership.pts_quota.used'] = _.inc(1)
          updateData[jobPath] = {
            tweak_count: is_edit ? 1 : 0,
            email_count: 0,

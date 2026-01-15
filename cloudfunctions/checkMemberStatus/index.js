@@ -23,7 +23,7 @@ exports.main = async (event, context) => {
       level: 0,
       expire_at: null,
       total_ai_usage: { used: 0, limit: 300 },
-      job_quota: { used: 0, limit: 0 },
+      pts_quota: { used: 0, limit: 0 },
       job_details: {}
     }
 
@@ -42,7 +42,7 @@ exports.main = async (event, context) => {
     if (isExpired && membership.level > 0) {
       membership.level = 0
       membership.expire_at = null
-      membership.job_quota.limit = 0
+      if (membership.pts_quota) membership.pts_quota.limit = 0
       
       const resetData = {
         membership: membership,

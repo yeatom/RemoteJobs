@@ -36,6 +36,20 @@ const UI_MAP = {
     vipTag: 'me.vipTag',
     /** 会员到期日期提示 */
     memberExpiredDate: 'me.memberExpiredDate',
+    /** 额度点数 */
+    points: 'me.points',
+    /** 可用 */
+    available: 'me.available',
+    /** 会员中心 */
+    memberCenter: 'me.memberCenter',
+    /** 生效中 */
+    active: 'me.active',
+    /** 未激活 */
+    inactive: 'me.inactive',
+    /** 充值与升级 */
+    rechargeUpgrade: 'me.rechargeUpgrade',
+    /** 立即支付 */
+    payNow: 'me.payNow',
     /** 无限制标识 */
     unlimited: 'me.unlimited',
     /** AI 提炼额度展示标题 */
@@ -48,6 +62,26 @@ const UI_MAP = {
     totalQuota: 'me.totalQuota',
     /** 补差价升级按钮文案 */
     upgradeAmountText: 'me.upgradeAmountText',
+    /** 额度单位 */
+    unitPoints: 'me.unitPoints',
+    /** 天单位 (复数/常用) */
+    unitDays: 'me.unitDays',
+    /** 天单位 (单数) */
+    unitDaysSingle: 'me.unitDaysSingle',
+    /** 永久有效 */
+    forever: 'me.forever',
+    /** 合计标签 */
+    totalLabel: 'me.totalLabel',
+    /** 会员详情: AI分析 */
+    noteFullAI: 'me.noteFullAI',
+    /** 会员详情: 简历优化 */
+    noteResumeOptim: 'me.noteResumeOptim',
+    /** 会员详情: 双语 */
+    noteMultiLang: 'me.noteMultiLang',
+    /** 算力包: 叠加 */
+    noteStackable: 'me.noteStackable',
+    /** 算力包: 永久 */
+    noteNoExpiry: 'me.noteNoExpiry',
 
     // --- 核心功能入口 ---
     /** 简历资料入口标题 */

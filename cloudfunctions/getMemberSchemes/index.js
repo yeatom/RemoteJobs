@@ -24,9 +24,13 @@ exports.main = async (event, context) => {
     // 判断是否为英文（English 或 AIEnglish）
     const isEnglish = userLanguage === 'English' || userLanguage === 'AIEnglish'
 
+    const _ = db.command
     let result
     try {
       result = await db.collection('member_schemes')
+        .where({
+           type: _.neq('gift')
+        })
         .orderBy('scheme_id', 'asc')
         .get()
     } catch (err) {

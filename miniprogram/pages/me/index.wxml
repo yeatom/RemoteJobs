@@ -33,53 +33,33 @@
     </view>
 
     <view class="content-body">
-    <!-- 2. 会员权益看板 VIP Benefit Card -->
-    <view class="vip-benefit-card vip-level-{{memberLevel}} {{isMember ? 'vip-active' : ''}}" bindtap="onVipCardTap">
-      <view class="vip-main-content">
-        <!-- 头部：等级与有效期 -->
-        <view class="vip-card-header">
-          <view class="vip-title-row">
-            <text class="vip-identity-title">{{isMember ? memberBadgeText : ui.regularUser}}</text>
-            <view wx:if="{{isMember}}" class="vip-badge-icon badge-level-{{memberLevel}}"></view>
+    <!-- 2. 会员权益看板 VIP Benefit Card (Redesigned) -->
+    <view class="vip-card-v3 {{isMember ? 'level-' + memberLevel : 'level-0'}}" bindtap="openMemberHub">
+      <!-- 背景光效 -->
+      <view class="card-glow"></view>
+      <view class="card-content">
+        <view class="card-top">
+          <view class="card-badge-wrap">
+            <text class="vip-name">{{memberBadgeText || ui.regularUser}}</text>
+          </view>
+          <view class="card-points">
+            <view class="points-upper">
+              <text class="points-label">{{ui.available}}:</text>
+              <text class="points-current">{{(isMember || totalBalance > 0) ? totalBalance : '-'}}</text>
+              <text class="points-total">/{{(isMember || totalBalance > 0) ? displayLimit : '--'}}</text>
+            </view>
+            <view class="points-progress-wrap">
+              <view class="points-progress-inner" style="width: {{(isMember || totalBalance > 0) ? resumeQuotaProgress + '%' : '0%'}}"></view>
+            </view>
           </view>
         </view>
-
-        <!-- 中部：简要描述与到期提醒 -->
-        <view class="vip-card-body">
-          <block wx:if="{{isMember}}">
-            <view class="vip-status-display">
-              <text class="vip-desc">{{ui.memberFullAccess}}</text>
-              <view class="vip-info-row">
-                <view class="info-item">
-                  <text class="info-label">{{ui.memberExpiredDate}}</text>
-                  <text class="info-value">{{expiredDateText}}</text>
-                </view>
-                <view class="info-sep"></view>
-                <view class="info-item">
-                  <text class="info-label">{{ui.jobQuota}}</text>
-                  <text class="info-value">{{resumeQuotaText}}</text>
-                </view>
-              </view>
-            </view>
-          </block>
-          <block wx:else>
-            <text class="vip-desc">{{ui.unlockAIFeatures}}</text>
-          </block>
-        </view>
-
-        <!-- 底部：操作按钮与升舱引导 -->
-        <view class="vip-card-footer">
-          <block wx:if="{{memberLevel === 1 && isQuotaExhausted}}">
-            <view class="upgrade-guide-box" catchtap="onUpgrade">
-              <text class="upgrade-text">{{ui.upgradeGuide}}</text>
-            </view>
-          </block>
-          <view wx:else></view> <!-- 占位保持 space-between -->
-          <view class="vip-btn btn-level-{{memberLevel}}">{{isMember ? ui.manageBenefits : ui.unlockNow}}</view>
+        <view class="card-bottom">
+          <view class="card-validity">
+            <text class="val-label">{{isMember ? (ui.memberExpiredDate || 'Expires') : (ui.unlockAIFeatures || 'Unlock AI Power')}}</text>
+            <text class="val-date" wx:if="{{isMember}}">{{expiredDateText}}</text>
+          </view>
         </view>
       </view>
-
-      <view wx:if="{{memberLevel === 3}}" class="shimmer-effect"></view>
     </view>
 
     <!-- 3. 核心功能列表 Action List Group -->
@@ -253,76 +233,122 @@
 
   <include src="./profile-sheet.wxml"/>
 
-  <!-- 会员权益 center 弹窗 Member Hub Sheet -->
+  <!-- 会员权益 center 弹窗 Member Hub Sheet (Redesigned) -->
   <block wx:if="{{showMemberHub}}">
     <view class="bottom-sheet-mask {{memberHubOpen ? 'bottom-sheet-mask-open' : ''}}" bindtap="closeMemberHub"></view>
-    <view class="bottom-sheet {{memberHubOpen ? 'bottom-sheet-open' : ''}}">
+    <view class="bottom-sheet {{memberHubOpen ? 'bottom-sheet-open' : ''}} sheet-v3">
+      
+      <!-- Header (Common Style) -->
       <view class="bottom-sheet-header">
         <view class="bottom-sheet-header-left"></view>
-        <text class="bottom-sheet-title">{{ui.manageBenefits}}</text>
+        <text class="bottom-sheet-title">{{ui.memberCenter}}</text>
         <view class="bottom-sheet-header-right">
           <view class="bottom-sheet-header-btn" bindtap="closeMemberHub">{{ui.confirm}}</view>
         </view>
       </view>
-      <view class="bottom-sheet-content member-hub-content v2-design">
-        <!-- 1. Status Section - Tiered Background -->
-        <view class="hub-status-section tier-{{memberLevel}}">
-          <view class="status-main-info">
-            <view class="tier-identity">
-              <view class="vip-badge-icon badge-level-{{memberLevel}}"></view>
-              <text class="tier-name">{{memberBadgeText || ui.regularUser}}</text>
-            </view>
+
+      <scroll-view scroll-y class="sheet-body-v3" enhanced="{{true}}" show-scrollbar="{{false}}">
+        <!-- 1. Dashboard: Points & Identity (Clean version without user info) -->
+        <view class="dashboard-card tier-{{memberLevel}}">
+          <view class="dash-row-top">
+             <view class="dash-identity-box">
+                <text class="dash-badge-v3">{{memberBadgeText || ui.regularUser}}</text>
+             </view>
+             <view class="dash-status-pill {{isMember ? 'active' : ''}}">
+                {{isMember ? ui.active : ui.inactive}}
+             </view>
           </view>
           
-          <view class="status-info-box" wx:if="{{isMember}}">
-            <view class="status-data-item">
-              <text class="data-label">{{ui.memberExpiredDate}}</text>
-              <text class="data-value">{{expiredDateText}}</text>
-            </view>
-            <view class="status-data-item">
-              <text class="data-label">{{ui.jobQuota}}</text>
-              <text class="data-value">{{resumeQuotaText}}</text>
-            </view>
+          <view class="dash-balance-row">
+             <view class="balance-item">
+                <text class="bal-label">{{ui.available}}</text>
+                <text class="bal-value">{{totalBalance}} / {{displayLimit}}</text>
+             </view>
+             <view class="balance-sep"></view>
+             <view class="balance-item align-right">
+                <text class="bal-label">{{ui.memberExpiredDate}}</text>
+                <text class="bal-value small">{{expiredDateText || ui.notActivated}}</text>
+             </view>
           </view>
         </view>
 
-        <!-- 2. Grid-based Privileges -->
-        <view class="hub-privilege-section">
-          <view class="section-title">EXCLUSIVE PRIVILEGES</view>
-          <view class="privilege-grid">
-            <view class="privilege-card {{memberLevel >= 1 ? 'is-active' : ''}}">
-              <view class="privilege-icon-box blue">
-                <text class="p-icon">🌍</text>
-              </view>
-              <view class="privilege-text">
-                <text class="p-name">{{ui.benefitTranslateTitle}}</text>
-                <text class="p-desc">{{ui.benefitTranslateSub}}</text>
-              </view>
-            </view>
+        <!-- 2. Shop Section -->
+        <view class="shop-section">
+           <view class="section-head">
+              <text class="sec-title">{{ui.rechargeUpgrade}}</text>
+           </view>
+           
+           <!-- Product List (Horizontal) -->
+           <scroll-view scroll-x class="product-scroll-v3" enable-flex enhanced="{{true}}" show-scrollbar="{{false}}">
+              <block wx:for="{{ schemsList || [] }}" wx:key="scheme_id">
+                 <view class="prod-card-v3 {{selectedSchemeId === item.scheme_id ? 'selected' : ''}} {{item.type === 'topup' ? 'type-topup' : 'type-plan'}}"
+                       bindtap="onSelectScheme" 
+                       data-id="{{item.scheme_id}}">
+                    
+                    <view class="prod-upper">
+                       <text class="prod-name">{{appLanguage === 'Chinese' || appLanguage === 'AIChinese' ? item.name_chinese : item.name_english}}</text>
+                       <text class="prod-price"><text class="curr">¥</text>{{item.price / 100}}</text>
+                    </view>
+                    
+                    <view class="prod-lower">
+                       <view class="prod-points">
+                          <text class="pts-val">+{{item.points}}</text>
+                          <text class="pts-unit">{{ui.unitPoints}}</text>
+                       </view>
+                       <view class="prod-days" wx:if="{{item.days > 0}}">{{item.days}}{{ui.unitDays}}</view>
+                       <view class="prod-days" wx:else>{{ui.forever}}</view>
+                    </view>
 
-            <view class="privilege-card {{memberLevel >= 2 ? 'is-active' : ''}}">
-              <view class="privilege-icon-box purple">
-                <text class="p-icon">📄</text>
+                    <view class="selection-check"></view>
+                 </view>
+              </block>
+           </scroll-view>
+           
+           <!-- Selected Product Details -->
+           <view class="selection-detail-box" wx:if="{{selectedScheme}}">
+              
+              <!-- Tagline / Description (Always visible) -->
+              <text class="detail-desc">{{(appLanguage === 'Chinese' || appLanguage === 'AIChinese') ? (selectedScheme.description_chinese || selectedScheme.description) : (selectedScheme.description_english || selectedScheme.description)}}</text>
+              
+              <view class="privileges-notes">
+                 <block wx:if="{{(appLanguage === 'Chinese' || appLanguage === 'AIChinese') && selectedScheme.features_chinese}}">
+                    <view class="note-item" wx:for="{{selectedScheme.features_chinese}}" wx:key="*this">
+                         <text class="note-check">✓</text>
+                         <text>{{item}}</text>
+                    </view>
+                 </block>
+                 <block wx:elif="{{selectedScheme.features_english}}">
+                    <view class="note-item" wx:for="{{selectedScheme.features_english}}" wx:key="*this">
+                         <text class="note-check">✓</text>
+                         <text>{{item}}</text>
+                    </view>
+                 </block>
               </view>
-              <view class="privilege-text">
-                <text class="p-name">{{ui.benefitResumeTitle}}</text>
-                <text class="p-desc">{{ui.benefitResumeSub}}</text>
-              </view>
-            </view>
-          </view>
+           </view>
         </view>
+        <view class="bottom-spacer"></view>
+      </scroll-view>
 
-        <!-- 3. Dynamic Action Bar -->
-        <view class="hub-v2-actions">
-          <view class="action-btn-v2 secondary" bindtap="onRenew">
-            <text>{{ui.renewNow}}</text>
-          </view>
-          <view class="action-btn-v2 primary" wx:if="{{memberLevel < 3}}" bindtap="onUpgrade">
-            <text>{{ui.upgradeAmountText}} ¥{{upgradeAmount}}</text>
-          </view>
-        </view>
-
+      <!-- Sticky Footer: Pay Action -->
+      <view class="sheet-footer-v3">
+         <view class="footer-left">
+            <text class="total-label">{{ui.totalLabel}}</text>
+            <view class="total-price-box">
+                <block wx:if="{{isCalculatingPrice}}">
+                    <view class="price-loading-spinner"></view>
+                </block>
+                <block wx:else>
+                    <text class="total-curr">¥</text>
+                    <text class="old-amt" wx:if="{{isUpgradeOrder}}">{{originalPrice / 100}}</text>
+                    <text class="total-amt">{{finalPrice / 100}}</text>
+                </block>
+            </view>
+         </view>
+         <view class="pay-btn-v3" bindtap="onPurchase">
+            {{ui.payNow}}
+         </view>
       </view>
+
     </view>
   </block>
 

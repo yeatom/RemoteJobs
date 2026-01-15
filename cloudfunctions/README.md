@@ -64,10 +64,10 @@
 #### 核心字段
 - `openid`: String (Document ID) - 用户唯一标识
 - `membership`: Object - 会员权益包裹字段
-  - `level`: Integer - 0:普通用户, 1:3天体验, 2:月度普通, 3:月度高级
+  - `level`: Integer - 0:普通用户, 1:3天体验, 2:月度普通, 3:月度高级, 5:新人礼包
   - `expire_at`: DateTime - 会员到期时间
   - `total_ai_usage`: Object - {used, limit} 总 AI 动作水位（300次硬上限）
-  - `job_quota`: Object - {used, limit} 岗位槽位限额
+  - `pts_quota`: Object - {used, limit} Points 额度 (原岗位限额)
   - `job_details`: Object - 记录每个岗位的微调/邮件沟通明细
 - `resume_profile`: Object - 个人简历资料
   - `name`, `photo`, `wechat`, `email`, `phone`, `educations`, `workExperiences`, `certificates`, `aiMessage`
@@ -91,5 +91,6 @@
 *\*高级会员共享 300 次 AI 动作总额度*
 
 ## 注意
+- **已废弃** `job_quota`, `resume_quota`, `expireTime` 统一使用 `pts_quota` 和 `expire_at`。
 - **已废弃** `member_level`, `total_resume_quota`, `total_email_quota`, `used_jobs_count`, `ai_resume_quota`, `email_quota` 等根部字段，请统一使用 `membership` 和 `resume_profile`。
 - **已废弃** `useQuota` 云函数，由 `useResumeQuota` 和 `useEmailQuota` 替代。

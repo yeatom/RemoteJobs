@@ -115,6 +115,12 @@ async function activateUserMembership(openid, schemeId, orderDocId) {
   else if (membership.level === 2) membership.job_quota.limit = 10
   else if (membership.level === 3) membership.job_quota.limit = 300
 
+  // 同步更新 pts_quota (兼容前端 Points 系统)
+  membership.pts_quota = {
+    used: membership.job_quota.used || 0,
+    limit: membership.job_quota.limit
+  }
+
   await userRef.update({
     data: {
       membership,

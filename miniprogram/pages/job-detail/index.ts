@@ -408,15 +408,34 @@ Page({
           ui.hideLoading()
           this.setData({ isGenerating: false })
           
+          const isQuotaError = (err?.statusCode === 403) || (err?.data?.error === 'Quota exhausted') || (err?.message && err.message.includes('Quota'));
+
           // 如果是配额不足
-          if (err?.message?.includes('Quota') || err?.status === 403) {
-            ui.showError(err.message || '配额不足')
-            return
+          if (isQuotaError) {
+             wx.showModal({
+                 title: 'Quota Exhausted',
+                 content: 'Your resume generation quota has been used up. Please upgrade your plan or top-up points.',
+                 confirmText: 'Upgrade',
+                 cancelText: 'Cancel',
+                 success: (res) => {
+                     if (res.confirm) {
+                         wx.switchTab({
+                             url: '/pages/me/index',
+                             success: (e) => {
+                                 // Store a flag in app global data or storage to open hub
+                                 const app = getApp<IAppOption>() as any;
+                                 if (app.globalData) app.globalData.openMemberHubOnShow = true;
+                             }
+                         })
+                     }
+                 }
+             })
+             return;
           }
 
           wx.showModal({
-            title: '生成失败',
-            content: err.message || '系统繁忙，请稍后再试',
+            title: 'Generate Failed',
+            content: err?.data?.message || err?.message || 'System busy, please try again later.',
             showCancel: false
           })
         }

@@ -38,6 +38,9 @@ exports.main = async (event, context) => {
     const { ENV } = cloud.getWXContext()
     const defaultAvatar = `cloud://${ENV}.636c-${ENV}-1392489857/avatars/default-avatar.png`
 
+    // 新用户礼包：3天会员 + 5点额度
+    const giftExpireAt = new Date(Date.now() + 3 * 24 * 60 * 60 * 1000)
+
     const userData = {
         openid: OPENID,
         isAuthed: false,
@@ -48,17 +51,18 @@ exports.main = async (event, context) => {
         
         // --- 核心改动：会员权益与配额包裹字段 ---
         membership: {
-          level: 0, // 0:普通用户, 1:3天会员, 2:普通月卡, 3:高级月卡
-          expire_at: null,
+          level: 1, // 初始为礼包会员
+          expire_at: giftExpireAt,
+          // 统一使用 pts_quota
+          pts_quota: {
+            used: 0,
+            limit: 5
+          },
           total_ai_usage: {
             used: 0,
-            limit: 300 // 内部硬上限，对高级会员生效
+            limit: 300 
           },
-          job_quota: {
-            used: 0,
-            limit: 0
-          },
-          job_details: {} // 记录每个岗位的微调/沟通次数
+          job_details: {} 
         },
 
         // --- 核心改动：简历资料包裹字段 ---

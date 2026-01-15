@@ -42,10 +42,21 @@ Page({
         resumeQuotaUsed: 0,
         resumeQuotaLimit: 0,
         resumeQuotaProgress: 0,
+        totalBalance: 0,
+        displayLimit: 0,
         
         // Upgrade info
         upgradeAmount: 0, // 补差价金额
         isQuotaExhausted: false, // 额度是否耗尽
+
+        // Product info
+        schemsList: [] as any[],
+        selectedSchemeId: 0,
+        selectedScheme: null as any,
+        isCalculatingPrice: false,
+        finalPrice: 0,
+        originalPrice: 0,
+        isUpgradeOrder: false,
 
         showMemberHub: false,
         memberHubOpen: false,
@@ -88,24 +99,53 @@ Page({
 
     onShow() {
         this.initPage()
+        
+        const app = getApp<IAppOption>() as any
+        if (app.globalData && app.globalData.openMemberHubOnShow) {
+             app.globalData.openMemberHubOnShow = false
+             // Small delay to ensure page is ready
+             setTimeout(() => {
+                 this.openMemberHub()
+             }, 300)
+        }
     },
 
     async initPage() {
-        const app = getApp<IAppOption>()
-        if (app.globalData.userPromise) {
-            await app.globalData.userPromise
+        // 设置一个安全定时器，防止无限加载
+        const safetyTimer = setTimeout(() => {
+            if (this.data.isInitialLoading) {
+                console.warn('initPage safety timeout triggered');
+                this.setData({ isInitialLoading: false });
+            }
+        }, 5000);
+
+        try {
+            const app = getApp<IAppOption>()
+            if (app.globalData.userPromise) {
+                // 延长等待时间到 10 秒，确保登录逻辑有足够时间完成
+                await Promise.race([
+                    app.globalData.userPromise,
+                    new Promise(resolve => setTimeout(resolve, 10000))
+                ]);
+            }
+            
+            this.syncLanguageFromApp()
+            this.syncUserFromApp()
+            
+            // 如果是会员，显式等待徽章文本加载，防止闪烁
+            const membership = (app as any)?.globalData?.user?.membership
+            if (membership && membership.level > 0) {
+                await Promise.race([
+                    this.loadMemberBadgeText(membership.level),
+                    new Promise(resolve => setTimeout(resolve, 2000))
+                ]);
+            }
+        } catch (err) {
+            console.error('initPage error:', err)
+        } finally {
+            clearTimeout(safetyTimer);
+            this.setData({ isInitialLoading: false })
         }
-        
-        this.syncLanguageFromApp()
-        this.syncUserFromApp()
-        
-        // 如果是会员，显式等待徽章文本加载，防止闪烁
-        const membership = (app as any)?.globalData?.user?.membership
-        if (membership && membership.level > 0) {
-            await this.loadMemberBadgeText(membership.level)
-        }
-        
-        this.setData({ isInitialLoading: false })
     },
 
     syncUserFromApp() {
@@ -117,25 +157,33 @@ Page({
         // 使用新包裹字段 membership
         const membership = user?.membership
         const memberLevel = membership?.level || 0
-        const memberExpireAt = membership?.expireTime
+        // 统一使用 expire_at
+        const memberExpireAt = membership?.expire_at
         
         // 判断是否是有效会员：memberLevel > 0 且未过期
         let isMember = false
         let expiredDate = null
-        if (memberLevel > 0 && memberExpireAt) {
-            const ms = toDateMs(memberExpireAt)
-            if (ms && ms > Date.now()) {
+        if (memberLevel > 0) {
+            if (memberExpireAt) {
+                const ms = toDateMs(memberExpireAt)
+                if (ms && ms > Date.now()) {
+                    isMember = true
+                    expiredDate = memberExpireAt
+                } else if (!ms) {
+                    // 如果日期格式解析失败，但等级大于0，暂且视为会员
+                    isMember = true
+                }
+            } else {
+                // 如果等级大于0但没有过期时间，暂且视为会员
                 isMember = true
-                expiredDate = memberExpireAt
             }
         }
 
-        const userInfo = (user && (user.avatar || user.nickname))
-            ? ({ 
-                avatar: formatFileUrl(user.avatar) || '', 
-                nickName: user.nickname || '' 
-              })
-            : null
+        const uiStrings = this.data.ui || {}
+        const userInfo = user ? ({ 
+            avatar: formatFileUrl(user.avatar) || '', 
+            nickName: user.nickname || uiStrings.loginNow || '' 
+        }) : null
 
         const isAiUnlocked = isAiChineseUnlocked(user)
 
@@ -144,27 +192,37 @@ Page({
 
         // Sync expired date
         const expiredDateText = this.formatExpiredDate(expiredDate)
-        const uiStrings = this.data.ui || {}
         const memberExpiryText = isMember ? `${uiStrings.memberExpiredDate || ''}: ${expiredDateText}` : ''
 
         // Format phone number (前3位+****+后4位)
         const rawPhone = user?.phone || ''
         const maskedPhone = this.formatPhoneNumber(rawPhone)
 
-        // Quota logic
-        const resumeQuotaUsed = membership?.resume_quota?.used || 0
-        let resumeQuotaLimit = membership?.resume_quota?.limit || 0
+        // Quota logic - Using pts_quota + topup_quota
+        const activeQuota = membership?.pts_quota
+        const topupQuota = membership?.topup_quota || 0
+        const topupLimit = membership?.topup_limit || topupQuota // 记录的总额度，若无则取当前余量
+        const now = new Date();
+        const isMemberActive = expiredDate && new Date(expiredDate) > now;
 
-        // Level 3 is now 100 limit, not unlimited
-        if (memberLevel === 3 && (resumeQuotaLimit === -1 || resumeQuotaLimit === 0)) {
-            resumeQuotaLimit = 100
-        }
+        const resumeQuotaUsed = activeQuota?.used || 0
+        let resumeQuotaLimit = activeQuota?.limit || 0
         
-        const resumeQuotaProgress = resumeQuotaLimit > 0 ? Math.min(100, (resumeQuotaUsed / resumeQuotaLimit) * 100) : 0
-        const isQuotaExhausted = resumeQuotaLimit > 0 && resumeQuotaUsed >= resumeQuotaLimit
+        // Calculate Remaining Points: 
+        // If member active: (Limit - Used) + Topup
+        // If expired: Only Topup
+        const subscriptionBalance = isMemberActive ? Math.max(0, resumeQuotaLimit - resumeQuotaUsed) : 0
+        const totalBalance = subscriptionBalance + topupQuota
+
+        // 动态上限：会员基础额度 + 加油包历史总额度
+        const displayLimit = (isMemberActive ? resumeQuotaLimit : 0) + topupLimit
+        
+        // Progress percentage (Points / Total Limit)
+        const resumeQuotaProgress = displayLimit > 0 ? Math.min(100, (totalBalance / displayLimit) * 100) : 0
+        const isQuotaExhausted = totalBalance <= 0
         
         // Format quota text
-        const resumeQuotaText = (resumeQuotaLimit === -1) ? (uiStrings.unlimited || '∞') : `${resumeQuotaUsed}/${resumeQuotaLimit}`
+        const resumeQuotaText = `${totalBalance} ${uiStrings.points || 'pts'}`
 
         const systemConfig = app?.globalData?.systemConfig || { isBeta: true }
 
@@ -182,8 +240,10 @@ Page({
             maskedPhone,
             resumeQuotaUsed,
             resumeQuotaLimit,
+            totalBalance, 
+            displayLimit,
             resumeQuotaText,
-            resumeQuotaProgress,
+            resumeQuotaProgress, // Remaining %
             isQuotaExhausted,
             isBeta: !!systemConfig.isBeta
         })
@@ -229,11 +289,16 @@ Page({
             const res = await callApi('getMemberSchemes', {})
 
             const result = res.result || (res as any)
-            if (result?.success && result.schemes) {
-                const schemes = result.schemes
-                // 根据 memberLevel 找到对应的方案
-                const scheme = schemes.find((s: any) => s.scheme_id === memberLevel)
-                const memberBadgeText = (scheme && scheme.displayName) ? scheme.displayName : ''
+            if (result?.success) {
+                const schemes = result.schemes || []
+                
+                // Priority: Use the specific userScheme returned by backend (contains hidden schemes like Trial)
+                // Fallback: Use scheme found in general list
+                let scheme = result.userScheme 
+                             || schemes.find((s: any) => s.scheme_id === memberLevel)
+
+                const isChinese = this.data.appLanguage === 'Chinese' || this.data.appLanguage === 'AIChinese'
+                const memberBadgeText = scheme ? (isChinese ? scheme.name_chinese : scheme.name_english) : ''
                 
                 if (!scheme && memberLevel !== undefined && memberLevel > 0) {
                     console.warn('未找到对应的会员方案，memberLevel:', memberLevel, 'schemes:', schemes)
@@ -711,11 +776,166 @@ Page({
         this.openMemberHub()
     },
 
-    openMemberHub() {
-        this.setData({ showMemberHub: true, memberHubOpen: false })
+    async openMemberHub() {
+        this.setData({ 
+            showMemberHub: true, 
+            memberHubOpen: false
+        })
+        
+        // Fetch schemes if empty
+        if (!this.data.schemsList || this.data.schemsList.length === 0) {
+            await this.fetchSchemes()
+        }
+
         setTimeout(() => {
             this.setData({ memberHubOpen: true })
-        }, 30)
+        }, 50)
+    },
+
+    async fetchSchemes() {
+        try {
+            const res = await callApi('getMemberSchemes', {})
+            const data = (res?.result || res) as any
+            if (data?.success && data?.schemes) {
+                const schemes = data.schemes || []
+                
+                // Select first one by default if not set
+                let selectedId = this.data.selectedSchemeId
+                const exists = schemes.find((s:any) => s.scheme_id === selectedId)
+                
+                if (!exists && schemes.length > 0) {
+                   selectedId = schemes[0].scheme_id
+                }
+                
+                const selectedScheme = schemes.find((s:any) => s.scheme_id === selectedId)
+                
+                this.setData({ 
+                    schemsList: schemes,
+                    selectedSchemeId: selectedId,
+                    selectedScheme
+                })
+                
+                if (selectedId) {
+                    this.calculateFinalPrice(selectedId)
+                }
+            }
+        } catch (err) {
+            console.error('Fetch schemes failed', err)
+        }
+    },
+
+    onSelectScheme(e: any) {
+        const id = e.currentTarget.dataset.id
+        if (id === this.data.selectedSchemeId) return
+        
+        const scheme = this.data.schemsList.find((s: any) => s.scheme_id === id)
+        this.setData({ 
+            selectedSchemeId: id,
+            selectedScheme: scheme,
+            // isCalculatingPrice will be handled by calculateFinalPrice
+        })
+
+        // Fetch precise price from backend
+        this.calculateFinalPrice(id)
+    },
+
+    async calculateFinalPrice(schemeId: number) {
+        const scheme = this.data.schemsList.find((s:any) => s.scheme_id === schemeId);
+        if (!scheme) return;
+
+        // Check for Discount Condition (Upgrade)
+        // Must match backend logic: Active Member + Not Topup + Higher Level
+        const isMember = this.data.isMember
+        const memberLevel = this.data.memberLevel
+        const isUpgrade = isMember && (scheme.type !== 'topup') && (scheme.level > memberLevel)
+
+        const shouldDelay = isUpgrade // Delay only if we expect a discount calculation
+
+        if (shouldDelay) {
+            this.setData({ isCalculatingPrice: true })
+        } else {
+             // If no discount expected, show standard price immediately (Prevent flicker)
+             this.setData({ 
+                 isCalculatingPrice: false,
+                 finalPrice: scheme.price,
+                 originalPrice: scheme.price,
+                 isUpgradeOrder: false
+             })
+        }
+
+        const startTime = Date.now()
+
+        try {
+            const res = await callApi('calculatePrice', { scheme_id: schemeId })
+            const result = (res?.result || res) as any
+            
+            if (result.success) {
+                // If we showed loading, ensure min display time
+                if (shouldDelay) {
+                     const elapsed = Date.now() - startTime
+                     if (elapsed < 800) {
+                         await new Promise(resolve => setTimeout(resolve, 800 - elapsed))
+                     }
+                }
+
+                this.setData({
+                    finalPrice: result.finalPrice,
+                    originalPrice: result.originalPrice,
+                    isUpgradeOrder: result.isUpgrade,
+                    isCalculatingPrice: false
+                })
+            } else {
+                this.setData({ isCalculatingPrice: false })
+            }
+        } catch (e) {
+            console.error('Calculate price failed', e)
+            this.setData({ isCalculatingPrice: false })
+        }
+    },
+
+    async onPurchase() {
+        const { selectedSchemeId, schemsList, ui: uiStrings } = this.data
+        if (!selectedSchemeId) return
+
+        const scheme = schemsList.find((s: any) => s.scheme_id === selectedSchemeId)
+        if (!scheme) return
+
+        const price = scheme.price / 100
+        
+        wx.showLoading({ title: 'Creating Order...' })
+        
+        try {
+            // Mock Purchase Logic for now (Since payments require backend callback)
+            const res = await callApi('createOrder', { scheme_id: selectedSchemeId })
+            const orderResult = (res?.result || res) as any
+
+            if (orderResult.success) {
+               // Verify Payment (Mock: simulate payment success immediately for now or open Pay sheet)
+               // In real world: wx.requestPayment(orderResult.payParams)
+               // Here we assume createOrder directly activates for demo (or we call activateMembership manually)
+               
+               // Mocking the activation call (usually done by webhook)
+               const activateRes = await callApi('activateMembership', { order_id: orderResult.order_id })
+               const actData = (activateRes?.result || activateRes) as any
+               
+               if (actData.success) {
+                   wx.hideLoading()
+                   wx.showToast({ title: 'Purchase Success', icon: 'success' })
+                   this.closeMemberHub()
+                   // Refresh user data
+                   const app = getApp<IAppOption>() as any
+                   await app.refreshUser()
+                   this.syncUserFromApp()
+               } else {
+                   throw new Error(actData.message || 'Activation failed')
+               }
+            } else {
+                throw new Error(orderResult.message || 'Order creation failed')
+            }
+        } catch (err: any) {
+            wx.hideLoading()
+            wx.showToast({ title: err.message || 'Payment Failed', icon: 'none' })
+        }
     },
 
     closeMemberHub() {

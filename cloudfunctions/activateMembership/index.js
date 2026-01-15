@@ -88,7 +88,7 @@ exports.main = async (event, context) => {
       level: 0,
       expire_at: null,
       total_ai_usage: { used: 0, limit: 300 },
-      job_quota: { used: 0, limit: 0 },
+      pts_quota: { used: 0, limit: 0 },
       job_details: {}
     }
 
@@ -105,10 +105,19 @@ exports.main = async (event, context) => {
     newMembership.level = level
     newMembership.expire_at = finalExpireAt
     
-    // 根据等级设置岗位上限
-    if (level === 1) newMembership.job_quota.limit = 3
-    else if (level === 2) newMembership.job_quota.limit = 10
-    else if (level === 3) newMembership.job_quota.limit = 300
+    // 初始化 pts_quota 如果不存在
+    if (!newMembership.pts_quota) {
+      newMembership.pts_quota = { used: 0, limit: 0 }
+    }
+
+    // 根据等级设置 Points 上限
+    if (level === 1) newMembership.pts_quota.limit = 3
+    else if (level === 2) newMembership.pts_quota.limit = 10
+    else if (level === 3) newMembership.pts_quota.limit = 300
+
+    // 移除旧字段
+    delete newMembership.job_quota
+    delete newMembership.resume_quota
 
     // 如果是同等级续费，高级会员配额可根据需要在此累加 total_ai_usage.limit（目前默认为300）
 

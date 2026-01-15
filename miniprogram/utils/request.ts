@@ -26,6 +26,7 @@ export const request = <T = any>(options: wx.RequestOption): Promise<T> => {
     wx.request({
       ...options,
       url,
+      timeout: 15000, // 增加超时时间到 15 秒
       header: {
         'content-type': 'application/json',
         'x-openid': openid || '',
@@ -56,6 +57,8 @@ export const callApi = async <T = any>(name: string, data: any = {}): Promise<Ap
       await performLogin();
     } catch (err) {
       console.error('[API] Auto login error:', err);
+      // 如果登录失败，返回一个错误，而不是继续请求
+      return { success: false, message: 'Login failed' } as any;
     }
   }
 
