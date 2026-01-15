@@ -201,6 +201,9 @@
                 <view class="edu-details">
                   <text wx:if="{{item.jobTitle}}">{{item.jobTitle}}</text>
                 </view>
+                <view class="edu-details" wx:if="{{item.workContent}}" style="margin-top: 4px; color: #666; font-size: 13px;">
+                  <text>{{item.workContent}}</text>
+                </view>
                 <view class="edu-details business-dir" wx:if="{{item.businessDirection}}">
                   <text>{{item.businessDirection}}</text>
                 </view>
@@ -311,6 +314,18 @@
             {{workForm.endDate || ui.endDate}}
           </view>
         </view>
+      </view>
+
+      <view class="form-item">
+        <text class="form-label">{{ui.workContent}} <text class="optional-hint">({{ui.optional}})</text></text>
+        <textarea 
+          class="form-textarea" 
+          placeholder="{{ui.workContentPlaceholder}}" 
+          value="{{workForm.workContent}}" 
+          bindinput="onWorkContentInput"
+          maxlength="1000"
+          style="min-height: 80px;"
+        />
       </view>
 
       <view class="form-item">

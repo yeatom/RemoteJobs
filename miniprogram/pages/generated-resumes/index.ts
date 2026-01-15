@@ -38,6 +38,37 @@ Page({
     } as any)
   },
 
+  async onRetryResume(e: any) {
+    const { item } = e.currentTarget.dataset
+    if (!item || !item._id) return
+
+    ui.showLoading('Retrying...')
+    try {
+        const res = await callApi('retryGenerateResume', {
+            resumeId: item._id
+        })
+        
+        ui.hideLoading()
+        
+        if (res.success) {
+            ui.showSuccess('Started')
+            // Refresh list immediately to show "Processing" status
+            this.fetchResumes()
+            this.startPolling()
+        } else {
+            wx.showModal({
+                title: 'Retry Failed',
+                content: res.message || 'Unknown error',
+                showCancel: false
+            })
+        }
+    } catch (err: any) {
+        ui.hideLoading()
+        console.error('Retry failed', err)
+        ui.showError('Error')
+    }
+  },
+
   onDeleteResume(e: any) {
     const { item } = e.currentTarget.dataset
     if (!item || !item._id) return
@@ -49,16 +80,16 @@ Page({
       confirmColor: '#ef4444',
       success: async (res) => {
         if (res.confirm) {
-            wx.showLoading({ title: 'Deleting...' })
+            ui.showLoading('Deleting...')
             try {
                 const res = await callApi('deleteGeneratedResume', {
                     resumeId: item._id
                 })
                 
-                wx.hideLoading()
+                ui.hideLoading()
                 
                 if (res.success) {
-                    wx.showToast({ title: 'Success', icon: 'success' })
+                    ui.showSuccess('Success')
                     // Remove from local list
                     const updatedResumes = this.data.resumes.filter((r: any) => r._id !== item._id)
                     this.setData({ resumes: updatedResumes } as any);
@@ -68,12 +99,12 @@ Page({
                         this.setData({ isEditMode: false } as any)
                     }
                 } else {
-                    wx.showToast({ title: 'Failed', icon: 'none' })
+                    ui.showError('Failed')
                 }
             } catch (err) {
-                wx.hideLoading()
+                ui.hideLoading()
                 console.error('Delete failed', err)
-                wx.showToast({ title: 'Error', icon: 'none' })
+                ui.showError('Error')
             }
         }
       }
@@ -144,6 +175,7 @@ Page({
         edit: t('resume.edit', lang),
         done: t('resume.done', lang),
         delete: t('resume.delete', lang),
+        retry: t('resume.retry', lang),
         generalResume: t('resume.generalResume', lang),
         view: t('resume.view', lang),
         loadFailed: t('jobs.loadFailed', lang),

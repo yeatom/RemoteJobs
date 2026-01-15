@@ -66,6 +66,7 @@ Page({
       company: string;
       jobTitle: string;
       businessDirection: string;
+      workContent?: string;
       startDate: string;
       endDate: string;
     }>,
@@ -94,6 +95,7 @@ Page({
       company: '',
       jobTitle: '',
       businessDirection: '',
+      workContent: '',
       startDate: '',
       endDate: '',
     },
@@ -992,6 +994,7 @@ Page({
         company: '',
         jobTitle: '',
         businessDirection: '',
+        workContent: '',
         startDate: '',
         endDate: '',
       }
@@ -1007,6 +1010,7 @@ Page({
         company: work.company || '',
         jobTitle: work.jobTitle || '',
         businessDirection: work.businessDirection || '',
+        workContent: work.workContent || '',
         startDate: work.startDate || '',
         endDate: work.endDate || '',
       }
@@ -1023,6 +1027,9 @@ Page({
   },
   onWorkBusinessDirectionInput(e: any) {
     this.setData({ 'workForm.businessDirection': e.detail.value })
+  },
+  onWorkContentInput(e: any) {
+    this.setData({ 'workForm.workContent': e.detail.value })
   },
   async onSaveWorkExperience() {
     const { workForm, editingWorkIndex, workExperiences, ui: uiStrings, currentLang } = this.data

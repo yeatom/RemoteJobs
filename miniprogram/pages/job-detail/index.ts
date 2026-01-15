@@ -244,12 +244,9 @@ Page({
 
       this.setData({ saved: targetSaved })
       
-      wx.showToast({
-        title: targetSaved ? this.data.saveSuccessText : this.data.unsaveSuccessText,
-        icon: 'none',
-      })
+      ui.showSuccess(targetSaved ? (this.data.saveSuccessText || 'Saved') : (this.data.unsaveSuccessText || 'Unsaved'))
     } catch (err) {
-      wx.showToast({ title: this.data.operationFailedText, icon: 'none' })
+      ui.showError(this.data.operationFailedText || 'Error')
     } finally {
       setTimeout(() => {
         this.setData({ saveBusy: false })
@@ -280,7 +277,7 @@ Page({
   onViewSource() {
     const job = this.data.job
     if (!job?.source_url) {
-      wx.showToast({ title: this.data.noSourceLinkText, icon: 'none' })
+      ui.showError(this.data.noSourceLinkText || 'No Link')
       return
     }
     this.closeApplyMenu()
@@ -288,7 +285,9 @@ Page({
     wx.setClipboardData({
       data: job.source_url,
       success: () => {
-        wx.showToast({ title: this.data.linkCopiedText, icon: 'success' })
+        // UI feedback already shown by wx.setClipboardData toast usually, 
+        // but we can use our ui.showSuccess if we want to override or ensure consistency
+        ui.showSuccess(this.data.linkCopiedText || 'Copied')
       },
     })
   },

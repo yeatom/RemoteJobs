@@ -81,6 +81,8 @@ const UI_MAP = {
     jobTitle: 'resume.jobTitle',
     /** 业务方向 */
     businessDirection: 'resume.businessDirection',
+    /** 工作内容 */
+    workContent: 'resume.workContent',
 
     // --- Placeholder ---
     /** 学校输入提示 */
@@ -107,6 +109,8 @@ const UI_MAP = {
     jobTitlePlaceholder: 'resume.jobTitlePlaceholder',
     /** 业务方向输入提示 */
     businessDirectionPlaceholder: 'resume.businessDirectionPlaceholder',
+    /** 工作内容输入提示 */
+    workContentPlaceholder: 'resume.workContentPlaceholder',
     /** AI默认寄语 */
     aiMessageDefault: 'resume.aiMessageDefault',
     /** 学校搜索提示 */

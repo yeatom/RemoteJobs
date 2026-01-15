@@ -174,10 +174,13 @@
   animation: spin 1s linear infinite;
 }
 
-.retry-text {
+.retry-btn {
   font-size: 24rpx;
-  color: #ef4444;
   font-weight: 600;
+  color: #ef4444;
+  background: #fef2f2;
+  padding: 12rpx 24rpx;
+  border-radius: 100rpx;
 }
 
 .view-btn {

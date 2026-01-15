@@ -68,6 +68,7 @@ const dict = {
         manageBenefits: { Chinese: '管理权益', English: 'Manage' },
         unlockNow: { Chinese: '立即解锁', English: 'Unlock' },
         resumeProfileSubtitle: { Chinese: '完善信息，提升 AI 匹配度', English: 'Complete info for better AI matching' },
+        retry: { Chinese: '重试', English: 'Retry' },
         generatedResumesSubtitle: { Chinese: '预览及下载 PDF 简历', English: 'Preview & download PDF resumes' },
         basicMode: { Chinese: '基础模式', English: 'Basic Mode' },
         aiMode: { Chinese: 'AI 增强模式', English: 'AI Enhanced Mode' },
@@ -204,7 +205,9 @@ const dict = {
         jobTitle: { Chinese: '职位名称', English: 'Job Title' },
         jobTitlePlaceholder: { Chinese: '请输入职位名称', English: 'Enter job title' },
         businessDirection: { Chinese: '业务方向', English: 'Business Direction' },
-        businessDirectionPlaceholder: { Chinese: '一句话描述公司的业务方向', English: 'Brief description of company business' },
+        businessDirectionPlaceholder: { Chinese: '简要描述公司的业务方向，AI会做参考', English: 'Brief description of company business' },
+        workContent: { Chinese: '工作内容', English: 'Work Content' },
+        workContentPlaceholder: { Chinese: '简要描述主要工作内容，AI会做参考', English: 'Briefly describe responsibilities (Optional)' },
         addWorkExperience: { Chinese: '添加工作经历', English: 'Add Work Experience' },
         aiMessageLabel: { Chinese: '想对 AI 说的话', English: 'Message to AI' },
         aiMessageDefault: { Chinese: '当工作经验不足时，自动补充工作经历；当过往职位名称与目标岗位不匹配时，根据公司业务方向，灵活变更过往职位名称与工作内容。', English: 'Automatically supplement work experience when experience is insufficient; when past job titles do not match the target position, flexibly change past job titles and work contents based on the company\'s business direction.' },
@@ -237,6 +240,7 @@ const dict = {
         assetCount: { Chinese: '份简历资产', English: 'Resume assets' },
         syncingAssets: { Chinese: '正在同步 AI 资产...', English: 'Syncing AI assets...' },
         statusFailed: { Chinese: '失败', English: 'Failed' },
+        retry: { Chinese: '重试', English: 'Retry' },
         generalResume: { Chinese: '通用简历', English: 'General Resume' },
         view: { Chinese: '查看', English: 'View' },
         aiProcessing: { Chinese: 'AI 正在努力生成中，请稍候', English: 'AI is generating, please wait' },
@@ -465,6 +469,8 @@ export type I18nKey =
     | 'resume.jobTitlePlaceholder'
     | 'resume.businessDirection'
     | 'resume.businessDirectionPlaceholder'
+    | 'resume.workContent'
+    | 'resume.workContentPlaceholder'
     | 'resume.addWorkExperience'
     | 'resume.aiMessageLabel'
     | 'resume.aiMessageDefault'

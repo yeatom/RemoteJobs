@@ -360,7 +360,7 @@ Page({
         const encryptedData = e?.detail?.encryptedData
         const iv = e?.detail?.iv
         if (!encryptedData || !iv) {
-            wx.showToast({ title: uiStrings.authCancel, icon: 'none' })
+            ui.showError(uiStrings.authCancel || 'Cancelled')
             return
         }
 
@@ -380,10 +380,10 @@ Page({
             if (app?.globalData) app.globalData.user = updatedUser
 
             this.syncUserFromApp()
-            wx.showToast({ title: uiStrings.loginSuccess, icon: 'success' })
+            ui.showSuccess(uiStrings.loginSuccess || 'Success')
         }
         catch (err) {
-            wx.showToast({ title: uiStrings.phoneAuthFailed, icon: 'none' })
+            ui.showError(uiStrings.phoneAuthFailed || 'Failed')
         }
         finally {
             this.setData({ phoneAuthBusy: false })
@@ -396,7 +396,7 @@ Page({
 
         const code = e?.detail?.code
         if (!code) {
-            wx.showToast({ title: uiStrings.authCancel, icon: 'none' })
+            ui.showError(uiStrings.authCancel || 'Cancelled')
             return
         }
 
@@ -414,10 +414,10 @@ Page({
             if (app?.globalData) app.globalData.user = updatedUser
 
             this.syncUserFromApp()
-            wx.showToast({ title: uiStrings.loginSuccess, icon: 'success' })
+            ui.showSuccess(uiStrings.loginSuccess || 'Success')
         }
         catch (err) {
-            wx.showToast({ title: uiStrings.phoneAuthFailed, icon: 'none' })
+            ui.showError(uiStrings.phoneAuthFailed || 'Failed')
         }
         finally {
             this.setData({ phoneAuthBusy: false })

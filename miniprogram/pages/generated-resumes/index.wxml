@@ -43,7 +43,7 @@
               <view class="ui-spinner" style="width: 32rpx; height: 32rpx; border-width: 3rpx;"></view>
             </block>
             <block wx:elif="{{item.status === 'failed'}}">
-              <text class="retry-text">{{ui.statusFailed}}</text>
+              <view class="retry-btn" catchtap="onRetryResume" data-item="{{item}}">{{ui.retry}}</view>
             </block>
             <block wx:else>
               <view class="view-btn">{{ui.view}}</view>
