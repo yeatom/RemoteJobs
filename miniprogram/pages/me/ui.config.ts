@@ -88,10 +88,6 @@ const UI_MAP = {
     resumeProfileEntry: 'me.resumeProfileEntry',
     /** 简历资料入口描述 */
     resumeProfileSubtitle: 'me.resumeProfileSubtitle',
-    /** 投递记录入口标题 */
-    appliedJobsEntry: 'me.appliedJobsEntry',
-    /** 投递记录入口描述 */
-    appliedJobsSubtitle: 'me.appliedJobsSubtitle',
     /** 已生成简历入口标题 */
     generatedResumesEntry: 'me.generatedResumesEntry',
     /** 已生成简历入口描述 */

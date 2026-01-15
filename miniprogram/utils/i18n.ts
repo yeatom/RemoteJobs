@@ -7,7 +7,6 @@ export const SUPPORTED_LANGUAGES: AppLanguage[] = ['Chinese', 'English', 'AIChin
 // NOTE: Job content is excluded by design.
 const dict = {
     tab: {
-        community: { Chinese: '社区', English: 'Community' },
         jobs: { Chinese: '岗位', English: 'Jobs' },
         positions: { Chinese: '职位', English: 'Positions' },
         me: { Chinese: '我', English: 'Me' },
@@ -52,7 +51,6 @@ const dict = {
         paymentPhoneRequired: { Chinese: '为了保障您的会员权益，请先绑定手机号。手机号是您会员身份的唯一标识。', English: 'Please set your phone number first to link your membership benefits. Your phone number is your unique member ID.' },
         nicknameTooLong: { Chinese: '用户名太长了', English: 'Nickname is too long' },
         resumeProfileEntry: { Chinese: '简历资料', English: 'Resume Profile' },
-        appliedJobsEntry: { Chinese: '投递记录', English: 'Applied Jobs' },
         generatedResumesEntry: { Chinese: '已生成简历', English: 'Generated Resumes' },
         loading: { Chinese: '加载中...', English: 'Loading...' },
         loginNow: { Chinese: '丈月尺用户', English: 'User' },
@@ -66,7 +64,6 @@ const dict = {
         unlockNow: { Chinese: '立即解锁', English: 'Unlock' },
         resumeProfileSubtitle: { Chinese: '完善信息，提升 AI 匹配度', English: 'Complete info for better AI matching' },
         generatedResumesSubtitle: { Chinese: '预览及下载 PDF 简历', English: 'Preview & download PDF resumes' },
-        appliedJobsSubtitle: { Chinese: '追踪简历投递进度', English: 'Track job application status' },
         basicMode: { Chinese: '基础模式', English: 'Basic Mode' },
         aiMode: { Chinese: 'AI 增强模式', English: 'AI Enhanced Mode' },
         vipTag: { Chinese: 'VIP', English: 'VIP' },
@@ -99,8 +96,6 @@ const dict = {
         benefitTranslateSub: { Chinese: '全中/英岗位描述，无障碍阅读', English: 'Full CN/EN descriptions' },
         benefitResumeTitle: { Chinese: 'AI 生成简历', English: 'AI Resume Builder' },
         benefitResumeSub: { Chinese: '针对不同岗位，智能生成高匹配度简历', English: 'High-match resumes for any job' },
-        benefitApplyTitle: { Chinese: '一键投递简历', English: 'One-Click Apply' },
-        benefitApplySub: { Chinese: '极速直达招聘方，解决网络投递难题', English: 'Reach recruiters directly' },
         qrHint: { Chinese: '（长按识别二维码或保存图片）', English: '(Long press to scan or save image)' },
         aiUnlockTitle: { Chinese: 'AI翻译与提炼 🔒', English: 'AI translation & intel 🔒' },
         aiUnlockContent: { Chinese: '开启 AI 增强模式需要付费解锁。', English: 'Payment is required to unlock AI Enhanced Mode.' },
@@ -241,7 +236,6 @@ const dict = {
         aiProcessing: { Chinese: 'AI 正在努力生成中，请稍候', English: 'AI is generating, please wait' },
         generateFailed: { Chinese: '生成失败', English: 'Generation failed' },
         tryAgain: { Chinese: '请尝试重新生成', English: 'Please try regenerating' },
-        appliedAt: { Chinese: '投递时间：', English: 'Applied at: ' },
         unknownJob: { Chinese: '未知岗位', English: 'Unknown Position' },
         pending: { Chinese: '待处理', English: 'Pending' },
         processing: { Chinese: '处理中', English: 'Processing' },
@@ -252,18 +246,6 @@ const dict = {
         year: { Chinese: '年', English: 'Year' },
         month: { Chinese: '月', English: 'Month' },
         totalPrefix: { Chinese: '共 ', English: 'Total ' },
-    },
-    community: {
-        title: { Chinese: '社区', English: 'Community' },
-        onlineActivitiesTitle: { Chinese: '线上活动', English: 'Online Activities' },
-        offlineActivitiesTitle: { Chinese: '线下活动', English: 'Offline Activities' },
-        skillExchangeTitle: { Chinese: '技能交换', English: 'Skill Exchange' },
-        successStoriesTitle: { Chinese: '成功森林', English: 'Success Stories' },
-        statusActive: { Chinese: '报名中', English: 'Open' },
-        statusEnded: { Chinese: '已结束', English: 'Ended' },
-        statusUpcoming: { Chinese: '即将开始', English: 'Coming Soon' },
-        desc: { Chinese: '敬请期待', English: 'Coming soon' },
-        all: { Chinese: '全部', English: 'All' },
     },
     jobs: {
         tabPublic: { Chinese: '公开', English: 'Public' },
@@ -336,7 +318,6 @@ const dict = {
 } as const
 
 export type I18nKey =
-    | 'tab.community'
     | 'tab.jobs'
     | 'tab.me'
     | 'me.title'
@@ -364,14 +345,6 @@ export type I18nKey =
     | 'me.inviteCodeCopied'
     | 'me.inviteCodeInvalid'
     | 'me.inviteCodeApplied'
-    | 'community.title'
-    | 'community.onlineActivitiesTitle'
-    | 'community.offlineActivitiesTitle'
-    | 'community.skillExchangeTitle'
-    | 'community.successStoriesTitle'
-    | 'community.statusActive'
-    | 'community.statusEnded'
-    | 'community.statusUpcoming'
     | 'me.langEnglish'
     | 'me.memberBadge'
     | 'me.uploadAvatar'
@@ -381,8 +354,6 @@ export type I18nKey =
     | 'me.changePhone'
     | 'me.nicknameTooLong'
     | 'me.resumeProfileEntry'
-    | 'me.appliedJobsEntry'
-    | 'community.desc'
     | 'jobs.tabPublic'
     | 'jobs.tabFeatured'
     | 'jobs.tabSaved'
@@ -547,7 +518,6 @@ export type I18nKey =
     | 'me.unlockNow'
     | 'me.resumeProfileSubtitle'
     | 'me.generatedResumesSubtitle'
-    | 'me.appliedJobsSubtitle'
     | 'me.basicMode'
     | 'me.aiMode'
     | 'me.vipTag'
@@ -573,8 +543,6 @@ export type I18nKey =
     | 'me.benefitTranslateSub'
     | 'me.benefitResumeTitle'
     | 'me.benefitResumeSub'
-    | 'me.benefitApplyTitle'
-    | 'me.benefitApplySub'
     | 'me.aiUnlockTitle'
     | 'me.aiUnlockContent'
     | 'me.toPay'
