@@ -33,7 +33,7 @@
 /* --- 1. Hero Section --- */
 .hero-section {
     position: relative;
-    padding: 15rpx 40rpx 60rpx;
+    padding: 40rpx 40rpx 60rpx;
     background: #ffffff;
     overflow: hidden;
 }
@@ -53,6 +53,7 @@
     align-items: center;
     position: relative;
     z-index: 1;
+    margin-bottom: -25rpx;
 }
 
 .avatar-wrapper {

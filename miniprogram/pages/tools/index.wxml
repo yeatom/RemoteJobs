@@ -7,7 +7,7 @@
   </view>
 
   <view class="tools-grid">
-    <!-- 1. 截图生成 -->
+    <!-- 1. 不用改 -->
     <view class="tool-card" bindtap="onUploadScreenshot">
       <view class="icon-box blue">
         <image src="/assets/icons/camera.png" mode="aspectFit" class="tool-icon"/>
@@ -16,34 +16,22 @@
         <text class="tool-name">截图生成简历</text>
         <text class="tool-desc">上传岗位截图，AI 自动生成匹配简历</text>
       </view>
-      <view class="arrow">></view>
+      <view class="arrow">❯</view>
     </view>
 
-    <!-- 2. JD 关键词优化 -->
-    <view class="tool-card" bindtap="toggleJdInput">
+    <!-- 2. 文字生成简历 -->
+    <view class="tool-card" bindtap="openJdDrawer">
       <view class="icon-box purple">
         <image src="/assets/icons/magic.png" mode="aspectFit" class="tool-icon"/>
       </view>
       <view class="tool-info">
-        <text class="tool-name">ATS 关键词优化</text>
-        <text class="tool-desc">粘贴 JD，提升简历通过率</text>
+        <text class="tool-name">文字生成简历</text>
+        <text class="tool-desc">粘贴文字，AI自动生成匹配简历</text>
       </view>
-      <view class="arrow">></view>
+      <view class="arrow">❯</view>
     </view>
 
-    <!-- JD Input Area -->
-    <view class="jd-input-box" wx:if="{{showJdInput}}">
-      <textarea 
-        class="jd-textarea" 
-        placeholder="请粘贴目标岗位的 JD (职位描述)..." 
-        bindinput="onInputJd"
-        value="{{jdText}}"
-        maxlength="5000"
-      ></textarea>
-      <button class="action-btn" bindtap="onOptimizeKeywords">开始优化</button>
-    </view>
-
-    <!-- 3. 解析旧简历 -->
+    <!-- 3. 不用改 -->
     <view class="tool-card" bindtap="onRefineOldResume">
       <view class="icon-box green">
         <image src="/assets/icons/upload.png" mode="aspectFit" class="tool-icon"/>
@@ -52,8 +40,58 @@
         <text class="tool-name">简历润色</text>
         <text class="tool-desc">上传旧简历，AI 帮你重写升级</text>
       </view>
-      <view class="arrow">></view>
+      <view class="arrow">❯</view>
     </view>
 
+  </view>
+
+  <!-- Bottom Drawer for Text Resume Generation -->
+  <view wx:if="{{showJdDrawer}}" class="drawer-mask" bindtap="closeJdDrawer"></view>
+  <view class="drawer-container {{showJdDrawer ? 'drawer-show' : ''}}">
+    <view class="drawer-header">
+      <text class="drawer-title">文字生成简历</text>
+      <view class="close-btn" bindtap="closeJdDrawer">×</view>
+    </view>
+    
+    <view class="drawer-body">
+      <view class="form-item">
+        <text class="label">岗位标题</text>
+        <input 
+          class="input" 
+          placeholder="例如：产品经理 / Java开发" 
+          placeholder-class="placeholder"
+          value="{{targetJob.title}}" 
+          bindinput="onJdFieldChange" 
+          data-field="title"
+        />
+      </view>
+
+      <view class="form-item">
+        <text class="label">经验要求</text>
+        <input 
+          class="input" 
+          placeholder="例:1-3年 (填0则ai不会额外生成工作经历)" 
+          placeholder-class="placeholder"
+          value="{{targetJob.experience}}" 
+          bindinput="onJdFieldChange" 
+          data-field="experience"
+        />
+      </view>
+      
+      <view class="form-item">
+        <text class="label">岗位描述内容</text>
+        <textarea 
+          class="textarea" 
+          placeholder="请粘贴完整的职位描述（JD）..." 
+          placeholder-class="placeholder"
+          value="{{targetJob.content}}" 
+          bindinput="onJdFieldChange" 
+          data-field="content"
+          maxlength="5000"
+        ></textarea>
+      </view>
+
+      <view class="submit-btn {{canSubmit ? 'active' : ''}}" bindtap="onOptimizeKeywords">开始生成</view>
+    </view>
   </view>
 </view>
