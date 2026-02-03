@@ -383,13 +383,27 @@ Page({
         // 简历完整，调用云托管接口
         try {
           // Prepare Profile based on context
-          let aiProfile: any = {}
-          if (isChineseEnv) {
-            aiProfile = { ...profile.zh }
-            aiProfile.en = profile.en
-          } else {
-            aiProfile = { ...profile.en }
-            aiProfile.zh = profile.zh
+          // 确保所有顶层字段（性别、照片、AI指令等）以及数组字段（经历、技能等）都能正确传递
+          let aiProfile: any = {
+            ...profile,           // 包含根层级的 gender, photo, birthday, aiMessage, skills, workExperiences 等
+            gender: user.gender,  // 显式确保关键字段
+            photo: user.avatar || profile.photo
+          }
+          
+          const currentLangProfile = isChineseEnv ? (profile.zh || {}) : (profile.en || {})
+          
+          // 深度合并当前语言特有信息
+          aiProfile = {
+            ...aiProfile,
+            ...currentLangProfile,
+            // 确保数组字段存在，优先级：当前语言包 > 根目录 > 空数组
+            workExperiences: currentLangProfile.workExperiences || profile.workExperiences || [],
+            educations: currentLangProfile.educations || profile.educations || [],
+            skills: currentLangProfile.skills || profile.skills || [],
+            certificates: currentLangProfile.certificates || profile.certificates || [],
+            // 携带引用以供 AI 参考
+            zh: profile.zh,
+            en: profile.en
           }
           
           const res: any = await callApi('generate', {
