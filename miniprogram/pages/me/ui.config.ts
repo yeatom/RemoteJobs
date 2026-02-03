@@ -279,7 +279,8 @@ export function buildPageUI(lang: AppLanguage, data: any) {
 
     // 2. 特殊动态逻辑处理：补差价升级引导
     const rawUpgradeGuide = t('me.upgradeGuide', lang) as string
-    ui.upgradeGuide = rawUpgradeGuide.replace('{amount}', data.upgradeAmount?.toString() || '0')
+    const displayAmount = typeof data.upgradeAmount === 'number' ? (data.upgradeAmount / 100).toFixed(1) : '0'
+    ui.upgradeGuide = rawUpgradeGuide.replace('{amount}', displayAmount)
 
     // 3. 特殊动态逻辑处理：会员续费文案
     if (data.memberBadgeText) {

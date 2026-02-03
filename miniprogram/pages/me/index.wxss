@@ -70,7 +70,8 @@
     transition: border-color 0.3s ease;
 }
 
-.member-color-3 .avatar-large {
+.member-color-3 .avatar-large,
+.member-color-4 .avatar-large {
     border-color: #1d4ed8;
     box-shadow: 0 0 20rpx rgba(29, 78, 216, 0.15);
 }
@@ -1546,7 +1547,8 @@
 /* Level Themes (Unified Light Blue Wash) */
 .vip-card-v3.level-1,
 .vip-card-v3.level-2,
-.vip-card-v3.level-3 { 
+.vip-card-v3.level-3,
+.vip-card-v3.level-4 { 
     background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%); 
     color: #0f172a;
 }
@@ -1562,7 +1564,8 @@
     pointer-events: none;
     filter: blur(50rpx);
 }
-.level-3 .card-glow { background: radial-gradient(circle, rgba(46, 95, 233, 0.06) 0%, transparent 70%); }
+.level-3 .card-glow,
+.level-4 .card-glow { background: radial-gradient(circle, rgba(46, 95, 233, 0.06) 0%, transparent 70%); }
 
 .card-content {
     position: relative;
