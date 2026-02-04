@@ -1,4 +1,5 @@
 import { callApi } from '../../utils/request';
+import { getPhoneNumberFromAuth } from '../../utils/phoneAuth';
 const lottie = require('../../utils/lottie');
 
 import { StatusCode } from '../../utils/statusCodes';
@@ -47,9 +48,6 @@ Component({
   data: {
     internalPhase: 'splash', // 'splash' | 'login' | 'hidden'
     bootStatus: 'loading',
-    type: 'login', 
-    phone: '',
-    password: '',
     errorMsg: '',
     errorDesc: '',
     _flowStarted: false
@@ -134,45 +132,51 @@ Component({
       return;
     },
 
-    switchType(e: any) {
-      const type = e.currentTarget.dataset.type;
-      if (this.data.type === type) return;
-      this.setData({ type });
-    },
+    async onGetPhoneNumber(e: any) {
+      const { detail } = e;
+      const app = getApp<any>();
 
-    async handleSubmit() {
-      const { type, phone, password } = this.data;
-      const app = getApp<IAppOption>();
-
-      if (!phone || !password) {
-        wx.showToast({ title: '请填写完整', icon: 'none' });
+      if (!detail.code) {
+        console.log('[LoginWall] User cancelled phone auth');
         return;
       }
 
-      const openid = wx.getStorageSync('user_openid');
-
-      wx.showLoading({ title: '提交中' });
+      wx.showLoading({ title: '安全登录中' });
 
       try {
-        const endpoint = type === 'login' ? 'loginByPhone' : 'register';
-        const res = await callApi(endpoint, {
-          phoneNumber: phone,
-          password,
-          openid
+        const openid = wx.getStorageSync('user_openid');
+        
+        // 1. 调用 getPhoneNumber 接口获取并绑定手机号
+        // 这里的后端需要支持：如果是新用户则创建，并返回 token
+        const res: any = await callApi('getPhoneNumber', { 
+            code: detail.code,
+            openid 
         });
 
-        if (res && res.success && res.data) {
-          wx.setStorageSync('token', res.data.token);
-          app.globalData.user = res.data.user;
+        if (res && res.success) {
+          // 如果后端已经返回了 token 和 user (通常为了流程丝滑会直接返回)
+          if (res.data && res.data.token) {
+              wx.setStorageSync('token', res.data.token);
+              app.globalData.user = res.data.user;
+          } else {
+              // 如果后端没返回，则再尝试一次 loginByOpenid 静默登录
+              const authRes: any = await callApi('loginByOpenid', { openid });
+              if (authRes && authRes.success && authRes.data) {
+                  wx.setStorageSync('token', authRes.data.token);
+                  app.globalData.user = authRes.data.user;
+              } else {
+                  throw new Error('登录失败，请重试');
+              }
+          }
           
           wx.hideLoading();
-          wx.showToast({ title: type === 'login' ? '登录成功' : '注册成功', icon: 'success' });
+          wx.showToast({ title: '登录成功', icon: 'success' });
           
           // 触发父页面刷新或状态更新
-          this.triggerEvent('loginSuccess', res.data.user);
+          this.triggerEvent('loginSuccess', app.globalData.user);
           
-          // 重置组件状态
-          this.setData({ internalPhase: 'hidden', phone: '', password: '' });
+          // 重置组件状态并消失
+          this.setData({ internalPhase: 'hidden' });
           
           // 全局刷新用户状态
           app.refreshUser().catch(() => {});
@@ -180,24 +184,14 @@ Component({
         } else {
           wx.hideLoading();
           wx.showToast({ 
-            title: res.message || '操作失败', 
+            title: res.message || '获取手机号失败', 
             icon: 'none' 
           });
         }
       } catch (err: any) {
         wx.hideLoading();
-        console.error('[LoginWall] Submit Error:', err);
-        
-        let msg = '服务器繁忙';
-        const resData = err.data;
-        
-        if (resData && resData.code === StatusCode.USER_EXISTS) {
-            msg = '该手机号已注册';
-        } else if (resData && (resData.code === StatusCode.UNAUTHORIZED || resData.code === StatusCode.INVALID_TOKEN)) {
-            msg = '账号或密码错误';
-        }
-
-        wx.showToast({ title: msg, icon: 'none' });
+        console.error('[LoginWall] Auth Error:', err);
+        wx.showToast({ title: '系统繁忙，请稍后再试', icon: 'none' });
       }
     }
   }

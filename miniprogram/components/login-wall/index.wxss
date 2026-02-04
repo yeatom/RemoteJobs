@@ -74,6 +74,8 @@
   /* 呼吸动画也改为 3D 变换以保持在同一渲染层 */
   animation: ai-breathe 4s infinite ease-in-out;
   will-change: transform;
+  /* 增加主题蓝色外发光，增强质感 */
+  filter: drop-shadow(0 0 15rpx rgba(46, 95, 233, 0.4));
 }
 
 @keyframes ai-breathe {
@@ -101,9 +103,9 @@
      计算校准：
      X: 50vw - (78vw/2) + 48rpx padding = 11vw + 48rpx
      再向左偏移 20rpx: 28rpx -> 8rpx
-     Y: 15vh + 64rpx padding (同步卡片上移)
+     Y: 18vh + 64rpx padding (同步卡片位置)
   */
-  transform: translate3d(calc(11vw + 8rpx), calc(15vh + 64rpx), 0);
+  transform: translate3d(calc(11vw + 8rpx), calc(18vh + 64rpx), 0);
 }
 
 /* State 3: Hidden (Success Fade Out) */
@@ -232,42 +234,36 @@
 }
 
 /* Form */
-.tab-switcher {
+.auth-section {
   display: flex;
-  background: #f1f5f9;
-  padding: 8rpx;
-  border-radius: 24rpx;
-  margin-bottom: 40rpx;
+  flex-direction: column;
+  gap: 32rpx;
+  padding: 20rpx 0;
 }
 
-.tab-item {
-  flex: 1;
+.auth-tips {
   text-align: center;
-  padding: 16rpx 0;
-  font-size: 28rpx;
+}
+
+.tips-text {
+  font-size: 26rpx;
   color: #64748b;
-  border-radius: 18rpx;
-  transition: all 0.3s;
+  line-height: 1.6;
 }
 
-.tab-item.active {
-  background: #ffffff;
-  color: #2563eb;
-  font-weight: 700;
-  box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.05);
+.phone-btn {
+  gap: 16rpx;
 }
 
-.input-row {
-  margin-bottom: 24rpx;
+.btn-icon {
+  width: 44rpx;
+  height: 44rpx;
 }
 
-.f-input {
-  height: 110rpx;
-  background: #f8fafc;
-  border-radius: 24rpx;
-  padding: 0 40rpx;
-  font-size: 30rpx;
-  border: 2rpx solid #e2e8f0;
+.auth-desc {
+  font-size: 24rpx;
+  color: #94a3b8;
+  text-align: center;
 }
 
 .primary-btn {
