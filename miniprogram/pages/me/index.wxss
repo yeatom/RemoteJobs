@@ -1532,9 +1532,14 @@
 .balance-item.align-right { align-items: flex-end; }
 
 .bal-label { font-size: 20rpx; color: var(--text-holder); text-transform: uppercase; font-weight: 600; letter-spacing: 0.5rpx; margin-bottom: 8rpx;}
-.bal-value { font-size: 40rpx; font-family: 'DIN Alternate'; }
+.bal-value { 
+    font-size: 40rpx; 
+    font-weight: 900; 
+    color: var(--primary); 
+    font-family: 'DIN Alternate', -apple-system-font, sans-serif;
+}
 .bal-unit-v3 { font-size: 22rpx; margin-left: 6rpx; color: var(--text-holder); font-weight: 700; }
-.bal-value.small { font-size: 28rpx; }
+.bal-value.small { font-size: 28rpx; font-weight: 700; }
 
 /* 2. Shop Section */
 .shop-section {
@@ -1696,7 +1701,11 @@
 .total-label { font-size: 20rpx; color: var(--text-sub); font-weight: 600; }
 .total-price-box { display: flex; align-items: baseline; color: var(--primary); line-height: 1; height: 50rpx; }
 .total-curr { font-size: 22rpx; font-weight: 800; margin-right: 4rpx; }
-.total-amt { font-size: 44rpx; font-weight: 900; font-family: 'DIN Alternate'; }
+.total-amt { 
+    font-size: 44rpx; 
+    font-weight: 900; 
+    font-family: 'DIN Alternate', -apple-system-font, sans-serif;
+}
 .old-amt { 
     font-size: 28rpx; 
     color: var(--text-holder); 
@@ -1722,11 +1731,11 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 0 64rpx;
+    padding: 0 48rpx;
     border-radius: 100rpx;
-    font-size: 30rpx;
+    font-size: 28rpx;
     font-weight: 700;
-    box-shadow: 0 12rpx 30rpx rgba(46, 95, 233, 0.2);
+    box-shadow: 0 8rpx 20rpx rgba(46, 95, 233, 0.2);
     transition: all 0.2s ease;
 }
 

@@ -259,7 +259,7 @@
         </view>
       </view>
 
-      <ui-scroll-view scroll-y custom-class="sheet-body-v3">
+      <ui-scroll-view scrollY="{{true}}" custom-class="sheet-body-v3">
         <!-- 1. Dashboard: Points & Identity (Clean version without user info) -->
         <view class="dashboard-card tier-{{memberLevel}}">
           <view class="dash-row-top">
@@ -274,12 +274,12 @@
           <view class="dash-balance-row">
              <view class="balance-item">
                 <text class="bal-label">{{ui.available}}</text>
-                <text class="bal-value ui-value-bold">{{totalBalance}} / {{displayLimit}}</text>
+                <text class="bal-value">{{totalBalance}} / {{displayLimit}}</text>
              </view>
              <view class="balance-sep"></view>
              <view class="balance-item align-right">
                 <text class="bal-label">{{ui.memberExpiredDate}}</text>
-                <text class="bal-value small ui-value-bold">{{expiredDateText || ui.notActivated}}</text>
+                <text class="bal-value small">{{expiredDateText || ui.notActivated}}</text>
              </view>
           </view>
         </view>
@@ -291,7 +291,7 @@
            </view>
            
            <!-- Product List (Horizontal) -->
-           <ui-scroll-view scroll-x custom-class="product-scroll-v3">
+           <ui-scroll-view scrollX="{{true}}" custom-class="product-scroll-v3">
               <block wx:for="{{ schemsList || [] }}" wx:key="scheme_id">
                  <view class="prod-card-v3 {{selectedSchemeId === item.scheme_id ? 'selected' : ''}} {{item.type === 'topup' ? 'type-topup' : 'type-plan'}}"
                        bindtap="onSelectScheme" 

@@ -13,6 +13,7 @@ page {
   --bg-card: #FFF;
   --text-main: #1E293B;
   --text-sub: #64748B;
+  --text-value: #576478; /* 专用于关键数值的深灰色，比 main 浅，比 sub 深 */
   --text-holder: #94A3B8;
   
   /* 分割线与边框 Dividers & Borders */
@@ -323,7 +324,7 @@ page {
 /* 5. 统一“关键值”样式 - 用于数字、选项结果等深色加粗文本 */
 .ui-value-bold {
   font-weight: 500;
-  color: #475569;
+  color: var(--text-value);
   font-family: -apple-system, SF UI Text, Arial, sans-serif;
 }
 
