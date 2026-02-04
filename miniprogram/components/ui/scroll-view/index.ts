@@ -1,4 +1,7 @@
 Component({
+  options: {
+    virtualHost: true
+  },
   externalClasses: ['custom-class'],
   properties: {
     scrollY: { type: Boolean, value: false },

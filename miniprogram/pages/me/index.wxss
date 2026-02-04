@@ -1475,7 +1475,8 @@
 
 .sheet-body-v3 {
     flex: 1;
-    overflow-y: auto;
+    overflow: hidden;
+    display: block;
 }
 
 /* 1. Dashboard Block */
@@ -1689,12 +1690,14 @@
 
 .sheet-footer-v3 {
     background: #fff;
-    box-shadow: 0 -10rpx 40rpx rgb(0 0 0 / 5%);
-    padding: 23rpx 32rpx 19rpx 40rpx;
+    box-shadow: 0 -10rpx 40rpx rgba(0, 0, 0, 0.05);
+    padding: 23rpx 23rpx 19rpx 32rpx;
     display: flex;
     justify-content: space-between;
     align-items: center;
     z-index: 99;
+    border-top: 1rpx solid var(--divider);
+    flex-shrink: 0;
 }
 
 .footer-left { display: flex; flex-direction: column; }
