@@ -20,7 +20,7 @@ Component({
   },
 
   data: {
-    internalPhase: 'splash' as InternalPhase,
+    internalPhase: 'hidden' as InternalPhase,
     bootStatus: 'loading',
     errorMsg: '',
     errorDesc: '',
@@ -55,12 +55,12 @@ Component({
       const app = getApp<any>();
       const hasShownSplash = app.globalData._splashAnimated;
 
-      // 关键修复：无论是否展示过开屏，初始阶段统一设为 'splash' 或引入单独的 'loading' 场景
-      // 避免在静默登录成功前，因为 hasShownSplash 为 true 而瞬间闪现 'login' 登录墙
+      // 核心修复：如果本 session 已经展示过开屏，则初始状态为隐藏且不占位
+      // 只有在明确需要登录墙（checkState 发现未授权）时才会由 checkState 唤起
       this.setData({ 
         _flowStarted: true,
-        _shouldShow: true,
-        internalPhase: 'splash' 
+        _shouldShow: !hasShownSplash,
+        internalPhase: hasShownSplash ? 'hidden' : 'splash'
       });
 
       if (!hasShownSplash) app.globalData._splashAnimated = true;
@@ -79,9 +79,17 @@ Component({
         }
 
         if (bootStatus === 'success') {
-          // 场景：静默登录成功，展示“不带登录墙”的仪式 (40vw 纯白渐变)
+          // 已经展示过开屏且当前是静默登录成功，说明是 Tab 切换场景
+          // 直接触发事件，不再展示重复的 40vw 仪式
+          if (hasShownSplash && !this.data._shouldShow) {
+            this.triggerEvent('loginSuccess', _app.globalData.user);
+            return;
+          }
+
+          // 场景：首次进入且静默登录成功，展示仪式 (40vw 纯白渐变)
           const config = getCeremonyConfig(false);
           this.setData({ 
+            _shouldShow: true, // 确保容器可见
             successMode: config.mode,
             internalPhase: config.phase 
           });
