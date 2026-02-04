@@ -10,10 +10,11 @@ Component({
       type: Boolean, 
       value: false,
       observer(newVal) {
+        const self = this as any;
         if (newVal) {
-          if (this._hideTimer) {
-            clearTimeout(this._hideTimer);
-            this._hideTimer = null;
+          if (self._hideTimer) {
+            clearTimeout(self._hideTimer);
+            self._hideTimer = null;
           }
           this.setData({ 
             innerVisible: true,
@@ -21,7 +22,7 @@ Component({
           });
         } else {
           // 延迟开始隐藏动画，防止在 loading -> success 切换时的瞬时闪烁
-          this._hideTimer = setTimeout(() => {
+          self._hideTimer = setTimeout(() => {
             this.setData({ displayVisible: false });
             // 给消失动画留出时间
             setTimeout(() => {
@@ -29,7 +30,7 @@ Component({
                 this.setData({ innerVisible: false });
               }
             }, 300);
-            this._hideTimer = null;
+            self._hideTimer = null;
           }, 50);
         }
       }

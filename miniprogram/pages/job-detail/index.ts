@@ -277,7 +277,7 @@ Page({
   onViewSource() {
     const job = this.data.job
     if (!job?.source_url) {
-      ui.showError(this.data.noSourceLinkText || 'No Link')
+      ui.showToast(this.data.noSourceLinkText || 'No Link')
       return
     }
     this.closeApplyMenu()

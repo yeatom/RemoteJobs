@@ -219,7 +219,7 @@ Page({
     
     // 如果还在生成中，不处理预览
     if (item.status === 'processing') {
-      ui.showError(t('resume.aiProcessing', lang))
+      ui.showToast(t('resume.aiProcessing', lang))
       return
     }
 

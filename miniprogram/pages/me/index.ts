@@ -357,7 +357,7 @@ Page({
         const encryptedData = e?.detail?.encryptedData
         const iv = e?.detail?.iv
         if (!encryptedData || !iv) {
-            ui.showError(uiStrings.authCancel || 'Cancelled')
+            ui.showToast(uiStrings.authCancel || 'Cancelled')
             return
         }
 
@@ -380,7 +380,7 @@ Page({
             ui.showSuccess(uiStrings.loginSuccess || 'Success')
         }
         catch (err) {
-            ui.showError(uiStrings.phoneAuthFailed || 'Failed')
+            ui.showToast(uiStrings.phoneAuthFailed || 'Failed')
         }
         finally {
             this.setData({ phoneAuthBusy: false })
@@ -393,7 +393,7 @@ Page({
 
         const code = e?.detail?.code
         if (!code) {
-            ui.showError(uiStrings.authCancel || 'Cancelled')
+            ui.showToast(uiStrings.authCancel || 'Cancelled')
             return
         }
 
@@ -414,7 +414,7 @@ Page({
             ui.showSuccess(uiStrings.loginSuccess || 'Success')
         }
         catch (err) {
-            ui.showError(uiStrings.phoneAuthFailed || 'Failed')
+            ui.showToast(uiStrings.phoneAuthFailed || 'Failed')
         }
         finally {
             this.setData({ phoneAuthBusy: false })
@@ -551,13 +551,13 @@ Page({
     },
 
     onCopyInviteCode() {
-        const { myInviteCode, ui } = this.data
+        const { myInviteCode, ui: uiStrings } = this.data
         if (!myInviteCode) return
 
         wx.setClipboardData({
             data: myInviteCode,
             success: () => {
-                ui.showToast(ui.inviteCodeCopied)
+                ui.showToast(uiStrings.inviteCodeCopied)
             }
         })
     },
@@ -590,9 +590,9 @@ Page({
     },
 
     async onApplyInviteCode() {
-        const { inputInviteCode, ui } = this.data
+        const { inputInviteCode, ui: uiStrings } = this.data
         if (!inputInviteCode || inputInviteCode.length !== 8) {
-            ui.showToast(ui.inviteCodeInvalid)
+            ui.showToast(uiStrings.inviteCodeInvalid)
             return
         }
 
@@ -601,16 +601,16 @@ Page({
 
             const resultData = result?.result as any
             if (resultData?.success) {
-                ui.showToast(ui.inviteCodeApplied)
+                ui.showToast(uiStrings.inviteCodeApplied)
                 this.setData({ inputInviteCode: '' })
                 this.closeInviteSheet()
             }
             else {
-                ui.showToast(resultData?.message || ui.applyFailed)
+                ui.showToast(resultData?.message || uiStrings.applyFailed)
             }
         }
         catch (err) {
-            ui.showToast(ui.applyFailed)
+            ui.showToast(uiStrings.applyFailed)
         }
     },
 
