@@ -27,18 +27,29 @@ Component({
   observers: {
     'internalPhase': function(phase) {
       if (phase === 'hidden') {
-        // 在 1.5s 渐变的接近尾声时（1.2s）展示 TabBar
-        setTimeout(() => {
-          wx.showTabBar({ animated: true }).catch(() => {});
-        }, 1200); 
+        // [Custom TabBar] Layer is already there, no need to show
       } else {
-        wx.hideTabBar({ animated: false }).catch(() => {});
+        // [Custom TabBar] Layer management via z-index
       }
     }
   },
 
   lifetimes: {
     attached() {
+      // 检查当前是否已登录，如果已登录（Splash非必需），则直接跳过动画
+      // 这能避免 Tab 切换时（如果页面被重建）导致 Splash 重复出现
+      const app = getApp<any>();
+      const { user, bootStatus } = app.globalData;
+      if (user && user.phoneNumber && bootStatus === 'success') {
+          console.log('[LoginWall] User already logged in on attach, skipping splash.');
+          this.setData({ 
+              internalPhase: 'hidden', 
+              _shouldShow: false,
+              authState: 'success'
+          });
+          return;
+      }
+
       // 强制启动流程，确保 Splash 动画至少展示一次
       this.startFlow();
     },

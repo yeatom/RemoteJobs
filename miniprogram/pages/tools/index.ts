@@ -26,6 +26,12 @@ Page({
   },
 
   onShow() {
+    if (typeof this.getTabBar === 'function') {
+      const tabBar = this.getTabBar();
+      if (tabBar) {
+        tabBar.setData({ selected: 1 }); // index of this page
+      }
+    }
     this.syncLoginState();
   },
 

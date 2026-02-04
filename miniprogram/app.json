@@ -24,6 +24,7 @@
     "ui-scroll-view": "/components/ui/scroll-view/index"
   },
   "tabBar": {
+    "custom": true,
     "color": "#6b7280",
     "selectedColor": "#1d4ed8",
     "backgroundColor": "#ffffff",

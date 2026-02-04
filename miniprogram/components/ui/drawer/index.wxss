@@ -128,4 +128,8 @@
   flex-direction: column;
   overflow: hidden;
   -webkit-overflow-scrolling: touch;
+  /* Fix: Override scroll-view default 100% height to allow auto-sizing */
+  height: auto !important;
+  /* Fix: Ensure scrolling happens when content exceeds limit, instead of stretching parent */
+  max-height: calc(90vh - 110rpx - env(safe-area-inset-bottom));
 }

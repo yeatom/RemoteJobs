@@ -1,0 +1,37 @@
+.tab-bar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 96rpx; /* Standard WeChat TabBar height: ~48px */
+  background: #ffffff;
+  display: flex;
+  padding-bottom: env(safe-area-inset-bottom);
+  box-shadow: 0 -1rpx 0 0 rgba(0, 0, 0, 0.1); 
+  z-index: 9000; /* High enough to top content, lower than login-wall (10000) */
+}
+
+.tab-bar-item {
+  flex: 1;
+  text-align: center;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+}
+
+.tab-icon {
+  width: 54rpx; /* 27px * 2 */
+  height: 54rpx;
+  margin-bottom: 2rpx;
+  transition: transform 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+.tab-icon.active {
+  transform: scale(1.05); /* Slight bounce feedback just like native feeling */
+}
+
+.tab-text {
+  font-size: 20rpx; /* 10px * 2 */
+  line-height: 1.2;
+}

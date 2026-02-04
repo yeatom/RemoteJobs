@@ -98,6 +98,13 @@ Page({
     },
 
     onShow() {
+        if (typeof this.getTabBar === 'function') {
+            const tabBar = this.getTabBar();
+            if (tabBar) {
+                tabBar.setData({ selected: 2 });
+            }
+        }
+
         this.syncLoginState()
         this.initPage()
         

@@ -28,12 +28,20 @@ Page({
   },
 
   onShow() {
+    if (typeof this.getTabBar === 'function') {
+      const tabBar = this.getTabBar();
+      if (tabBar) {
+        tabBar.setData({ selected: 0 }); // index of this page
+      }
+    }
+
     this.syncLoginState();
     
     // Safety check: force hide tabbar if not logged in
-    if (!this.data.isLoggedIn) {
-      wx.hideTabBar({ animated: false }).catch(() => {});
-    }
+    // [Removed] Custom TabBar layer management handled by z-index now
+    // if (!this.data.isLoggedIn) {
+       // wx.hideTabBar({ animated: false }).catch(() => {});
+    // }
 
     this.checkFeaturedSubscription();
 
