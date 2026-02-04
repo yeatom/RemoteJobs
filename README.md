@@ -13,6 +13,7 @@ This project follows strict enterprise-level frontend development standards to e
 - 💎 **Standardized UI System**: Implemented a comprehensive **Design Token** system using CSS Variables in `app.wxss`, ensuring visual consistency across all pages and components.
 - 🛡️ **Strict Style Enforcement**: Automated visual quality control via **Stylelint**, strictly banning hardcoded colors and non-standard properties to prevent UI fragmentation.
 - 🛠️ **Robust Type Safety**: Fully built with **TypeScript**, providing end-to-end type safety for API responses and component properties.
+- 🎭 **State-Driven Animation Engine**: A sophisticated, decoupled animation system that utilizes CSS variable projection and coordinate interpolation to synchronize multi-layer components across complex authentication lifecycles.
 - 🖼️ **Advanced Multi-modal OCR**: Integrated **Gemini Vision (2.5/3.0 Flash/Pro)** to extract JD information directly from screenshots, offering a seamless "Screenshot to Resume" workflow.
 - 🌍 **Deep Localization**: Comprehensive **i18n (Internationalization)** architecture supporting dynamic language switching between English and Chinese.
 
