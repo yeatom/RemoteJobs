@@ -176,7 +176,7 @@ Page({
         const app = getApp<IAppOption>() as any
         const user = app?.globalData?.user
 
-        const isVerified = !!(user && (user.isAuthed || user.phone)) // 认证状态：有手机号或已认证
+        const isVerified = !!(user && user.phoneNumber) // 认证状态：有手机号
 
         // 使用新包裹字段 membership
         const membership = user?.membership

@@ -25,7 +25,6 @@
         <text class="sub-title">精选全球远程机会</text>
       </view>
     </view>
-
     <view class="tab-switcher">
       <view class="tab-item {{type === 'login' ? 'active' : ''}}" bindtap="switchType" data-type="login">登录</view>
       <view class="tab-item {{type === 'register' ? 'active' : ''}}" bindtap="switchType" data-type="register">注册</view>
@@ -46,6 +45,16 @@
 
     <view class="card-footer">
       <text class="protocol">登录即视为同意《用户协议》与《隐私政策》</text>
+    </view>
+  </view>
+
+  <!-- Phase 3: Error / No Network -->
+  <view class="error-layer {{internalPhase === 'error' ? 'active' : ''}}">
+    <view class="error-box">
+      <view class="error-icon">📶</view>
+      <text class="error-title">{{errorMsg}}</text>
+      <text class="error-desc">{{errorDesc}}</text>
+      <button class="retry-btn" bindtap="retry">重新连接</button>
     </view>
   </view>
 </view>

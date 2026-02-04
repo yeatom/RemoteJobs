@@ -191,10 +191,9 @@ Page({
       // 检查认证状态
       const app = getApp<IAppOption>() as any
       const user = app?.globalData?.user
-      const openid = user?.openid
-      const isVerified = !!(user && (user.isAuthed || user.phone))
-      if (!isVerified || !openid) {
-        ui.showToast('请先绑定手机号')
+      const isVerified = !!(user && user.phoneNumber)
+      if (!isVerified) {
+        ui.showToast('请先登录验证手机号')
         return
       }
 

@@ -11,7 +11,8 @@ interface IAppOption {
 
 Page({
   data: {
-    isLoggedIn: true, // 初始默认为 true 配合 splash 效果，稍后由 refreshUser 决定
+    isLoggedIn: false, // 初始默认为 false 启动 Login Wall 的 Splash 流程
+    isInitializing: true,
     jdText: '', // Deprecated, keep for now if needed or remove
     showJdDrawer: false,
     drawerTitle: '文字生成简历',
@@ -28,16 +29,23 @@ Page({
     this.syncLoginState();
   },
 
-  syncLoginState() {
-    const user = getApp().globalData.user;
+  async syncLoginState() {
+    const app = getApp<any>();
+    
+    // 等待全局 Auth 完成，防止状态闪烁
+    if (app.globalData.userPromise) {
+      await app.globalData.userPromise;
+    }
+
+    const user = app.globalData.user;
     this.setData({
-      isLoggedIn: !!(user && user.phoneNumber)
+      isLoggedIn: !!(user && user.phoneNumber),
+      isInitializing: false
     });
   },
 
   onLoginSuccess() {
-    this.syncLoginState();
-    // 登录成功后可以在这里执行一些页面刷新的逻辑
+    this.setData({ isLoggedIn: true });
   },
 
   // Helper to ensure phone is bound before AI actions
@@ -45,15 +53,15 @@ Page({
     const app = getApp<IAppOption>()
     const user = app.globalData.user
     
-    if (!user?.phone) {
+    if (!user?.phoneNumber) {
       wx.showModal({
-        title: '需要绑定手机号',
-        content: '为了您的简历和会员权益能够永久同步，请先绑定手机号。',
-        confirmText: '去绑定',
+        title: '需要身份认证',
+        content: '为了您的简历和会员权益能够永久同步，请先登录并验证手机号。',
+        confirmText: '去登录',
+        showCancel: false,
         success: (res) => {
           if (res.confirm) {
-            (app.globalData as any)._openProfileOnShow = true
-            wx.switchTab({ url: '/pages/me/index' })
+            this.setData({ isLoggedIn: false });
           }
         }
       })

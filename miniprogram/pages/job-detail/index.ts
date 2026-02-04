@@ -226,7 +226,7 @@ Page({
 
     const app = getApp<IAppOption>() as any
     const user = app?.globalData?.user
-    const isVerified = !!(user && (user.isAuthed || user.phone))
+    const isVerified = !!(user && user.phoneNumber)
     if (!isVerified) {
       ui.showToast(this.data.pleaseLoginText)
       return

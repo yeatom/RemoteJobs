@@ -8,6 +8,7 @@ App<IAppOption>({
   globalData: {
     user: null as any,
     userPromise: null as Promise<any> | null,
+    bootStatus: 'loading' as 'loading' | 'success' | 'error' | 'no-network' | 'server-down' | 'unauthorized',
     language: 'Chinese' as AppLanguage,
     _langListeners: new Set<LangListener>(),
     // 页面跳转临时数据存储
@@ -21,22 +22,51 @@ App<IAppOption>({
   } as any,
 
   async onLaunch() {
-    // 强制隐藏 TabBar 防止闪烁，只有成功登录后才显示
+    // 1. 强制隐藏 TabBar 防止闪烁
     wx.hideTabBar({ animated: false }).catch(() => {});
 
-    // Fetch remote configuration for Maintenance and Beta modes
-    this.refreshSystemConfig()
+    // 2. 监听网络状态
+    wx.getNetworkType({
+      success: (res) => {
+        if (res.networkType === 'none') {
+          this.globalData.bootStatus = 'no-network';
+        }
+      }
+    });
 
+    wx.onNetworkStatusChange((res) => {
+      if (res.isConnected && this.globalData.bootStatus === 'no-network') {
+        this.globalData.bootStatus = 'loading';
+        this.refreshUser().catch(() => {});
+      }
+    });
+
+    this.refreshSystemConfig()
     this.applyLanguage()
 
-    // Login Wall: Attempt to login, if fail, Redirect will happen in refreshUser or here
+    // 3. 执行核心 Auth 逻辑
     this.globalData.userPromise = this.refreshUser().then(user => {
         if (user && user.phoneNumber) {
+            this.globalData.bootStatus = 'success';
             wx.showTabBar({ animated: true }).catch(() => {});
+        } else {
+            // 如果 refreshUser 返回了 null，说明是主动抛出的或是网络错误
+            // 这里我们根据 globalData.bootStatus 是否被网络监听器改写来判断
+            if (this.globalData.bootStatus !== 'no-network') {
+                // 如果不是明确的没网，可能是没登录或接口报错
+                this.globalData.bootStatus = 'unauthorized';
+            }
         }
         return user;
-    }).catch(() => null);
+    }).catch(err => {
+        console.error('[Launch] Auth fatal error:', err);
+        this.globalData.bootStatus = 'error';
+        return null;
+    });
+
     await this.globalData.userPromise
+    
+    // ... rest of logic
 
     const lang = ((this as any).globalData.language || 'Chinese') as AppLanguage
     this.applyLanguage()
@@ -130,6 +160,7 @@ App<IAppOption>({
   },
 
   async refreshUser() {
+    this.globalData.bootStatus = 'loading';
     try {
       // 1. Get Code
       const { code } = await wx.login()
@@ -144,7 +175,7 @@ App<IAppOption>({
 
       // 3. Try "Silent Login" with OpenID
       // New Auth System: Check if this openid is bound to a user
-      const authRes: any = await callApi('auth/loginByOpenid', { openid }, 'POST', true).catch(err => {
+      const authRes: any = await callApi('auth/loginByOpenid', { openid }).catch(err => {
          // suppress 404/401 here to handle below
          return { success: false };
       });
@@ -179,7 +210,25 @@ App<IAppOption>({
       }
 
     } catch (err: any) {
-      console.log('[Auth] Error in refreshUser:', err.message);
+      console.log('[Auth] Error in refreshUser:', err.message || err);
+      
+      // 1. 先检查是否是微信底层报告的网络错误
+      if (err.errMsg && (err.errMsg.includes('timeout') || err.errMsg.includes('fail'))) {
+        // 进一步判断是完全没网，还是服务器炸了
+        const network = await new Promise(r => wx.getNetworkType({ success: r }));
+        if ((network as any).networkType === 'none') {
+          this.globalData.bootStatus = 'no-network';
+        } else {
+          this.globalData.bootStatus = 'server-down';
+        }
+      } else if (err.statusCode && err.statusCode >= 500) {
+        // 2. 服务器返回了 5xx 错误
+        this.globalData.bootStatus = 'server-down';
+      } else {
+        // 3. 其他错误（如 404/401 等）统一视为未授权/需登录
+        this.globalData.bootStatus = 'unauthorized';
+      }
+
       this.globalData.user = null;
       return null;
     }

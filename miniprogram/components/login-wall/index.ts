@@ -27,25 +27,74 @@ Component({
   },
 
   data: {
-    internalPhase: 'hidden', // 'splash' | 'login' | 'hidden'
+    internalPhase: 'hidden', // 'splash' | 'login' | 'error' | 'hidden'
     type: 'login', // 'login' | 'register'
     phone: '',
-    password: ''
+    password: '',
+    errorMsg: '',
+    errorDesc: '请检查您的网络设置后重试'
   },
 
   methods: {
     async startFlow() {
+      const app = getApp<any>();
+      
       // 1. Initial State: Splash ACTIVE
       this.setData({ internalPhase: 'splash' });
       
-      // 2. Wait for app "boot" feel (1.5s)
-      setTimeout(() => {
-        // If still visible (user hasn't logged in via silent login)
-        // Transition to Login Card
-        if (this.data.visible) {
+      // 我们需要根据 app 的初始化状态来决定下一步
+      const checkState = () => {
+        const { bootStatus } = app.globalData;
+        
+        if (bootStatus === 'loading') {
+          setTimeout(checkState, 300);
+          return;
+        }
+
+        // 核心：处理网络恢复的自动平滑跳转
+        if (bootStatus === 'success') {
+          this.setData({ internalPhase: 'hidden' });
+          this.triggerEvent('loginSuccess', app.globalData.user);
+        } else if (bootStatus === 'no-network' || bootStatus === 'error' || bootStatus === 'server-down') {
+          // 如果当前不在 error 态，或者错误信息变了，更新 UI
+          let msg = '身份检查失败';
+          let desc = '请确保您的网络环境正常';
+          
+          if (bootStatus === 'no-network') {
+            msg = '网络连接已断开';
+            desc = '请检查您的网络设置后重试';
+          }
+          if (bootStatus === 'server-down') {
+            msg = '服务器连接失败';
+            desc = '技术人员正在抢修中，请稍后再试';
+          }
+
+          if (this.data.internalPhase !== 'error' || this.data.errorMsg !== msg) {
+            this.setData({ 
+              internalPhase: 'error',
+              errorMsg: msg,
+              errorDesc: desc
+            });
+          }
+          // 即使在错误态，也要继续轮询是否有网络恢复（由 App.ts 触发 loading）
+          setTimeout(checkState, 2000); 
+        } else if (bootStatus === 'unauthorized') {
           this.setData({ internalPhase: 'login' });
         }
-      }, 1500);
+      };
+
+      // 设定一个保底展示时间，防止动画太短太突兀
+      setTimeout(checkState, 1500);
+    },
+
+    retry() {
+      const app = getApp<any>();
+      this.setData({ internalPhase: 'splash' });
+      app.refreshUser().then(() => {
+        this.startFlow();
+      }).catch(() => {
+        this.startFlow();
+      });
     },
     preventTouch() {
       // 阻止触摸穿透
