@@ -177,7 +177,7 @@ App<IAppOption>({
 
       // 3. Try "Silent Login" with OpenID
       // New Auth System: Check if this openid is bound to a user
-      const authRes: any = await callApi('auth/loginByOpenid', { openid });
+      const authRes: any = await callApi('loginByOpenid', { openid });
 
       if (authRes && authRes.success && authRes.data && authRes.data.user) {
           // Logged In Successfully

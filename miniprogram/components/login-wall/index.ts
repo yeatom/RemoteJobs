@@ -154,7 +154,7 @@ Component({
       wx.showLoading({ title: '提交中' });
 
       try {
-        const endpoint = type === 'login' ? 'auth/login' : 'auth/register';
+        const endpoint = type === 'login' ? 'loginByPhone' : 'register';
         const res = await callApi(endpoint, {
           phoneNumber: phone,
           password,

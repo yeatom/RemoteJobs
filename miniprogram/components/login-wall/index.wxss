@@ -100,9 +100,10 @@
   /* 
      计算校准：
      X: 50vw - (78vw/2) + 48rpx padding = 11vw + 48rpx
-     Y: 20vh + 64rpx padding
+     再向左偏移 20rpx: 28rpx -> 8rpx
+     Y: 15vh + 64rpx padding (同步卡片上移)
   */
-  transform: translate3d(calc(11vw + 48rpx), calc(20vh + 64rpx), 0);
+  transform: translate3d(calc(11vw + 8rpx), calc(15vh + 64rpx), 0);
 }
 
 /* State 3: Hidden (Success Fade Out) */
@@ -138,7 +139,7 @@
 .login-card {
   position: fixed; 
   left: 50%;
-  top: 20vh; /* 明确的顶部距离，解决“跑到最上面”的问题 */
+  top: 15vh; /* 从 20vh 上移至 15vh */
   transform: translateX(-50%) translateY(40rpx); 
   
   width: 78vw; 
