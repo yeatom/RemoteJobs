@@ -176,7 +176,7 @@ Page({
       // [Optimization] Removed clunky loading before API call
       const genRes: any = await callApi('generate', {
         jobId: jobId,
-        userId: user.openid,
+        openid: user.openid,
         resume_profile: aiProfile,
         job_data: jobData,
         language: isChineseEnv ? 'chinese' : 'english'
