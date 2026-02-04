@@ -1489,6 +1489,7 @@ page {
 .sheet-body-v3 {
     flex: 1;
     height: 0;
+    min-height: 65vh; /* Ensure drawer is tall enough */
 }
 
 /* 1. Dashboard Block */
@@ -1690,15 +1691,22 @@ page {
 }
 .note-check {
     color: var(--primary);
-    margin-right: 8rpx;
+    width: 32rpx;
+    margin-right: 12rpx;
     font-size: 24rpx;
+    display: flex;
+    justify-content: center;
+    flex-shrink: 0;
 }
 .note-dash {
     color: var(--text-desc);
+    width: 32rpx;
     margin-right: 12rpx;
-    margin-left: 4rpx;
     font-size: 24rpx;
     font-weight: bold;
+    display: flex;
+    justify-content: center;
+    flex-shrink: 0;
 }
 .note-gray {
     color: var(--text-desc);
@@ -1714,7 +1722,7 @@ page {
 .sheet-footer-v3 {
     background: #fff;
     box-shadow: 0 -10rpx 40rpx rgba(0, 0, 0, 0.05);
-    padding: 23rpx 32rpx 19rpx 40rpx;
+    padding: 23rpx 32rpx 18rpx 40rpx;
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -1751,15 +1759,15 @@ page {
 }
 
 .pay-btn-v3 {
-    height: 88rpx;
+    height: 80rpx;
     background: var(--primary);
     color: #fff;
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 0 48rpx;
+    padding: 0 44rpx;
     border-radius: 100rpx;
-    font-size: 28rpx;
+    font-size: 26rpx;
     font-weight: 700;
     box-shadow: 0 8rpx 20rpx rgba(46, 95, 233, 0.2);
     transition: all 0.2s ease;
