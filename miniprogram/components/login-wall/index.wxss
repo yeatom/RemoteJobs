@@ -17,7 +17,7 @@
   z-index: 10000;
   display: none;
   opacity: 0;
-  background: #ffffff;
+  background: transparent;
   transition: opacity 1.5s ease-in-out;
 }
 
@@ -102,7 +102,7 @@
 
 /* Scene: Login Card (登录卡片) */
 .login-wall.s-login {
-  --star-x: calc(11vw + 100rpx);
+  --star-x: calc(11vw + 82rpx);
   --star-y: calc(var(--anchor-y) - 130rpx); 
   --star-size: 160rpx;
   --star-opacity: 1;
@@ -131,14 +131,16 @@
   width: 100%;
   height: 100%;
   z-index: 0;
-  background: #ffffff;
-  transition: background 1.2s ease;
+  background: #ffffff; /* 大星星开屏阶段保持纯白背景 */
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  transition: all 1.2s ease;
 }
 
 .login-wall.s-login .glass-mask {
-  background: rgba(255, 255, 255, 0.03);
-  backdrop-filter: blur(5px);
-  -webkit-backdrop-filter: blur(5px);
+  background: rgba(255, 255, 255, 0.4); /* 小星星登录阶段变为透明毛玻璃 */
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(12px); /* 稍微加深一点点模糊，保证卡片文字清晰 */
 }
 
 
@@ -331,12 +333,13 @@
   display: flex !important;
   align-items: center !important;
   justify-content: center !important;
-  margin-top: 20rpx !important;
+  margin-top: 0rpx !important;
   box-shadow: 0 20rpx 40rpx rgba(37, 99, 235, 0.2) !important;
 }
 
 .card-footer {
-  margin-top: 40rpx;
+  margin-top: 35rpx;
+  padding-bottom: 12rpx;
   text-align: center;
 }
 

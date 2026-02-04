@@ -1,16 +1,15 @@
 <view class="page">
   <login-wall visible="{{!isLoggedIn}}" bind:loginSuccess="onLoginSuccess" />
 
-  <block wx:if="{{isLoggedIn}}">
-    <ui-feedback id="ui-feedback" />
+  <ui-feedback id="ui-feedback" />
 
-    <view wx:if="{{isInitialLoading}}" class="loading-box">
-      <view class="loading-spinner"></view>
-      <text>{{ui.loading}}</text>
-    </view>
+  <view wx:if="{{isInitialLoading && !isLoggedIn}}" class="loading-box">
+    <view class="loading-spinner"></view>
+    <text>{{ui.loading}}</text>
+  </view>
 
-    <block wx:else>
-      <ui-scroll-view scrollY="{{true}}" enableFlex="{{true}}" custom-class="me-scroll-container">
+  <block>
+    <ui-scroll-view scrollY="{{true}}" enableFlex="{{true}}" custom-class="me-scroll-container">
         <!-- ... content ... -->
       <!-- 1. 沉浸式头部 Hero Section -->
     <view class="hero-section">
@@ -370,6 +369,5 @@
       <text class="qr-hint">{{ui.qrHint}}</text>
     </view>
   </ui-drawer>
-    </block>
   </block>
 </view>
