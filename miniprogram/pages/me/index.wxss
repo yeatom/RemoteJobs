@@ -1564,20 +1564,19 @@ page {
 
 .product-scroll-v3 {
     display: flex;
-    white-space: nowrap;
-    padding: 0 0 0 32rpx; /* Symmetric padding-left, padding-right handled by ::after */
-    height: 380rpx; /* Fixed height for cards */
+    padding: 0 0 0 32rpx; /* Start padding */
+    height: 380rpx;
     box-sizing: border-box;
+    overflow: hidden;
 }
 
-.product-scroll-v3::after {
-    content: '';
-    width: 24rpx; /* End spacing: 8rpx (margin-right) + 24rpx (width) = 32rpx */
+.product-scroll-spacer {
+    width: 12rpx; /* Last margin (20rpx) + 12rpx = 32rpx to match start padding */
     flex-shrink: 0;
 }
 
 .prod-card-v3 {
-    display: inline-flex;
+    display: flex;
     flex-direction: column;
     justify-content: space-between;
     width: 280rpx;
@@ -1590,7 +1589,7 @@ page {
     border: 3rpx solid transparent; /* Prepare for border */
     box-shadow: 0 8rpx 20rpx rgb(148 163 184 / 5%);
     flex-shrink: 0;
-    margin-right: 8rpx;
+    margin-right: 20rpx; /* Increased spacing between cards */
 }
 
 /* Plan Styles (Blue Theme) */

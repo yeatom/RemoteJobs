@@ -277,7 +277,7 @@
          </view>
          
          <!-- Product List (Horizontal) -->
-         <ui-scroll-view scrollX="{{true}}" custom-class="product-scroll-v3">
+         <ui-scroll-view scrollX="{{true}}" enableFlex="{{true}}" custom-class="product-scroll-v3">
             <block wx:for="{{ schemsList || [] }}" wx:key="scheme_id">
                <view class="prod-card-v3 {{selectedSchemeId === item.scheme_id ? 'selected' : ''}} {{item.type === 'topup' ? 'type-topup' : 'type-plan'}}"
                      bindtap="onSelectScheme" 
@@ -300,6 +300,8 @@
                   <view class="selection-check"></view>
                </view>
             </block>
+            <!-- Spacing purely for horizontal scroll stability -->
+            <view class="product-scroll-spacer"></view>
          </ui-scroll-view>
          
          <!-- Selected Product Details -->
