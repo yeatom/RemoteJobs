@@ -78,23 +78,35 @@ Page({
     },
 
     onLoad() {
-        // subscribe once for this page instance
+        const app = getApp<IAppOption>() as any
         
         ;(this as any)._langDetach = attachLanguageAware(this, {
             onLanguageRevive: () => {
                 this.syncLanguageFromApp()
-                // Immediately set navigation bar title when language changes
                 wx.setNavigationBarTitle({ title: '' })
-
             },
         })
+
+        // 关键：监听全局用户状态变化
+        if (app.onUserChange) {
+            (this as any)._userListener = (user: any) => {
+                console.log('[Me] User globally updated, syncing UI...')
+                this.syncUserFromApp()
+            }
+            app.onUserChange((this as any)._userListener)
+        }
     },
 
     onUnload() {
+        const app = getApp<IAppOption>() as any
         const fn = (this as any)._langDetach
         if (typeof fn === 'function') fn()
         ;
         (this as any)._langDetach = null
+
+        if (app.offUserChange && (this as any)._userListener) {
+            app.offUserChange((this as any)._userListener)
+        }
     },
 
     onShow() {
@@ -313,94 +325,102 @@ Page({
     },
 
     async loadMemberBadgeText(memberLevel?: number) {
-        // 如果没有传入 memberLevel，则从 data 或 user 中获取
         if (memberLevel === undefined) {
             const app = getApp<IAppOption>() as any
             const user = app?.globalData?.user
             memberLevel = (this.data as any).memberLevel || user?.membership?.level || 0
         }
 
-        // 如果不是会员，不显示徽章
         if (memberLevel === 0) {
             this.setData({ memberBadgeText: '' })
             return
         }
 
         try {
-            // 优化：优先使用已缓存的 schemesList，或 App 级预取的数据
-            let result: any = null;
-            let schemes = this.data.schemsList || [];
-            
             const app = getApp<any>()
             const prefetched = app.globalData.prefetchedData
+            let schemes = this.data.schemsList || []
+            let userScheme = (this as any)._cachedUserScheme || null
 
-            if (schemes.length > 0) {
-                 // 使用组件内缓存
-                 result = { success: true, schemes };
-            } else if (prefetched && prefetched.memberSchemes && prefetched.memberSchemes.length > 0) {
-                 // 使用 App 预取缓存
-                 console.log('[Me] Using prefetched member schemes')
-                 schemes = prefetched.memberSchemes
-                 result = { success: true, schemes };
-                 this.setData({ schemsList: schemes })
-            } else {
-                 // 缓存不存在，发起请求
-                 const res = await callApi('getMemberSchemes', {})
-                 result = res.result || (res as any)
-                 schemes = result?.schemes || []
-                 if (result?.success) {
-                     this.setData({ schemsList: schemes })
-                 }
+            // 1. 优先使用已有的缓存数据
+            if (schemes.length === 0 && prefetched?.memberSchemes?.length > 0) {
+                schemes = prefetched.memberSchemes
+                this.setData({ schemsList: schemes })
             }
 
-            if (result?.success) {
-                
-                // Priority: Use the specific userScheme returned by backend (contains hidden schemes like Trial)
-                // Fallback: Use scheme found in general list
-                let scheme = result.userScheme 
-                             || schemes.find((s: any) => s.scheme_id === memberLevel)
-
-                const isChinese = this.data.appLanguage === 'Chinese' || this.data.appLanguage === 'AIChinese'
-                const memberBadgeText = scheme ? (isChinese ? scheme.name_chinese : scheme.name_english) : ''
-                
-                if (!scheme && memberLevel !== undefined && memberLevel > 0) {
-                    console.warn('未找到对应的会员方案，memberLevel:', memberLevel, 'schemes:', schemes)
-                }
-
-                this.setData({ 
-                    memberBadgeText,
-                    ['ui.memberRenewContent']: UIConfig.buildPageUI(this.data.appLanguage as any, { ...this.data, memberBadgeText }).memberRenewContent
+            // 2. 如果彻底没有数据且不在请求中，才通过 API 获取
+            if (schemes.length === 0 && !(this as any)._schemesLoading) {
+                (this as any)._schemesLoading = callApi('getMemberSchemes', {}).then(res => {
+                    const result = res.result || (res as any)
+                    if (result?.success) {
+                        const sList = result.schemes || []
+                        this.setData({ schemsList: sList })
+                        if (result.userScheme) (this as any)._cachedUserScheme = result.userScheme
+                        return result
+                    }
+                    return null
+                }).finally(() => {
+                    (this as any)._schemesLoading = null
                 })
+            }
 
-                // 计算升级差价
-                if (memberLevel === 1) {
-                    const level2Scheme = schemes.find((s: any) => s.scheme_id === 2)
-                    if (level2Scheme && scheme) {
-                        const diff = (level2Scheme.price || 0) - (scheme.price || 0)
-                        const amount = diff > 0 ? diff : 0
-                        this.setData({ 
-                            upgradeAmount: amount,
-                            ['ui.upgradeGuide']: UIConfig.buildPageUI(this.data.appLanguage as any, { ...this.data, upgradeAmount: amount }).upgradeGuide
-                        })
-                    }
-                } else if (memberLevel === 2) {
-                    const level3Scheme = schemes.find((s: any) => s.scheme_id === 3)
-                    if (level3Scheme && scheme) {
-                        const diff = (level3Scheme.price || 0) - (scheme.price || 0)
-                        const amount = diff > 0 ? diff : 0
-                        this.setData({ 
-                            upgradeAmount: amount,
-                            ['ui.upgradeGuide']: UIConfig.buildPageUI(this.data.appLanguage as any, { ...this.data, upgradeAmount: amount }).upgradeGuide
-                        })
-                    }
-                }
-            } else {
-                console.warn('获取会员方案失败:', result)
-                this.setData({ memberBadgeText: '' })
+            // 如果正在请求，等待请求完成
+            let resultData: any = null
+            if ((this as any)._schemesLoading) {
+                resultData = await (this as any)._schemesLoading
+            }
+
+            // 3. 确定最终使用的 scheme 对象
+            const targetScheme = ((this as any)._cachedUserScheme || resultData?.userScheme)
+            let scheme = (targetScheme?.scheme_id === memberLevel) 
+                         ? targetScheme 
+                         : schemes.find((s: any) => s.scheme_id === memberLevel)
+
+            const isChinese = this.data.appLanguage === 'Chinese' || this.data.appLanguage === 'AIChinese'
+            let memberBadgeText = ''
+            
+            if (scheme) {
+                memberBadgeText = isChinese ? scheme.name_chinese : scheme.name_english
+            } else if (memberLevel === 1) {
+                // 特殊处理：Level 1 通常是后台过滤掉的“试用期”，给个默认文案
+                memberBadgeText = isChinese ? '体验成员' : 'Trial Member'
+            }
+
+            this.setData({ 
+                memberBadgeText,
+                ['ui.memberRenewContent']: UIConfig.buildPageUI(this.data.appLanguage as any, { ...this.data, memberBadgeText }).memberRenewContent
+            })
+
+            // 计算升级差价 (仅在有方案列表时计算)
+            if (schemes.length > 0) {
+                // ... 保持原有差价计算逻辑 ...
+                this.calculateUpgradeAmount(memberLevel, schemes, scheme)
             }
         } catch (err) {
-            console.error('加载会员徽章文本失败:', err)
-            this.setData({ memberBadgeText: '' })
+            console.error('[Me] loadMemberBadgeText error:', err)
+        }
+    },
+
+    /**
+     * 独立出升级差价计算逻辑，保持主函数清爽
+     */
+    calculateUpgradeAmount(memberLevel: number, schemes: any[], currentScheme: any) {
+        if (!currentScheme) return
+        
+        let targetLevel = 0
+        if (memberLevel === 1) targetLevel = 2
+        else if (memberLevel === 2) targetLevel = 3
+
+        if (targetLevel > 0) {
+            const target = schemes.find((s: any) => s.scheme_id === targetLevel)
+            if (target) {
+                const diff = (target.price || 0) - (currentScheme.price || 0)
+                const amount = diff > 0 ? diff : 0
+                this.setData({ 
+                    upgradeAmount: amount,
+                    ['ui.upgradeGuide']: UIConfig.buildPageUI(this.data.appLanguage as any, { ...this.data, upgradeAmount: amount }).upgradeGuide
+                })
+            }
         }
     },
 

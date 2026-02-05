@@ -13,6 +13,7 @@ App<IAppOption>({
     bootStatus: 'loading' as BootStatus,
     language: 'Chinese' as AppLanguage,
     _langListeners: new Set<LangListener>(),
+    _userListeners: new Set<(user: any) => void>(),
     _splashAnimated: false, // 追踪当前 session 是否已展示过开屏动画
     // 页面跳转临时数据存储
     _pageData: {
@@ -198,6 +199,26 @@ App<IAppOption>({
     })
   },
 
+  onUserChange(cb: (user: any) => void) {
+    ;(this as any).globalData._userListeners.add(cb)
+  },
+
+  offUserChange(cb: (user: any) => void) {
+    ;(this as any).globalData._userListeners.delete(cb)
+  },
+
+  emitUserChange(user: any) {
+    const set: Set<(user: any) => void> = (this as any).globalData._userListeners
+    if (!set) return
+    set.forEach((fn) => {
+      try {
+        fn(user)
+      } catch (e) {
+        // ignore
+      }
+    })
+  },
+
   async setLanguage(language: AppLanguage) {
     ;(this as any).globalData.language = language
     this.applyLanguage()
@@ -208,6 +229,7 @@ App<IAppOption>({
       const updatedUser = res?.result?.user || (res as any)?.user
       if (updatedUser) {
         ;(this as any).globalData.user = updatedUser
+        this.emitUserChange(updatedUser)
       }
     } catch (err) {
       // ignore
@@ -240,19 +262,11 @@ App<IAppOption>({
           wx.setStorageSync('token', token);
           (this as any).globalData.user = user;
 
-           // 检查会员状态并更新 (Optional, adapted from old code)
-            try {
-                const memberStatusRes: any = await callApi('checkMemberStatus', {})
-                const result = memberStatusRes?.result || memberStatusRes
-                if (result?.success && result.membership && (this as any).globalData.user) {
-                   (this as any).globalData.user.membership = result.membership
-                }
-            } catch (err) {}
-
           // Normalize language
           const lang = normalizeLanguage(user?.language);
           (this as any).globalData.language = lang;
           
+          this.emitUserChange(user);
           return user;
 
       } else {
