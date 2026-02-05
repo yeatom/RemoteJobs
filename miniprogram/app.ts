@@ -27,7 +27,63 @@ App<IAppOption>({
     // 1. 强制隐藏 TabBar 防止闪烁
     wx.hideTabBar({ animated: false }).catch(() => {});
 
-    // 2. 监听网络状态
+    // 2. 启动核心初始化流程 (大厂级多任务编排)
+    this.bootstrap();
+  },
+
+  /**
+   * 核心启动函数：编排所有初始化任务
+   * 确保：1. 最小展示时间 (1.5s)；2. 核心数据就绪 (Auth/Config/i18n)
+   */
+  async bootstrap() {
+    console.log('[App] Bootstrap sequence started...');
+    const startTime = Date.now();
+    const MIN_SPLASH_TIME = 1500; // 1.5s 强制留白以确保动画完整性
+
+    // 任务1：监听网络状态
+    this.initNetworkListener();
+
+    // 任务2：核心并发任务队列
+    const coreTasks = [
+      this.refreshUser(), // 获取用户信息、Token 及 语言设置
+      this.refreshSystemConfig(), // 获取系统配置（Beta/维护状态）
+    ];
+
+    try {
+      // 等待并发任务完成 (使用 allSettled 确保部分失败不阻塞整体)
+      await Promise.allSettled(coreTasks);
+    } catch (err) {
+      console.error('[App] Bootstrap critical error:', err);
+      this.globalData.bootStatus = 'server-down';
+    } finally {
+      // 任务3：确保语言已应用 (基于获取到的最新用户信息)
+      this.applyLanguage();
+
+      // 任务4：强制等待，补足最小 Splash 时间
+      const elapsed = Date.now() - startTime;
+      const remaining = Math.max(0, MIN_SPLASH_TIME - elapsed);
+      
+      if (remaining > 0) {
+        console.log(`[App] Waiting for splash minimum time: ${remaining}ms`);
+        await new Promise(resolve => setTimeout(resolve, remaining));
+      }
+
+      // 任务5：判定最终 bootStatus 并释放 Splash
+      const user = this.globalData.user;
+      if (this.globalData.bootStatus === 'loading') {
+          if (user && user.phoneNumber) {
+              this.globalData.bootStatus = 'success';
+          } else {
+              this.globalData.bootStatus = 'unauthorized';
+          }
+      }
+
+      console.log('[App] Bootstrap complete. Ready to dismiss splash.');
+      // 此时 login-wall 里的 checkState 会轮询到 bootStatus 变化并淡出
+    }
+  },
+
+  initNetworkListener() {
     wx.getNetworkType({
       success: (res) => {
         if (res.networkType === 'none') {
@@ -39,41 +95,13 @@ App<IAppOption>({
     wx.onNetworkStatusChange((res) => {
       if (res.isConnected && this.globalData.bootStatus === 'no-network') {
         this.globalData.bootStatus = 'loading';
-        this.refreshUser().catch(() => {});
+        this.refreshUser().then(() => {
+          if (this.globalData.user?.phoneNumber) {
+            this.globalData.bootStatus = 'success';
+          }
+        }).catch(() => {});
       }
     });
-
-    this.refreshSystemConfig()
-    this.applyLanguage()
-
-    // 3. 执行核心 Auth 逻辑
-    this.globalData.userPromise = this.refreshUser().then(user => {
-        if (user && user.phoneNumber) {
-            this.globalData.bootStatus = 'success';
-        } else {
-            this.globalData.bootStatus = 'unauthorized';
-        }
-        return user;
-    }).catch(err => {
-        console.error('[Launch] Auth error:', err);
-        
-        // 关键修正：如果是 404 或 401，说明是用户没找到或没授权，属于正常逻辑，应显示登录墙
-        if (err.statusCode === 404 || err.statusCode === 401) {
-            this.globalData.bootStatus = 'unauthorized';
-        } else {
-            // 真正的网络故障或 500 错误
-            this.globalData.bootStatus = 'server-down';
-        }
-        return null;
-    });
-
-    await this.globalData.userPromise
-    
-    // ... rest of logic
-
-    const lang = ((this as any).globalData.language || 'Chinese') as AppLanguage
-    this.applyLanguage()
-    this.emitLanguageChange(lang)
   },
 
   onShow() {

@@ -14,7 +14,7 @@
   enableBackToTop="{{enableBackToTop}}"
   enablePassive="{{enablePassive}}"
 >
-  <view class="job-list-content" style="padding: 0;">
+  <view class="job-list-content">
     <block wx:for="{{jobs}}" wx:key="_id">
       <view class="job-card" data-_id="{{item._id}}" data-job="{{item}}" bindtap="onItemTap">
         <view class="job-main">
