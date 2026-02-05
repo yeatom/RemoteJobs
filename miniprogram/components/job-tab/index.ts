@@ -262,8 +262,8 @@ Component({
       })
       
       const result = res.result || (res as any)
-      if (result && (result.ok || result.success)) {
-        const jobs = result.jobs || result.data || []
+      if (result && result.ok) {
+        const jobs = result.jobs || []
         const newJobs = mapJobs(jobs, currentLang) as JobItem[]
         const merged = reset ? newJobs : [...existingJobs, ...newJobs]
         const hasMore = newJobs.length >= this.data.pageSize
@@ -283,7 +283,7 @@ Component({
         // 通知父组件数据已更新
         this.triggerEvent('dataupdate', { jobs: merged, hasMore })
       } else {
-        console.error(`[JobTab] ${cloudFunctionName} failed or ok=false:`, result)
+        console.error(`[JobTab] ${functionName} failed or ok=false:`, result)
         this.setData({ loading: false, hasMore: true })
       }
     },
