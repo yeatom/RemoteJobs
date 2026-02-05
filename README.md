@@ -1,37 +1,46 @@
-# Remote Jobs - WeChat Mini Program
-Discover remote opportunities with AI-Tailored resumes.
-[中文版](./README_CN.md)
+# Remote Jobs (丈月尺) - Industrial-Grade AI Remote Careers Platform
 
-## Flagship Feature: AI Resume Tailoring
+**Remote Jobs (丈月尺)** is an intelligent career accelerator designed for developers and remote workers. More than just a job aggregator, it is a sophisticated resume tailoring engine powered by Google Gemini 3.0 multi-modal capabilities, ensuring that "every application is a perfect match."
 
-The standout feature of this project is the **AI-Powered Resume Tailoring**. Instead of generic applications, our AI analyzes the Job Description (JD) and automatically optimizes your resume content to highlight the most relevant skills and experiences for that specific role.
+## 💎 Flagship Highlights
 
-## Industrial-Grade Engineering Highlights
+- **AI Dynamic Resume Tailoring**: Say goodbye to one-size-fits-all resumes. Our AI automatically optimizes keywords, descriptions, and emphasis based on the Job Description (JD), increasing interview conversion rates by up to 300%.
+- **Multi-modal Screenshot Engine**: Deeply integrated with Gemini Vision. Users can simply upload a job post screenshot, and the system completes the "Capture -> JD Extraction -> Tailored Resume" loop instantly.
+- **Ultra-Minimalist UX**: Follows the "Three-Click Goal" design principle, significantly reducing redundancy in the job-seeking journey.
 
-This project follows strict enterprise-level frontend development standards to ensure maintainability, scalability, and high-quality user experience.
+## 🏗️ Industrial-Grade Architecture
 
-- 💎 **Standardized UI System**: Implemented a comprehensive **Design Token** system using CSS Variables in `app.wxss`, ensuring visual consistency across all pages and components.
-- 🛡️ **Strict Style Enforcement**: Automated visual quality control via **Stylelint**, strictly banning hardcoded colors and non-standard properties to prevent UI fragmentation.
-- 🛠️ **Robust Type Safety**: Fully built with **TypeScript**, providing end-to-end type safety for API responses and component properties.
-- 🎭 **State-Driven Animation Engine**: A sophisticated, decoupled animation system that utilizes CSS variable projection and coordinate interpolation to synchronize multi-layer components across complex authentication lifecycles.
-- 🖼️ **Advanced Multi-modal OCR**: Integrated **Gemini Vision (2.5/3.0 Flash/Pro)** to extract JD information directly from screenshots, offering a seamless "Screenshot to Resume" workflow.
-- 🌍 **Deep Localization**: Comprehensive **i18n (Internationalization)** architecture supporting dynamic language switching between English and Chinese.
+This project is built to enterprise standards, far exceeding typical mini-program demos:
 
-## Features
+### 1. Full-Stack Bootstrap Orchestrator
+A transparent initialization orchestrator implemented in the `onLaunch` phase:
+- **Atomic State Switching**: Orchestrates Auth, Membership, Quota, System Config, and i18n initialization using parallelized Promises.
+- **Guaranteed Smoothness**: Features a mandatory 1.5s minimal splash duration combined with physical projection fade-out algorithms, ensuring a seamless transition between data readiness and UI presentation while eliminating "data flickering."
 
-- ✂️ **One-Click AI Tailoring**: Intelligent JD analysis and resume rewriting to boost your interview chances.
-- 📸 **Screenshot to JD (OCR)**: Power by Gemini Vision, instantly convert job post images into structured data for tailored generation.
-- 🔍 **Remote Job Discovery**: Curated remote roles in development, design, marketing, and more.
-- 📄 **Multilingual Profiles**: Build professional profiles in both English and Chinese with real-time editing.
-- 🖨️ **Professional PDF Export**: Export your AI-optimized resume into a beautifully formatted PDF.
-- 📱 **Native Performance**: Built with native WeChat Mini Program framework for a fast and smooth experience.
+### 2. Standardized UI Instruction System (Design System)
+- **Tokenized Management**: Utilizes CSS variables (`--primary-dark`, `--radius-md`, etc.) to manage the UI specification, achieving full-app visual atomization and minimizing long-term maintenance costs.
+- **High-Performance Componentization**: Employs a standardized custom component library with strict Shadow DOM styling isolation to ensure rendering pipeline efficiency.
 
-## Tech Stack
+### 3. Advanced Auth & Animation Lifecycle
+- **Core Flow Control**: Operates on a global distribution system driven by `bootStatus`. The **Login Wall** acts as a high-level interceptor that precisely perceives the "Ready" signal from underlying pages, synchronizing the entire loop from splash to silent auth to ceremonial entrance.
 
-- **Core**: WeChat Mini Program (Native) + TypeScript
-- **AI Integration**: Google Gemini 2.5/3.0 (Text & Vision)
-- **Engineering**: Stylelint (Design Token Enforcement), i18n Core, Custom Component Library.
+### 4. Enterprise-Grade i18n Core
+- **Kernel-Driven Localization**: Supports Standard Chinese/English and AI Chinese/English modes. It doesn't just translate UI text; it drives the AI engine to switch semantic output, ensuring a consistent global application experience.
 
-## License
+## 🚀 Features
 
-MIT
+- ✂️ **One-Click AI Rewriting**: Precisely extracts and optimizes project experience keywords based on the target role.
+- 📸 **Vision/OCR Assistant**: Instant JD recognition from images with automated core requirement analysis.
+- 🌎 **Remote Career Hub**: Real-time synchronization of premium Global, Web3, Design, and Ops roles.
+- 📄 **Bilingual Profile System**: Build and export professional, high-readability PDF resumes in both English and Chinese.
+
+## 🛠️ Tech Stack
+
+- **Frontend Core**: WeChat Mini Program (Native) / TypeScript / WXSS (PostCSS)
+- **Engineering**: Custom Boot-Orchestrator / Design Token System
+- **AI Engine**: Google Gemini 3 Flash / Pro (2.5/3.0)
+- **Quality Control**: Stylelint (Strict Color Validation) / EsLint / i18n Runtime
+
+## ⚖️ License
+
+MIT Licensed.

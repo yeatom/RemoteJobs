@@ -2,6 +2,7 @@
 import { normalizeLanguage, type AppLanguage, t } from './utils/i18n'
 import { request, callApi } from './utils/request'
 import { StatusCode } from './utils/statusCodes'
+import { bootManager, type BootStatus } from './utils/bootManager'
 
 type LangListener = (lang: AppLanguage) => void
 
@@ -9,7 +10,7 @@ App<IAppOption>({
   globalData: {
     user: null as any,
     userPromise: null as Promise<any> | null,
-    bootStatus: 'loading' as 'loading' | 'success' | 'error' | 'no-network' | 'server-down' | 'unauthorized',
+    bootStatus: 'loading' as BootStatus,
     language: 'Chinese' as AppLanguage,
     _langListeners: new Set<LangListener>(),
     _splashAnimated: false, // 追踪当前 session 是否已展示过开屏动画
@@ -25,79 +26,67 @@ App<IAppOption>({
 
   async onLaunch() {
     // 1. 强制隐藏 TabBar 防止闪烁
-    wx.hideTabBar({ animated: false }).catch(() => {});
+    wx.hideTabBar({ animation: false }).catch(() => {});
 
-    // 2. 启动核心初始化流程 (大厂级多任务编排)
-    this.bootstrap();
+    // 2. 挂载 BootManager 广播监听
+    bootManager.onStatusChange((status) => {
+        (this as any).globalData.bootStatus = status;
+    });
+
+    // 3. 启动核心初始化流程 (大厂级多任务编排)
+    (this as any).bootstrap();
   },
 
   /**
    * 核心启动函数：编排所有初始化任务
-   * 确保：1. 最小展示时间 (1.5s)；2. 核心数据就绪 (Auth/Config/i18n)
    */
   async bootstrap() {
     console.log('[App] Bootstrap sequence started...');
-    const startTime = Date.now();
-    const MIN_SPLASH_TIME = 1500; // 1.5s 强制留白以确保动画完整性
 
-    // 任务1：监听网络状态
+    // 任务1：基础配置 (无网络监听)
     this.initNetworkListener();
 
-    // 任务2：核心并发任务队列
+    // 任务2：编排核心并发任务
     const coreTasks = [
       this.refreshUser(), // 获取用户信息、Token 及 语言设置
       this.refreshSystemConfig(), // 获取系统配置（Beta/维护状态）
     ];
 
-    try {
-      // 等待并发任务完成 (使用 allSettled 确保部分失败不阻塞整体)
-      await Promise.allSettled(coreTasks);
-    } catch (err) {
-      console.error('[App] Bootstrap critical error:', err);
-      this.globalData.bootStatus = 'server-down';
-    } finally {
-      // 任务3：确保语言已应用 (基于获取到的最新用户信息)
-      this.applyLanguage();
+    // 通过 BootManager 统一驱动生命周期
+    await bootManager.start(coreTasks);
 
-      // 任务4：强制等待，补足最小 Splash 时间
-      const elapsed = Date.now() - startTime;
-      const remaining = Math.max(0, MIN_SPLASH_TIME - elapsed);
-      
-      if (remaining > 0) {
-        console.log(`[App] Waiting for splash minimum time: ${remaining}ms`);
-        await new Promise(resolve => setTimeout(resolve, remaining));
-      }
-
-      // 任务5：判定最终 bootStatus 并释放 Splash
-      const user = this.globalData.user;
-      if (this.globalData.bootStatus === 'loading') {
-          if (user && user.phoneNumber) {
-              this.globalData.bootStatus = 'success';
-          } else {
-              this.globalData.bootStatus = 'unauthorized';
-          }
-      }
-
-      console.log('[App] Bootstrap complete. Ready to dismiss splash.');
-      // 此时 login-wall 里的 checkState 会轮询到 bootStatus 变化并淡出
+    // 任务3：判定最终状态
+    const user = (this as any).globalData.user;
+    const currentStatus = bootManager.getStatus();
+    
+    if (currentStatus === 'loading' || currentStatus === 'success') {
+        if (user && user.phone) {
+            bootManager.setStatus('success');
+        } else if ((this as any).globalData.bootStatus !== 'server-down' && (this as any).globalData.bootStatus !== 'no-network') {
+            bootManager.setStatus('unauthorized');
+        }
     }
+
+    // 任务4：确保 UI 语言已应用
+    this.applyLanguage();
+    console.log('[App] Bootstrap complete.');
   },
 
   initNetworkListener() {
     wx.getNetworkType({
       success: (res) => {
         if (res.networkType === 'none') {
-          this.globalData.bootStatus = 'no-network';
+          bootManager.setStatus('no-network');
         }
       }
     });
 
     wx.onNetworkStatusChange((res) => {
-      if (res.isConnected && this.globalData.bootStatus === 'no-network') {
-        this.globalData.bootStatus = 'loading';
+      if (res.isConnected && bootManager.getStatus() === 'no-network') {
+        bootManager.setStatus('loading');
         this.refreshUser().then(() => {
-          if (this.globalData.user?.phoneNumber) {
-            this.globalData.bootStatus = 'success';
+          if ((this as any).globalData.user?.phone) {
+            bootManager.setStatus('success');
           }
         }).catch(() => {});
       }
@@ -105,7 +94,7 @@ App<IAppOption>({
   },
 
   onShow() {
-    // 每次进入小程序都确保用户已登录
+    // 每次进入小程序都确保用户已登录 (静默刷新，不走全量 bootstrap)
     const user = this.globalData.user;
     if (user) {
         this.refreshUser().catch(() => null)
@@ -124,6 +113,7 @@ App<IAppOption>({
       this.globalData.systemConfig = config || { isBeta: true, isMaintenance: false }
 
       if (config && config.isMaintenance) {
+        bootManager.setStatus('server-down');
         const lang = normalizeLanguage(this.globalData.language)
         const msg = config.maintenanceMessage || t('app.maintenanceMsg', lang)
         wx.reLaunch({
@@ -191,7 +181,7 @@ App<IAppOption>({
   },
 
   async refreshUser() {
-    this.globalData.bootStatus = 'loading';
+    bootManager.setStatus('loading');
     try {
       // 1. Get Code
       const { code } = await wx.login()
@@ -214,20 +204,20 @@ App<IAppOption>({
           const token = authRes.data.token;
           
           wx.setStorageSync('token', token);
-          this.globalData.user = user;
+          (this as any).globalData.user = user;
 
            // 检查会员状态并更新 (Optional, adapted from old code)
             try {
                 const memberStatusRes: any = await callApi('checkMemberStatus', {})
                 const result = memberStatusRes?.result || memberStatusRes
-                if (result?.success && result.membership) {
-                   this.globalData.user.membership = result.membership
+                if (result?.success && result.membership && (this as any).globalData.user) {
+                   (this as any).globalData.user.membership = result.membership
                 }
             } catch (err) {}
 
           // Normalize language
-          const lang = normalizeLanguage(user?.language)
-          this.globalData.language = lang
+          const lang = normalizeLanguage(user?.language);
+          (this as any).globalData.language = lang;
           
           return user;
 
@@ -247,27 +237,27 @@ App<IAppOption>({
       if (err.errMsg && (err.errMsg.includes('timeout') || err.errMsg.includes('fail'))) {
         const network = await new Promise(r => wx.getNetworkType({ success: r }));
         if ((network as any).networkType === 'none') {
-          this.globalData.bootStatus = 'no-network';
+          bootManager.setStatus('no-network');
         } else {
           // 有网但请求失败（可能是 DNS 错误或服务器彻底宕机连不上的）
-          this.globalData.bootStatus = 'server-down';
+          bootManager.setStatus('server-down');
         }
       } 
       // 2. 检查具体的商业状态码或 HTTP 状态码
       else if (bizCode === StatusCode.USER_NOT_FOUND || statusCode === 404) {
         // 用户不存在（新用户），在 Auth 系统中视为“未授权”状态以触发登录墙
-        this.globalData.bootStatus = 'unauthorized';
+        bootManager.setStatus('unauthorized');
       }
       else if (bizCode === StatusCode.UNAUTHORIZED || bizCode === StatusCode.INVALID_TOKEN || statusCode === 401 || statusCode === 403 || err.message === 'AUTH_REQUIRED') {
         // 正常的“未登录”状态
-        this.globalData.bootStatus = 'unauthorized';
+        bootManager.setStatus('unauthorized');
       } 
       else if (statusCode >= 500 || bizCode === StatusCode.INTERNAL_ERROR) {
-        this.globalData.bootStatus = 'server-down';
+        bootManager.setStatus('server-down');
       }
       else {
         // 其他未知错误，安全起见引导至登录页
-        this.globalData.bootStatus = 'unauthorized';
+        bootManager.setStatus('unauthorized');
       }
 
       this.globalData.user = null;

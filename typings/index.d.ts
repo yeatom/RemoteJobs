@@ -107,8 +107,10 @@ interface IAppOption {
   globalData: {
     user: AppUser | null,
     userPromise: Promise<any> | null,
+    bootStatus: import('../miniprogram/utils/bootManager').BootStatus,
     language: import('../miniprogram/utils/i18n').AppLanguage,
     _langListeners: Set<(lang: import('../miniprogram/utils/i18n').AppLanguage) => void>,
+    _splashAnimated: boolean,
     _pageData: {
       jobData: any,
       filterValue: any,
@@ -129,4 +131,6 @@ interface IAppOption {
   emitLanguageChange: (lang: import('../miniprogram/utils/i18n').AppLanguage) => void,
   onLanguageChange: (cb: (lang: import('../miniprogram/utils/i18n').AppLanguage) => void) => void,
   offLanguageChange: (cb: (lang: import('../miniprogram/utils/i18n').AppLanguage) => void) => void,
+  bootstrap: () => Promise<void>,
+  initNetworkListener: () => void,
 }

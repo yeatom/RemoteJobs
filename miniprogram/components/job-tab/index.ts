@@ -5,6 +5,7 @@ import { normalizeLanguage, t } from '../../utils/i18n'
 import { matchSalary } from '../../utils/salary'
 import { request, callApi } from '../../utils/request'
 import { ui } from '../../utils/ui'
+import { bootManager } from '../../utils/bootManager'
 
 type DrawerFilterValue = {
   salary: string
@@ -85,7 +86,7 @@ Component({
       this.getSystemInfo()
       this.syncLanguageFromApp()
       
-      // 监听语言变化
+      // 1. 监听语言变化
       const app = getApp<IAppOption>() as any
       if (app?.onLanguageChange) {
         ;(this as any)._langListener = () => {
@@ -97,9 +98,24 @@ Component({
         }
         app.onLanguageChange((this as any)._langListener)
       }
-      
-      // 如果激活且未加载，则加载数据
-      if ((this.properties.active as boolean) && !this.data.hasLoaded) {
+
+      // 2. 工业级预加载逻辑：监听 BootManager 成功信号
+      // 当全局启动就绪时，无论当前 Tab 是否激活，都触发并行加载
+      const checkAndLoad = () => {
+          if (bootManager.getStatus() === 'success' && !this.data.hasLoaded) {
+              this.loadData(true);
+          }
+      };
+
+      // 订阅广播
+      (this as any)._unsubBoot = bootManager.onStatusChange(checkAndLoad);
+
+      // 如果当前已经就绪，直接加载
+      if (bootManager.getStatus() === 'success') {
+          checkAndLoad();
+      }
+      // 保留原有的 active 触发逻辑（作为兜底）
+      else if ((this.properties.active as boolean) && !this.data.hasLoaded) {
         this.loadData(true)
       }
     },
@@ -111,6 +127,11 @@ Component({
         app.offLanguageChange(listener)
       }
       ;(this as any)._langListener = null
+
+      // 自动清理 BootManager 订阅
+      if ((this as any)._unsubBoot) {
+          (this as any)._unsubBoot();
+      }
     },
   },
 
