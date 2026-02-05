@@ -79,6 +79,7 @@ App<IAppOption>({
 
     // 任务4：确保 UI 语言已应用
     this.applyLanguage();
+    
     console.log('[App] Bootstrap complete.');
   },
 

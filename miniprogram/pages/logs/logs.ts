@@ -15,7 +15,6 @@ Page({
         maintenanceMsg: msg,
         title: '系统维护'
       })
-      wx.setNavigationBarTitle({ title: '系统维护' })
     }
   },
 
