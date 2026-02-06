@@ -303,26 +303,33 @@ Page({
     const user = app?.globalData?.user
 
     if (user) {
-      console.log('[ResumeProfile] Loading data for user:', user._id)
       const profile = user.resume_profile || {}
       const zh = profile.zh || {}
       const en = profile.en || {}
+
+      console.log('[ResumeProfile] Loading data for user:', user._id)
+      console.log('[ResumeProfile] Raw profile zh:', JSON.stringify(zh).substring(0, 100))
+      console.log('[ResumeProfile] Raw profile en:', JSON.stringify(en).substring(0, 100))
 
       // 以后端物理字段 completeness 为准，不再在前端进行 fallback 计算
       const zhCompleteness = zh.completeness || { score: 0, level: 0 };
       const enCompleteness = en.completeness || { score: 0, level: 0 };
 
+      console.log(`[ResumeProfile] Scores - CN: ${zhCompleteness.score}%, EN: ${enCompleteness.score}%`)
+
       this.setData({
         zh,
         en,
-        completeness_cn: zhCompleteness.level,
-        completeness_en: enCompleteness.level,
-        percent_cn: zhCompleteness.score,
-        percent_en: enCompleteness.score
+        completeness_cn: zhCompleteness.level || 0,
+        completeness_en: enCompleteness.level || 0,
+        percent_cn: zhCompleteness.score || 0,
+        percent_en: enCompleteness.score || 0
       }, () => {
         this.refreshDisplayData()
         this.updateTips()
       })
+    } else {
+      console.warn('[ResumeProfile] No user object found in globalData')
     }
   },
 
