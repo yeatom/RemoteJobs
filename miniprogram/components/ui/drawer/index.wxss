@@ -7,6 +7,8 @@
   visibility: hidden;
   transition: opacity 0.3s ease, visibility 0.3s step-end;
   will-change: opacity;
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
 }
 
 .ui-drawer-mask.show {
@@ -24,13 +26,21 @@
   border-radius: 40rpx 40rpx 0 0;
   z-index: 9999; /* Adapt for custom tab-bar (9000) */
   transform: translate3d(0, 100%, 0);
-  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: transform 0.3s cubic-bezier(0.25, 1, 0.5, 1); /* 更适合高刷屏的 Out-Quad 曲线 */
   will-change: transform;
   max-height: 90vh;
   display: flex;
   flex-direction: column;
   padding-bottom: env(safe-area-inset-bottom);
   box-sizing: border-box;
+  
+  /* 极致硬件加速与层隔离 */
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+  -webkit-transform-style: preserve-3d;
+  transform-style: preserve-3d;
+  -webkit-perspective: 1000;
+  perspective: 1000;
 }
 
 .ui-drawer-container.show {
