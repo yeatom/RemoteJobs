@@ -773,7 +773,11 @@ function getByPath(obj: any, path: string) {
 /**
  * Get a localized string or object from the dictionary.
  */
-export function t<T = string>(key: I18nKey, language: AppLanguage): T {
+export function t<T = string>(key: I18nKey, language?: AppLanguage): T {
+    if (!language) {
+        const app = getApp<IAppOption>()
+        language = normalizeLanguage(app?.globalData?.language)
+    }
     const item = getByPath(dict, key)
     const value = item?.[language]
     

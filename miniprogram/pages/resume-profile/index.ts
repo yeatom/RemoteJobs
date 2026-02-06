@@ -188,14 +188,12 @@ Page({
   },
 
   async onSyncFromChinese() {
-    const { zh, ui: uiStrings, interfaceLang } = this.data
+    const { zh, ui: uiStrings } = this.data
     if (!zh || Object.keys(zh).length === 0) return
-    const app = getApp() as any
-    const lang = normalizeLanguage(interfaceLang || app?.globalData?.language)
 
     ui.showModal({
-      title: t('resume.syncConfirmTitle', lang) || uiStrings.syncFromCn || '同步确认',
-      content: t('resume.syncConfirmContent', lang),
+      title: t('resume.syncConfirmTitle') || uiStrings.syncFromCn || '同步确认',
+      content: t('resume.syncConfirmContent'),
       success: async (res) => {
         if (res.confirm) {
           // 将中文数据整体移动到英文侧进行保存
@@ -237,7 +235,7 @@ Page({
           }
 
           await this.saveResumeProfile(syncData)
-          ui.showSuccess(t('resume.synced', lang))
+          ui.showSuccess(t('resume.synced'))
           
           // 重新加载数据
           await this.loadResumeData()
@@ -283,9 +281,9 @@ Page({
     
     const uiStrings = UIConfig.buildPageUI(lang, this.data)
 
-    const degreeOptions = t<string[]>('resume.degreeOptions', lang)
-    const studyTypes = t<string[]>('resume.studyTypes', lang)
-    const genderOptions = t<string[]>('resume.genderOptions', lang)
+    const degreeOptions = t<string[]>('resume.degreeOptions')
+    const studyTypes = t<string[]>('resume.studyTypes')
+    const genderOptions = t<string[]>('resume.genderOptions')
 
     this.setData({ 
       ui: uiStrings, 
@@ -297,11 +295,8 @@ Page({
   },
 
   updateTips() {
-    const app = getApp<IAppOption>() as any
-    const lang = normalizeLanguage(app?.globalData?.language)
-
     this.setData({
-      ['ui.tips']: UIConfig.buildPageUI(lang, this.data).tips
+      ['ui.tips']: UIConfig.buildPageUI(this.data.interfaceLang, this.data).tips
     })
   },
 
@@ -747,17 +742,14 @@ Page({
     const formPrefix = isWorkField ? 'workForm' : 'eduForm'
     const otherDate = (this.data[formPrefix] as any)[otherField]
 
-    const app = getApp() as any
-    const lang = normalizeLanguage(this.data.interfaceLang || app?.globalData?.language)
-
     // 校验：开始时间不能晚于结束时间
     if (otherDate && dateStr !== this.data.ui.toPresent && otherDate !== this.data.ui.toPresent) {
       if (actualField === 'startDate' && dateStr > otherDate) {
-        ui.showToast(t('me.startAfterEnd', lang))
+        ui.showToast(t('me.startAfterEnd'))
         return
       }
       if (actualField === 'endDate' && dateStr < otherDate) {
-        ui.showToast(t('me.endBeforeStart', lang))
+        ui.showToast(t('me.endBeforeStart'))
         return
       }
     }
@@ -971,29 +963,27 @@ Page({
   },
   async onSaveWorkExperience() {
     const { workForm, editingWorkIndex, workExperiences, ui: uiStrings } = this.data
-    const app = getApp() as any
-    const lang = normalizeLanguage(this.data.interfaceLang || app?.globalData?.language)
 
     if (!workForm.company.trim()) {
-      ui.showToast(uiStrings.companyPlaceholder || t('resume.companyPlaceholder', lang))
+      ui.showToast(uiStrings.companyPlaceholder || t('resume.companyPlaceholder'))
       return
     }
     if (!workForm.jobTitle.trim()) {
-      ui.showToast(uiStrings.jobTitlePlaceholder || t('resume.jobTitlePlaceholder', lang))
+      ui.showToast(uiStrings.jobTitlePlaceholder || t('resume.jobTitlePlaceholder'))
       return
     }
     if (!workForm.startDate) {
-      ui.showToast(t('me.selectStartTime', lang))
+      ui.showToast(t('me.selectStartTime'))
       return
     }
     if (!workForm.endDate) {
-      ui.showToast(t('me.selectEndTime', lang))
+      ui.showToast(t('me.selectEndTime'))
       return
     }
 
     if (workForm.startDate && workForm.endDate && workForm.startDate !== uiStrings.toPresent && workForm.endDate !== uiStrings.toPresent) {
       if (workForm.startDate > workForm.endDate) {
-        ui.showToast(t('me.startAfterEnd', lang))
+        ui.showToast(t('me.startAfterEnd'))
         return
       }
     }
@@ -1018,12 +1008,10 @@ Page({
   async onDeleteWorkExperience() {
     const { editingWorkIndex, workExperiences } = this.data
     if (editingWorkIndex === -1) return
-    const app = getApp() as any
-    const lang = normalizeLanguage(this.data.interfaceLang || app?.globalData?.language)
 
     ui.showModal({
-      title: t('resume.delete', lang),
-      content: t('resume.deleteWorkConfirm', lang),
+      title: t('resume.delete'),
+      content: t('resume.deleteWorkConfirm'),
       success: async (res) => {
         if (res.confirm) {
           const newWorks = [...workExperiences]
@@ -1061,35 +1049,33 @@ Page({
 
   async onSaveEducation() {
     const { eduForm, editingEduIndex, educations, ui: uiStrings } = this.data
-    const app = getApp() as any
-    const lang = normalizeLanguage(this.data.interfaceLang || app?.globalData?.language)
 
     // 全字段校验
     if (!eduForm.school.trim()) {
-      ui.showToast(uiStrings.schoolPlaceholder || t('resume.schoolPlaceholder', lang))
+      ui.showToast(uiStrings.schoolPlaceholder || t('resume.schoolPlaceholder'))
       return
     }
     if (!eduForm.degree) {
-      ui.showToast(uiStrings.degreePlaceholder || t('resume.degreePlaceholder', lang))
+      ui.showToast(uiStrings.degreePlaceholder || t('resume.degreePlaceholder'))
       return
     }
     if (!eduForm.major.trim()) {
-      ui.showToast(uiStrings.majorPlaceholder || t('resume.majorPlaceholder', lang))
+      ui.showToast(uiStrings.majorPlaceholder || t('resume.majorPlaceholder'))
       return
     }
     if (!eduForm.startDate) {
-      ui.showToast(t('me.selectStartTime', lang))
+      ui.showToast(t('me.selectStartTime'))
       return
     }
     if (!eduForm.endDate) {
-      ui.showToast(t('me.selectEndTime', lang))
+      ui.showToast(t('me.selectEndTime'))
       return
     }
 
     // 时间逻辑校验
     if (eduForm.startDate && eduForm.endDate && eduForm.startDate !== uiStrings.toPresent && eduForm.endDate !== uiStrings.toPresent) {
       if (eduForm.startDate > eduForm.endDate) {
-        ui.showToast(t('me.startAfterEnd', lang))
+        ui.showToast(t('me.startAfterEnd'))
         return
       }
     }
@@ -1166,12 +1152,10 @@ Page({
   async onDeleteEducation() {
     const { editingEduIndex, educations } = this.data
     if (editingEduIndex === -1) return
-    const app = getApp() as any
-    const lang = normalizeLanguage(this.data.interfaceLang || app?.globalData?.language)
 
     ui.showModal({
-      title: t('resume.delete', lang),
-      content: t('resume.deleteEducationConfirm', lang),
+      title: t('resume.delete'),
+      content: t('resume.deleteEducationConfirm'),
       success: async (res) => {
         if (res.confirm) {
           const newEducations = [...educations]

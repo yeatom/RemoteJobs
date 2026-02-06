@@ -60,29 +60,29 @@ Component({
   lifetimes: {
     attached() {
       ;(this as any)._langDetach = attachLanguageAware(this, {
-        onLanguageRevive: (lang) => {
+        onLanguageRevive: () => {
           this.setData({
             ui: {
-              title: t('resume.toolTitle', lang),
-              subtitle: t('resume.toolSubtitle', lang),
-              toolScreenshotTitle: t('resume.toolScreenshotTitle', lang),
-              toolScreenshotDesc: t('resume.toolScreenshotDesc', lang),
-              toolTextTitle: t('resume.toolTextTitle', lang),
-              toolTextDesc: t('resume.toolTextDesc', lang),
-              toolRefineTitle: t('resume.toolRefineTitle', lang),
-              toolRefineDesc: t('resume.toolRefineDesc', lang)
+              title: t('resume.toolTitle'),
+              subtitle: t('resume.toolSubtitle'),
+              toolScreenshotTitle: t('resume.toolScreenshotTitle'),
+              toolScreenshotDesc: t('resume.toolScreenshotDesc'),
+              toolTextTitle: t('resume.toolTextTitle'),
+              toolTextDesc: t('resume.toolTextDesc'),
+              toolRefineTitle: t('resume.toolRefineTitle'),
+              toolRefineDesc: t('resume.toolRefineDesc')
               ,
-              confirmGenerate: t('resume.confirmGenerate', lang),
-              jdPlaceholder: t('resume.jdPlaceholder', lang),
-              jobDescription: t('resume.jobDescription', lang),
-              jobTitle: t('resume.jobTitle', lang),
-              jobTitlePlaceholder: t('resume.jobTitlePlaceholder', lang),
-              company: t('resume.company', lang),
-              companyPlaceholder: t('resume.companyPlaceholder', lang),
-              experience: t('resume.experience', lang),
-              experiencePlaceholder: t('resume.experiencePlaceholder', lang)
+              confirmGenerate: t('resume.confirmGenerate'),
+              jdPlaceholder: t('resume.jdPlaceholder'),
+              jobDescription: t('resume.jobDescription'),
+              jobTitle: t('resume.jobTitle'),
+              jobTitlePlaceholder: t('resume.jobTitlePlaceholder'),
+              company: t('resume.company'),
+              companyPlaceholder: t('resume.companyPlaceholder'),
+              experience: t('resume.experience'),
+              experiencePlaceholder: t('resume.experiencePlaceholder')
             },
-            drawerTitle: t('resume.toolTextTitle', lang)
+            drawerTitle: t('resume.toolTextTitle')
           });
         }
       });

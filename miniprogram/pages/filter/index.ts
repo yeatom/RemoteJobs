@@ -249,33 +249,33 @@ Page({
     const useEnglish = lang === 'English' || lang === 'AIEnglish'
     const displaySalaryOptions = (this.data.salaryOptions as SalaryKey[]).map((k) => {
       const mapped = SALARY_KEY_MAP[k]
-      return mapped ? t(`jobs.${mapped}`, lang) : (useEnglish ? k : k)
+      return mapped ? t(`jobs.${mapped}`) : (useEnglish ? k : k)
     })
     const displayExperienceOptions = (this.data.experienceOptions as ExpKey[]).map((k) => {
       const mapped = EXP_KEY_MAP[k]
-      return mapped ? t(`jobs.${mapped}`, lang) : (useEnglish ? k : k)
+      return mapped ? t(`jobs.${mapped}`) : (useEnglish ? k : k)
     })
     
     // 区域选项显示处理
     const displayRegionOptions = (this.data.regionOptions || []).map((k) => {
-      if (k === '全部') return t('jobs.regionAll', lang)
-      if (k === '国内') return t('jobs.regionDomestic', lang)
-      if (k === '国外') return t('jobs.regionOverseas', lang)
-      if (k === 'web3') return t('jobs.regionWeb3', lang)
+      if (k === '全部') return t('jobs.regionAll')
+      if (k === '国内') return t('jobs.regionDomestic')
+      if (k === '国外') return t('jobs.regionOverseas')
+      if (k === 'web3') return t('jobs.regionWeb3')
       return k
     })
     const displaySourceOptions = (this.data.sourceOptions || []).map((k) => {
       const mapped = SOURCE_KEY_MAP[k]
-      return mapped ? t(`jobs.${mapped}`, lang) : (useEnglish ? k : k)
+      return mapped ? t(`jobs.${mapped}`) : (useEnglish ? k : k)
     })
 
     // 重新根据 data.navTabs 中的 key 来设置 label
     const navTabs = (this.data.navTabs || []).map(tab => {
         let label = tab.label
-        if (tab.key === 'salary') label = t('drawer.salary', lang)
-        if (tab.key === 'experience') label = t('drawer.experience', lang)
-        if (tab.key === 'region') label = t('drawer.regionTitle', lang)
-        if (tab.key === 'source') label = t('drawer.sourceTitle', lang)
+        if (tab.key === 'salary') label = t('drawer.salary')
+        if (tab.key === 'experience') label = t('drawer.experience')
+        if (tab.key === 'region') label = t('drawer.regionTitle')
+        if (tab.key === 'source') label = t('drawer.sourceTitle')
         return { ...tab, label }
     })
 
@@ -286,12 +286,12 @@ Page({
       displaySourceOptions,
       navTabs,
       ui: {
-        salaryTitle: t('drawer.salary', lang),
-        experienceTitle: t('drawer.experience', lang),
-        regionTitle: t('drawer.regionTitle', lang),
-        sourceTitle: t('drawer.sourceTitle', lang),
-        clear: t('drawer.clear', lang),
-        confirm: t('drawer.confirm', lang),
+        salaryTitle: t('drawer.salary'),
+        experienceTitle: t('drawer.experience'),
+        regionTitle: t('drawer.regionTitle'),
+        sourceTitle: t('drawer.sourceTitle'),
+        clear: t('drawer.clear'),
+        confirm: t('drawer.confirm'),
       },
     })
   },

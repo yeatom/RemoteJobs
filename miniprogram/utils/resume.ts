@@ -130,26 +130,26 @@ async function doGenerate(user: any, profile: any, job: any, isChineseEnv: boole
 /**
  * 统一处理生成过程中的业务错误（配额、并发等）
  */
-function handleGenerateError(err: any, lang: string) {
+function handleGenerateError(err: any, _lang: string) {
   const isQuotaError = (err?.data?.code === StatusCode.QUOTA_EXHAUSTED) || (err?.statusCode === StatusCode.HTTP_FORBIDDEN) || (err?.data?.error === 'Quota exhausted');
   const isProcessingError = (err?.statusCode === StatusCode.HTTP_CONFLICT) || (err?.data?.message && err.data.message.includes('生成中'));
 
   if (isProcessingError) {
     ui.showModal({
-      title: t('jobs.generatingTitle', lang),
-      content: t('jobs.generatingContent', lang),
+      title: t('jobs.generatingTitle'),
+      content: t('jobs.generatingContent'),
       showCancel: false,
-      confirmText: t('jobs.generatingConfirm', lang)
+      confirmText: t('jobs.generatingConfirm')
     });
     return;
   }
 
   if (isQuotaError) {
     ui.showModal({
-      title: t('jobs.quotaExhaustedTitle', lang),
-      content: err?.data?.message || t('jobs.quotaExhaustedContent', lang),
-      confirmText: t('jobs.quotaExhaustedConfirm', lang),
-      cancelText: t('jobs.quotaExhaustedCancel', lang),
+      title: t('jobs.quotaExhaustedTitle'),
+      content: err?.data?.message || t('jobs.quotaExhaustedContent'),
+      confirmText: t('jobs.quotaExhaustedConfirm'),
+      cancelText: t('jobs.quotaExhaustedCancel'),
       success: (res) => {
         if (res.confirm) {
           const app = getApp<any>();
@@ -163,8 +163,8 @@ function handleGenerateError(err: any, lang: string) {
   }
 
   ui.showModal({
-    title: t('jobs.generateFailedTitle', lang),
-    content: err?.data?.message || err?.message || t('jobs.generateFailedTitle', lang),
+    title: t('jobs.generateFailedTitle'),
+    content: err?.data?.message || err?.message || t('jobs.generateFailedTitle'),
     showCancel: false
   })
 }

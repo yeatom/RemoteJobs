@@ -156,26 +156,26 @@ Page({
       isAIEnglish: lang === 'AIEnglish',
       isAIChinese: lang === 'AIChinese',
       isStandardChinese: lang === 'Chinese',
-      loadingText: t('jobs.loading', lang),
-      loadFailedText: t('jobs.loadFailed', lang),
+      loadingText: t('jobs.loading'),
+      loadFailedText: t('jobs.loadFailed'),
       saveText: lang === 'Chinese' || lang === 'AIChinese' ? '已收藏' : 'Saved',
       unsaveText: lang === 'Chinese' || lang === 'AIChinese' ? '收藏' : 'Save',
       oneClickApplyText: lang === 'Chinese' || lang === 'AIChinese' ? '申请岗位' : 'Apply for Job',
-      applyMenuTitle: t('jobs.applyMenuTitle', lang),
-      copySourceLinkText: t('jobs.copySourceLink', lang),
-      aiResumeGenerateText: t('jobs.aiResumeGenerate', lang),
-      oneClickSubmitResumeText: t('jobs.oneClickSubmitResume', lang),
-      noSourceLinkText: t('jobs.noSourceLink', lang),
-      linkCopiedText: t('jobs.linkCopied', lang),
-      featureDevelopingText: t('jobs.featureDeveloping', lang),
-      dataLoadFailedText: t('jobs.dataLoadFailed', lang),
-      pleaseLoginText: t('jobs.pleaseLogin', lang),
-      saveSuccessText: t('jobs.saveSuccess', lang),
-      unsaveSuccessText: t('jobs.unsaveSuccess', lang),
-      operationFailedText: t('jobs.operationFailed', lang),
+      applyMenuTitle: t('jobs.applyMenuTitle'),
+      copySourceLinkText: t('jobs.copySourceLink'),
+      aiResumeGenerateText: t('jobs.aiResumeGenerate'),
+      oneClickSubmitResumeText: t('jobs.oneClickSubmitResume'),
+      noSourceLinkText: t('jobs.noSourceLink'),
+      linkCopiedText: t('jobs.linkCopied'),
+      featureDevelopingText: t('jobs.featureDeveloping'),
+      dataLoadFailedText: t('jobs.dataLoadFailed'),
+      pleaseLoginText: t('jobs.pleaseLogin'),
+      saveSuccessText: t('jobs.saveSuccess'),
+      unsaveSuccessText: t('jobs.unsaveSuccess'),
+      operationFailedText: t('jobs.operationFailed'),
       ui: {
-        unknownCompany: t('jobs.unknownCompany', lang),
-        cancel: t('resume.cancel', lang),
+        unknownCompany: t('jobs.unknownCompany'),
+        cancel: t('resume.cancel'),
       }
     })
   },
@@ -296,12 +296,10 @@ Page({
   async onGenerateResume() {
     this.closeApplyMenu()
     
-    const app = getApp<IAppOption>() as any
-    const lang = normalizeLanguage(app?.globalData?.language)
     const jobId = this.data.job?._id
     
     try {
-      ui.showLoading(t('jobs.checkingStatus', lang))
+      ui.showLoading(t('jobs.checkingStatus'))
       
       // 1. 前置检查：是否已经为该岗位生成过简历
       const checkRes = await callApi<any>('getGeneratedResumes', {
@@ -315,10 +313,10 @@ Page({
 
       if (existingList.length > 0) {
         ui.showModal({
-          title: t('jobs.generatedResumeExistsTitle', lang),
-          content: t('jobs.generatedResumeExistsContent', lang),
-          confirmText: t('jobs.generatedResumeExistsConfirm', lang),
-          cancelText: t('jobs.generatedResumeExistsCancel', lang),
+          title: t('jobs.generatedResumeExistsTitle'),
+          content: t('jobs.generatedResumeExistsContent'),
+          confirmText: t('jobs.generatedResumeExistsConfirm'),
+          cancelText: t('jobs.generatedResumeExistsCancel'),
           success: (res) => {
             if (res.confirm) {
               this.doGenerateResumeAction()

@@ -13,9 +13,9 @@ Page({
     user: null as any,
     isLoggedIn: false,
     tabLabels: {
-      jobs: t('tab.jobs', normalizeLanguage((app as any)?.globalData?.language)),
-      resume: t('tab.resume', normalizeLanguage((app as any)?.globalData?.language)),
-      me: t('tab.me', normalizeLanguage((app as any)?.globalData?.language))
+      jobs: t('tab.jobs'),
+      resume: t('tab.resume'),
+      me: t('tab.me')
     }
   },
 
@@ -24,12 +24,12 @@ Page({
     
     // 监听语言变化，同步更新 Tab Bar 文字
     ;(this as any)._langDetach = attachLanguageAware(this, {
-      onLanguageRevive: (lang) => {
+      onLanguageRevive: () => {
         this.setData({
           tabLabels: {
-            jobs: t('tab.jobs', lang),
-            resume: t('tab.resume', lang),
-            me: t('tab.me', lang)
+            jobs: t('tab.jobs'),
+            resume: t('tab.resume'),
+            me: t('tab.me')
           }
         });
       }
@@ -95,9 +95,8 @@ Page({
   },
 
   onShareAppMessage() {
-    const lang = normalizeLanguage((app as any)?.globalData?.language)
     return {
-      title: t('me.appShareTitle', lang),
+      title: t('me.appShareTitle'),
       path: '/pages/main/index'
     }
   }

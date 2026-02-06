@@ -50,9 +50,7 @@ Page({
         })
         
         if (res.success) {
-          const app = getApp<IAppOption>();
-          const lang = normalizeLanguage(app?.globalData?.language);
-          ui.showSuccess(t('resume.retrying', lang))
+          ui.showSuccess(t('resume.retrying'))
             
             // Start polling first to ensure we don't miss the window
             this.startPolling()
@@ -61,11 +59,9 @@ Page({
             // Await it so we are sure the list reflects the new state
             await this.fetchResumes(true)
         } else {
-          const app = getApp<IAppOption>();
-          const lang = normalizeLanguage(app?.globalData?.language);
           ui.showModal({
-            title: t('resume.deleteFailedShort', lang),
-            content: res.message || t('resume.errorShort', lang),
+            title: t('resume.deleteFailedShort'),
+            content: res.message || t('resume.errorShort'),
             showCancel: false
           })
         }
@@ -74,16 +70,13 @@ Page({
         
         const isQuotaError = (err?.statusCode === StatusCode.HTTP_FORBIDDEN) || (err?.data?.error === 'Quota exhausted') || (err?.message && err.message.includes('Quota'));
         const app = getApp<IAppOption>();
-        const lang = normalizeLanguage(app?.globalData?.language);
-        const isChineseEnv = (lang === 'Chinese' || lang === 'AIChinese');
 
         if (isQuotaError) {
-          const lang = normalizeLanguage(app?.globalData?.language);
           ui.showModal({
-            title: t('jobs.quotaExhaustedTitle', lang),
-            content: err?.data?.message || t('jobs.quotaExhaustedContent', lang),
-            confirmText: t('jobs.quotaExhaustedConfirm', lang),
-            cancelText: t('jobs.quotaExhaustedCancel', lang),
+            title: t('jobs.quotaExhaustedTitle'),
+            content: err?.data?.message || t('jobs.quotaExhaustedContent'),
+            confirmText: t('jobs.quotaExhaustedConfirm'),
+            cancelText: t('jobs.quotaExhaustedCancel'),
             success: (res) => {
               if (res.confirm) {
                 app.globalData.tabSelected = 2;
@@ -97,9 +90,7 @@ Page({
             return;
         }
         
-        const app = getApp<IAppOption>();
-        const lang = normalizeLanguage(app?.globalData?.language);
-        ui.showError(t('resume.errorShort', lang))
+        ui.showError(t('resume.errorShort'))
     }
   },
 
@@ -108,13 +99,13 @@ Page({
     if (!item || !item._id) return
 
     ui.showModal({
-      title: this.data.ui.delete || t('resume.deleteResumeConfirm', normalizeLanguage(this.data.currentLang)),
+      title: this.data.ui.delete || t('resume.deleteResumeConfirm'),
       // 删除确认文案
-      content: t('resume.deleteResumeConfirm', normalizeLanguage(this.data.currentLang)),
+      content: t('resume.deleteResumeConfirm'),
       confirmColor: '#ef4444',
       success: async (res) => {
         if (res.confirm) {
-              ui.showLoading(t('resume.deleting', normalizeLanguage(this.data.currentLang)))
+              ui.showLoading(t('resume.deleting'))
             try {
                 const res = await callApi('deleteGeneratedResume', {
                     resumeId: item._id
@@ -123,7 +114,7 @@ Page({
                 ui.hideLoading()
                 
                 if (res.success) {
-                    ui.showSuccess(t('resume.deleteSuccess', normalizeLanguage(this.data.currentLang)))
+                    ui.showSuccess(t('resume.deleteSuccess'))
                     // Remove from local list
                     const updatedResumes = this.data.resumes.filter((r: any) => r._id !== item._id)
                     this.setData({ resumes: updatedResumes } as any);
@@ -133,12 +124,12 @@ Page({
                         this.setData({ isEditMode: false } as any)
                     }
                 } else {
-                    ui.showError(t('resume.deleteFailedShort', normalizeLanguage(this.data.currentLang)))
+                    ui.showError(t('resume.deleteFailedShort'))
                 }
             } catch (err) {
                 ui.hideLoading()
                 console.error('Delete failed', err)
-                ui.showError(t('resume.errorShort', normalizeLanguage(this.data.currentLang)))
+                ui.showError(t('resume.errorShort'))
             }
         }
       }
@@ -192,7 +183,7 @@ Page({
 
     } catch (err) {
       console.error('获取简历列表失败:', err)
-      if (!silent) ui.showToast(t('resume.loadingFailed', normalizeLanguage(this.data.currentLang)))
+      if (!silent) ui.showToast(t('resume.loadingFailed'))
       this.setData({ loading: false })
     }
   },
@@ -203,20 +194,20 @@ Page({
     this.setData({
       currentLang: lang,
       ui: {
-        assetCount: t('resume.assetCount', lang),
-        syncingAssets: t('resume.syncingAssets', lang),
-        statusFailed: t('resume.statusFailed', lang),
-        edit: t('resume.edit', lang),
-        done: t('resume.done', lang),
-        delete: t('resume.delete', lang),
-        retry: t('resume.retry', lang),
-        generalResume: t('resume.generalResume', lang),
-        view: t('resume.view', lang),
-        loadFailed: t('jobs.loadFailed', lang),
-        totalPrefix: t('resume.totalPrefix', lang),
-        emptyTitle: t('resume.emptyTitle', lang),
-        emptySubtitle: t('resume.emptySubtitle', lang),
-        goJobs: t('resume.goJobs', lang),
+        assetCount: t('resume.assetCount'),
+        syncingAssets: t('resume.syncingAssets'),
+        statusFailed: t('resume.statusFailed'),
+        edit: t('resume.edit'),
+        done: t('resume.done'),
+        delete: t('resume.delete'),
+        retry: t('resume.retry'),
+        generalResume: t('resume.generalResume'),
+        view: t('resume.view'),
+        loadFailed: t('jobs.loadFailed'),
+        totalPrefix: t('resume.totalPrefix'),
+        emptyTitle: t('resume.emptyTitle'),
+        emptySubtitle: t('resume.emptySubtitle'),
+        goJobs: t('resume.goJobs'),
       }
     })
   },
@@ -247,19 +238,17 @@ Page({
 
   async onPreviewResume(e: any) {
     const item = e.currentTarget.dataset.item
-    const app = getApp<IAppOption>() as any
-    const lang = normalizeLanguage(app?.globalData?.language)
     
     // 如果还在生成中，不处理预览
     if (item.status === 'processing') {
-      ui.showToast(t('resume.aiProcessing', lang))
+      ui.showToast(t('resume.aiProcessing'))
       return
     }
 
     if (item.status === 'failed') {
       ui.showModal({
-        title: t('resume.generateFailed', lang),
-        content: item.errorMessage || t('resume.tryAgain', lang),
+        title: t('resume.generateFailed'),
+        content: item.errorMessage || t('resume.tryAgain'),
         showCancel: false
       })
       return
@@ -267,7 +256,7 @@ Page({
 
     if (!item.fileUrl && !item.fileId) return
 
-    ui.showLoading(t('resume.fetchingFile', normalizeLanguage(this.data.currentLang)))
+    ui.showLoading(t('resume.fetchingFile'))
 
     try {
       let tempFilePath = '';
@@ -288,7 +277,7 @@ Page({
          } else if (downloadRes.statusCode === 404) {
               // 物理文件由于 24 小时过期已被系统回收，触发免 AI 重新渲染恢复
               ui.hideLoading();
-              ui.showLoading(t('resume.recoveringExpiredFile', normalizeLanguage(this.data.currentLang)))
+              ui.showLoading(t('resume.recoveringExpiredFile'))
               
               try {
                  const restoreRes = await callApi('restoreResume', {
@@ -301,7 +290,7 @@ Page({
                      // 提示用户稍等
                      setTimeout(() => {
                          ui.hideLoading();
-                         ui.showToast(t('resume.cloudRerenderingToast', normalizeLanguage(this.data.currentLang)))
+                         ui.showToast(t('resume.cloudRerenderingToast'))
                      }, 500);
                  } else {
                      throw new Error(restoreRes.message || 'Restoration failed');
@@ -309,14 +298,14 @@ Page({
                  return; // 退出，等待轮询
               } catch (restoreErr: any) {
                   console.error('Restore failed:', restoreErr);
-                  ui.showError(restoreErr.message || t('resume.oldFileUnavailable', normalizeLanguage(this.data.currentLang)));
+                  ui.showError(restoreErr.message || t('resume.oldFileUnavailable'));
                   return;
               }
          } else {
              throw new Error('Download failed status ' + downloadRes.statusCode);
          }
       } else if (item.fileId) {
-        ui.showError(t('resume.oldFileUnavailable', normalizeLanguage(this.data.currentLang)));
+        ui.showError(t('resume.oldFileUnavailable'));
         ui.hideLoading();
         return;
       }
@@ -333,13 +322,13 @@ Page({
         fail: (err) => {
           console.error(err)
           ui.hideLoading()
-          ui.showError(t('resume.cannotOpenDocument', normalizeLanguage(this.data.currentLang)))
+          ui.showError(t('resume.cannotOpenDocument'))
         }
       })
     } catch (err) {
       console.error(err)
       ui.hideLoading()
-      ui.showError(t('resume.downloadFailed', normalizeLanguage(this.data.currentLang)))
+      ui.showError(t('resume.downloadFailed'))
     }
   },
 
