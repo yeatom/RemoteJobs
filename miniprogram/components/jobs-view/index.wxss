@@ -141,11 +141,11 @@
   left: 24rpx; 
   right: 24rpx; 
   height: 1rpx;
-  background-color: rgb(29 78 216 / 10%); 
+  background-color: var(--divider); 
 }
 
 .filter-option:active {
-  background-color: #e5f0ff; 
+  background-color: var(--primary-light); 
   color: var(--primary-dark); 
 }
 
@@ -199,11 +199,11 @@
   left: 24rpx;
   right: 24rpx;
   height: 1rpx;
-  background-color: rgb(29 78 216 / 10%);
+  background-color: var(--divider);
 }
 
 .save-menu-option:active {
-  background-color: #e5f0ff;
+  background-color: var(--primary-light);
   color: var(--primary-dark);
 }
 
@@ -306,7 +306,7 @@
 }
 
 .search-placeholder {
-  color: #9ca3af;
+  color: var(--text-holder);
   font-size: 24rpx;
   line-height: 64rpx;
 }
@@ -341,7 +341,7 @@
   right: -100%;
   width: 100%;
   height: 100%;
-  background: #f5f7fb;
+  background: var(--bg-main);
   z-index: 2500;
   transition: right 0.3s ease;
   display: flex;
@@ -355,11 +355,11 @@
 
 .favorites-header {
   padding: 40rpx 32rpx 20rpx;
-  border-bottom: 1rpx solid #eee;
+  border-bottom: 1rpx solid var(--border);
   display: flex;
   align-items: center;
   position: relative;
-  background: #fff;
+  background: var(--bg-card);
 }
 
 .favorites-header .back-hit {
@@ -372,8 +372,8 @@
 .favorites-header .back-button {
   width: 16rpx;
   height: 16rpx;
-  border-left: 5rpx solid #111827;
-  border-bottom: 5rpx solid #111827;
+  border-left: 5rpx solid var(--text-main);
+  border-bottom: 5rpx solid var(--text-main);
   transform: rotate(45deg);
   margin-left: 40rpx;
 }
@@ -385,7 +385,7 @@
   text-align: center;
   font-size: 34rpx;
   font-weight: 600;
-  color: #111827;
+  color: var(--text-main);
 }
 
 .favorites-drawer-list {
@@ -453,7 +453,7 @@
   color: var(--primary-dark);
   font-weight: 600;
   padding: 16rpx 32rpx;
-  background: #fff;
+  background: var(--bg-card);
   border-radius: 24rpx;
   box-shadow: 0 4rpx 12rpx rgb(29 78 216 / 20%);
   pointer-events: auto;
@@ -470,7 +470,7 @@
 
 .empty-favorites-text {
   font-size: 28rpx;
-  color: #9ca3af;
+  color: var(--text-holder);
 }
 
 .restore-header-actions {
@@ -523,14 +523,14 @@
 
 .empty-restore-text {
   font-size: 28rpx;
-  color: #9ca3af;
+  color: var(--text-holder);
 }
 
 .restore-item {
   position: relative;
   padding: 32rpx;
   margin-bottom: 2rpx;
-  background: #fff;
+  background: var(--bg-card);
   border-bottom: 1rpx solid var(--border);
   border-radius: 0;
   transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.2s cubic-bezier(0.4, 0, 0.2, 1);
@@ -554,12 +554,12 @@
 }
 
 .restore-item:active {
-  background: #e5f0ff;
+  background: var(--primary-light);
   border-color: var(--primary-dark);
 }
 
 .restore-item-editing:active {
-  background: #f5f7fb;
+  background: var(--bg-main);
   border-color: transparent;
 }
 
@@ -606,12 +606,12 @@
 .restore-item-title {
   font-size: 30rpx;
   font-weight: 600;
-  color: #111827;
+  color: var(--text-main);
 }
 
 .restore-item-desc {
   font-size: 26rpx;
-  color: #6b7280;
+  color: var(--text-sub);
   line-height: 1.5;
 }
 

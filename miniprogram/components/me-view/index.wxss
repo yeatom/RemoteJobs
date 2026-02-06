@@ -377,8 +377,8 @@
     padding: 8rpx 0;
     margin-bottom: 25rpx;
     margin-top: 10rpx;
-    box-shadow: 0 8rpx 20rpx rgb(0 0 0 / 3%);
-    border: 1rpx solid rgb(226 232 240 / 60%);
+    box-shadow: 0 8rpx 20rpx var(--shadow-sm);
+    border: 1rpx solid var(--divider);
 }
 
 .action-row {
@@ -412,8 +412,8 @@
 
 /* Unified Brand Blue tint for all list icons */
 .blue-bg { background: var(--bg-main); }
-.green-bg { background: #f0fdf4; }
-.purple-bg { background: #faf5ff; }
+.green-bg { background: var(--bg-green); }
+.purple-bg { background: var(--bg-purple); }
 
 .action-row .row-text {
     display: flex;
@@ -444,8 +444,8 @@
     border-radius: 28rpx;
     padding: 8rpx 0;
     margin-bottom: 0rpx;
-    box-shadow: 0 8rpx 20rpx rgb(0 0 0 / 3%);
-    border: 1rpx solid rgb(226 232 240 / 60%);
+    box-shadow: 0 8rpx 20rpx var(--shadow-sm);
+    border: 1rpx solid var(--divider);
 }
 
 .setting-row {
@@ -1207,8 +1207,8 @@
     background: var(--bg-card);
     border-radius: 28rpx;
     padding: 32rpx;
-    box-shadow: 0 8rpx 20rpx rgb(0 0 0 / 3%);
-    border: 1rpx solid rgb(226 232 240 / 60%);
+    box-shadow: 0 8rpx 20rpx var(--shadow-sm);
+    border: 1rpx solid var(--divider);
     margin-bottom: 40rpx;
     display: flex;
     flex-direction: column;

@@ -64,7 +64,7 @@
   text-align: center;
   font-size: 34rpx;
   font-weight: 600;
-  color: var(--text-main, #1e293b);
+  color: var(--text-main);
   z-index: 1;
   pointer-events: none;
 }
@@ -85,10 +85,10 @@
 .ui-drawer-close {
   width: 60rpx;
   height: 60rpx;
-  background: var(--bg-page, #f8fafc);
+  background: var(--bg-main);
   border-radius: 50%;
   font-size: 32rpx;
-  color: var(--text-sub, #64748b);
+  color: var(--text-sub);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -96,7 +96,7 @@
 }
 
 .ui-drawer-close:active {
-  background: var(--divider, #e2e8f0);
+  background: var(--divider);
 }
 
 .ui-drawer-close.hidden {

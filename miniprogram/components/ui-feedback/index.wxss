@@ -15,20 +15,25 @@
 }
 
 .ui-mask {
-  background: rgb(255 255 255 / 40%);
-  backdrop-filter: blur(15rpx);
+  background: rgba(255, 255, 255, 0.4);
   backdrop-filter: blur(15rpx);
   pointer-events: auto;
 }
 
+@media (prefers-color-scheme: dark) {
+  .ui-mask {
+    background: rgba(0, 0, 0, 0.4);
+  }
+}
+
 .ui-content {
-  background: rgb(255 255 255 / 95%);
+  background: var(--bg-card);
   padding: 48rpx 64rpx;
   border-radius: 48rpx;
   display: flex;
   flex-direction: column;
   align-items: center;
-  box-shadow: 0 40rpx 100rpx rgb(0 0 0 / 8%);
+  box-shadow: var(--shadow-md);
   min-width: 300rpx;
   max-width: 85%;
   transform: translateY(40rpx) scale(0.9);
@@ -57,8 +62,8 @@
 .ui-spinner-ring {
   width: 64rpx;
   height: 64rpx;
-  border: 6rpx solid var(--border);
-  border-top: 6rpx solid #2e5fe9;
+  border: 6rpx solid var(--divider);
+  border-top: 6rpx solid var(--primary);
   border-radius: 50%;
   animation: spin 0.8s cubic-bezier(0.4, 0, 0.2, 1) infinite;
 }
@@ -73,7 +78,7 @@
   height: 80rpx;
   margin-bottom: 28rpx;
   position: relative;
-  border: 5rpx solid #2e5fe9;
+  border: 5rpx solid var(--primary);
   border-radius: 50%;
   animation: icon-pop 0.4s cubic-bezier(0.18, 0.89, 0.32, 1.28);
   display: flex;
@@ -89,8 +94,8 @@
 .ui-check {
   width: 18rpx;
   height: 34rpx;
-  border-right: 5rpx solid #2e5fe9;
-  border-bottom: 5rpx solid #2e5fe9;
+  border-right: 5rpx solid var(--primary);
+  border-bottom: 5rpx solid var(--primary);
   transform: rotate(45deg);
   margin-top: -10rpx;
   margin-left: 2rpx;
@@ -101,7 +106,7 @@
   height: 80rpx;
   margin-bottom: 28rpx;
   position: relative;
-  border: 5rpx solid #ef4444;
+  border: 5rpx solid var(--danger);
   border-radius: 50%;
   animation: icon-shake 0.4s ease-in-out;
 }
@@ -115,7 +120,7 @@
 .ui-error-line {
   position: absolute;
   width: 40rpx; height: 4rpx;
-  background: #ef4444;
+  background: var(--danger);
   left: 20rpx; top: 38rpx;
 }
 
@@ -158,13 +163,13 @@
 
 .ui-modal-content {
   font-size: 28rpx;
-  color: var(--text-secondary);
+  color: var(--text-sub);
   line-height: 1.6;
 }
 
 .ui-modal-footer {
   display: flex;
-  border-top: 1rpx solid #f0f0f0;
+  border-top: 1rpx solid var(--divider);
 }
 
 .ui-modal-btn {
@@ -176,16 +181,16 @@
 }
 
 .ui-modal-btn.cancel {
-  color: var(--text-secondary);
-  border-right: 1rpx solid #f0f0f0;
+  color: var(--text-sub);
+  border-right: 1rpx solid var(--divider);
 }
 
 .ui-modal-btn.cancel:active {
-  background: #f8f8f8;
+  background: var(--bg-page);
 }
 
 .ui-modal-btn.confirm {
-  color: #2e5fe9;
+  color: var(--primary);
 }
 
 .ui-modal-btn.confirm:active {
