@@ -303,6 +303,27 @@ Page({
     })
   },
 
+  // 仅作为迁移期间的渲染兜底，以后端 completeness 字段为准
+  _fallbackCalculateCompleteness(profile: any, lang: string) {
+    if (!profile) return { score: 0, level: 0 };
+    let score = 0;
+    if (profile.name) score += 10;
+    if (profile.photo) score += 5;
+    if (profile.gender) score += 5;
+    if (profile.birthday) score += 5;
+    if (lang === 'Chinese' || lang === 'zh') {
+      if (profile.wechat || profile.phone || profile.email) score += 15;
+    } else {
+      if (profile.email || profile.phone_en || profile.website) score += 15;
+    }
+    if ((profile.educations || []).length > 0) score += 20;
+    if ((profile.workExperiences || []).length > 0) score += 20;
+    if ((profile.skills || []).length > 0) score += 10;
+    if ((profile.certificates || []).length > 0) score += 5;
+    if (profile.aiMessage) score += 5;
+    return { score, level: score >= 60 ? 1 : 0 };
+  },
+
   loadResumeData() {
     const app = getApp<IAppOption>() as any
     const user = app?.globalData?.user
@@ -313,15 +334,24 @@ Page({
       const zh = profile.zh || {}
       const en = profile.en || {}
 
-      // 优先从后端专门的 completeness 字段获取，如果没有则 fallback 到旧的顶层字段
-      const zhCompleteness = zh.completeness || { 
-        score: user.resume_percent ?? 0, 
-        level: user.resume_completeness ?? 0 
-      };
-      const enCompleteness = en.completeness || { 
-        score: user.resume_percent_en ?? 0, 
-        level: user.resume_completeness_en ?? 0 
-      };
+      // 1. 优先从后端物理字段获取
+      // 2. 其次尝试从旧有的全局字段获取
+      // 3. 最后如果都没有（针对未进入过保存逻辑的老用户），则前端临时计算用于展示
+      let zhCompleteness = zh.completeness;
+      if (!zhCompleteness && user.resume_percent !== undefined) {
+        zhCompleteness = { score: user.resume_percent, level: user.resume_completeness || 0 };
+      }
+      if (!zhCompleteness) {
+        zhCompleteness = this._fallbackCalculateCompleteness(zh, 'Chinese');
+      }
+
+      let enCompleteness = en.completeness;
+      if (!enCompleteness && user.resume_percent_en !== undefined) {
+        enCompleteness = { score: user.resume_percent_en, level: user.resume_completeness_en || 0 };
+      }
+      if (!enCompleteness) {
+        enCompleteness = this._fallbackCalculateCompleteness(en, 'English');
+      }
 
       this.setData({
         zh,
