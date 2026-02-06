@@ -15,7 +15,7 @@
 /* 卡片基础样式 */
 .profile-avatar-section,
 .profile-info-section {
-    background: #fff;
+    background: var(--bg-card);
     border-radius: 0;
     padding: 32rpx 40rpx;
     box-shadow: none;
@@ -28,7 +28,7 @@
 .profile-phone-title,
 .profile-expired-title {
     font-size: 30rpx;
-    color: #1f2933;
+    color: var(--text-main);
     font-weight: 500;
     line-height: 1;
     margin: 0;
@@ -44,7 +44,7 @@
     max-height: 45rpx !important;
     padding: 0 !important;
     border-radius: 18rpx !important;
-    background-color: #e5f0ff !important;
+    background-color: var(--primary-light) !important;
     display: inline-flex !important;
     align-items: center !important;
     justify-content: center !important;
@@ -76,7 +76,7 @@
 .profile-nickname-value,
 .profile-phone-value {
     font-size: 28rpx;
-    color: rgb(31 41 51 / 80%);
+    color: var(--text-sub);
     line-height: 1.5;
 }
 
@@ -182,7 +182,7 @@
     top: 45%; /* 稍微靠上一点，避开键盘 */
     transform: translate3d(-50%, -50%, 0) scale(0.85);
     width: 600rpx; /* 使用固定宽度，在大屏手机上更协调 */
-    background: #fff;
+    background: var(--bg-card);
     border-radius: 40rpx; /* 统一圆角 */
     z-index: 11001;
     opacity: 0;
@@ -209,7 +209,7 @@
 .nickname-modal-title {
     font-size: 36rpx;
     font-weight: 600;
-    color: #1a202c;
+    color: var(--text-main);
 }
 
 .nickname-modal-body {
@@ -225,12 +225,12 @@
 .nickname-modal-input {
     flex: 1;
     height: 100rpx;
-    background: #f8fafc;
-    border: 2rpx solid #e2e8f0;
+    background: var(--bg-main);
+    border: 2rpx solid var(--border);
     border-radius: 20rpx;
     padding: 0 100rpx 0 32rpx;
     font-size: 32rpx;
-    color: #1a202c;
+    color: var(--text-main);
     box-sizing: border-box;
     transition: border-color 0.2s;
 }
@@ -239,7 +239,7 @@
     position: absolute;
     right: 32rpx;
     font-size: 26rpx;
-    color: #94a3b8;
+    color: var(--text-holder);
 }
 
 .nickname-counter.overflow {
