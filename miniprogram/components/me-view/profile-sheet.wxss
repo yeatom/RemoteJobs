@@ -235,19 +235,20 @@
 
 .nickname-modal-footer {
     display: flex;
-    gap: 24rpx;
+    gap: 20rpx;
+    margin-top: 30rpx;
     width: 100%;
-    margin-top: 10rpx;
-    box-sizing: border-box; /* 确保 padding 不会导致溢出 */
+    box-sizing: border-box;
 }
 
 .nickname-modal-footer-btn {
     flex: 1;
-    min-width: 0; /* 允许 flex 项目缩小到其内容大小以下 */
+    min-width: 0;
 }
 
 .nickname-modal-footer-btn ui-button {
-    width: 100%; /* 强制子组件占满容器 */
+    display: block;
+    width: 100%;
 }
 
 .nickname-modal-cancel {

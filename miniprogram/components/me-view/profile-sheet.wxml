@@ -68,17 +68,20 @@
       <text class="nickname-modal-title">{{ui.editNickname}}</text>
     </view>
     <view class="nickname-modal-body">
-      <input
-              class="nickname-modal-input"
-              type="text"
-              value="{{newNickname}}"
-              bindinput="onNicknameInput"
-              maxlength="20"
-              placeholder="{{ui.editNickname}}"
-              focus="{{nicknameModalOpen}}"
-              confirm-type="done"
-              bindconfirm="onSaveNickname"
-      />
+      <view class="nickname-input-wrapper">
+        <input
+                class="nickname-modal-input"
+                type="text"
+                value="{{newNickname}}"
+                bindinput="onNicknameInput"
+                maxlength="20"
+                placeholder="{{ui.editNickname}}"
+                focus="{{nicknameModalOpen}}"
+                confirm-type="done"
+                bindconfirm="onSaveNickname"
+        />
+        <text class="nickname-counter {{newNickname.length > 8 ? 'overflow' : ''}}">{{newNickname.length}}/8</text>
+      </view>
     </view>
     <view class="nickname-modal-footer">
       <view class="nickname-modal-footer-btn nickname-modal-cancel">
@@ -86,7 +89,7 @@
           {{ui.cancel}}
         </ui-button>
       </view>
-      <view class="nickname-modal-footer-btn nickname-modal-save">
+      <view class="nickname-modal-footer-btn nickname-modal-save {{shouldShake ? 'shake-animation' : ''}}">
         <ui-button type="primary" size="md" bindtap="onSaveNickname">
           {{ui.save}}
         </ui-button>
