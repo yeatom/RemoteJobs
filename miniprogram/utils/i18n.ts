@@ -14,6 +14,7 @@ const dict = {
     },
     me: {
         title: { Chinese: '我', English: 'Me' },
+        appShareTitle: { Chinese: '丈月尺 - 远程办公岗位', English: 'WeChatJobs - Remote Positions' },
         favoritesEntry: { Chinese: '我收藏的岗位', English: 'Saved jobs' },
         languageEntry: { Chinese: '语言与内容显示', English: 'Language & Display' },
         langChinese: { Chinese: '中文 (标准)', English: 'Chinese (Standard)' },

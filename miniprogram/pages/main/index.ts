@@ -1,7 +1,7 @@
 
 import { bootManager } from '../../utils/bootManager';
 import { attachLanguageAware } from '../../utils/languageAware';
-import { t } from '../../utils/i18n';
+import { t, normalizeLanguage } from '../../utils/i18n';
 import { checkIsAuthed } from '../../utils/util';
 
 const app = getApp<IAppOption>();
@@ -13,9 +13,9 @@ Page({
     user: null as any,
     isLoggedIn: false,
     tabLabels: {
-      jobs: '岗位',
-      resume: '简历',
-      me: '我'
+      jobs: t('tab.jobs', normalizeLanguage((app as any)?.globalData?.language)),
+      resume: t('tab.resume', normalizeLanguage((app as any)?.globalData?.language)),
+      me: t('tab.me', normalizeLanguage((app as any)?.globalData?.language))
     }
   },
 
@@ -95,8 +95,9 @@ Page({
   },
 
   onShareAppMessage() {
+    const lang = normalizeLanguage((app as any)?.globalData?.language)
     return {
-      title: '丈月尺 - 远程办公岗位',
+      title: t('me.appShareTitle', lang),
       path: '/pages/main/index'
     }
   }
