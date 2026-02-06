@@ -323,7 +323,7 @@ Page({
     if ((profile.skills || []).length > 0) score += 10;
     if ((profile.certificates || []).length > 0) score += 5;
     if (profile.aiMessage) score += 5;
-    return { score, level: score >= 60 ? 1 : 0 };
+    return { score, level: score >= 80 ? 1 : 0 };
   },
 
   loadResumeData() {

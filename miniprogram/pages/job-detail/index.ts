@@ -2,7 +2,7 @@
 import { normalizeLanguage, t } from '../../utils/i18n'
 import { normalizeJobTags, translateFieldValue } from '../../utils/job'
 import { attachLanguageAware } from '../../utils/languageAware'
-// import { processAndSaveAIResume } from '../../utils/resume'
+import { requestGenerateResume } from '../../utils/resume'
 import { request, callApi } from '../../utils/request'
 import { StatusCode, StatusMessage } from '../../utils/statusCodes'
 import { ui } from '../../utils/ui'
@@ -311,8 +311,9 @@ Page({
       })
       const existingList = checkRes.result?.items || []
 
+      ui.hideLoading()
+
       if (existingList.length > 0) {
-        ui.hideLoading()
         ui.showModal({
           title: t('jobs.generatedResumeExistsTitle', lang),
           content: t('jobs.generatedResumeExistsContent', lang),
@@ -344,160 +345,15 @@ Page({
 
   async doGenerateResumeAction() {
     if (this.data.isGenerating) return
-    const app = getApp<IAppOption>() as any
     
-    try {
-      this.setData({ isGenerating: true })
-      // [Optimization] Removed loading as per user request to use popups/toasts for result instead
-      
-      // 实时请求数据库获取最新的完整度
-      const user = await app.refreshUser()
-      
-      const profile = user?.resume_profile || {}
-      
-      // Determine language context
-      const lang = normalizeLanguage(app?.globalData?.language)
-      const isChineseEnv = (lang === 'Chinese' || lang === 'AIChinese')
-      
-      // 直接根据后端存储的 level 判断
-      const completeness = isChineseEnv 
-        ? (profile.zh?.completeness || { level: 0 }) 
-        : (profile.en?.completeness || { level: 0 });
-
-      let isReady = completeness.level >= 1;
-
-      // Check Readiness
-      if (isReady) {
-        // 简历完整，调用云托管接口
-        try {
-          // Prepare Profile based on context
-          // 确保所有顶层字段（性别、照片、AI指令等）以及数组字段（经历、技能等）都能正确传递
-          let aiProfile: any = {
-            ...profile,           // 包含根层级的 gender, photo, birthday, aiMessage, skills, workExperiences 等
-            gender: user.gender,  // 显式确保关键字段
-            photo: user.avatar || profile.photo
-          }
-          
-          const currentLangProfile = isChineseEnv ? (profile.zh || {}) : (profile.en || {})
-          
-          // 深度合并当前语言特有信息
-          aiProfile = {
-            ...aiProfile,
-            ...currentLangProfile,
-            // 确保数组字段存在，优先级：当前语言包 > 根目录 > 空数组
-            workExperiences: currentLangProfile.workExperiences || profile.workExperiences || [],
-            educations: currentLangProfile.educations || profile.educations || [],
-            skills: currentLangProfile.skills || profile.skills || [],
-            certificates: currentLangProfile.certificates || profile.certificates || [],
-            // 携带引用以供 AI 参考
-            zh: profile.zh,
-            en: profile.en
-          }
-          
-          const res = await callApi<any>('generate', {
-            jobId: this.data.job?._id, // 岗位 ID
-            openid: user.openid,      // Standardized OpenID
-            resume_profile: aiProfile, // 传处理后的资料
-            job_data: this.data.job,    // 传完整的岗位 JSON
-            language: isChineseEnv ? 'chinese' : 'english' // Strictly normalize to 'chinese' or 'english'
-          })
-
-          ui.hideLoading()
-          this.setData({ isGenerating: false })
-          
-          if (res.success && res.result?.task_id) {
-            const taskId = res.result.task_id
-            
-            // 提示用户任务已提交
-            ui.showModal({
-              title: isChineseEnv ? '生成请求已提交' : 'Request Submitted',
-              content: isChineseEnv 
-                ? 'AI 正在为你深度定制简历，大约需要 30 秒。完成后将在“我的简历”中展示，你可以继续浏览其他岗位。'
-                : 'AI is customizing your resume, usually takes 30s. Check "Generated Resumes" later.',
-              confirmText: isChineseEnv ? '去看看' : 'Check',
-              cancelText: isChineseEnv ? '留在本页' : 'Stay',
-              success: (modalRes) => {
-                if (modalRes.confirm) {
-                  wx.navigateTo({
-                    url: '/pages/generated-resumes/index'
-                  })
-                }
-              }
-            })
-          } else {
-            console.error('接口返回异常:', res)
-            throw new Error('服务响应异常')
-          }
-        } catch (err: any) {
-          ui.hideLoading()
-          this.setData({ isGenerating: false })
-          
-          const isQuotaError = (err?.data?.code === StatusCode.QUOTA_EXHAUSTED) || (err?.statusCode === StatusCode.HTTP_FORBIDDEN) || (err?.data?.error === 'Quota exhausted');
-          const isProcessingError = (err?.statusCode === StatusCode.HTTP_CONFLICT) || (err?.data?.message && err.data.message.includes('生成中'));
-
-          // 1. 如果是正在生成中 (StatusCode.HTTP_CONFLICT)
-          if (isProcessingError) {
-              ui.showModal({
-                  title: t('jobs.generatingTitle', lang),
-                  content: t('jobs.generatingContent', lang),
-                  showCancel: false,
-                  confirmText: t('jobs.generatingConfirm', lang)
-              });
-            return;
-          }
-
-          // 2. 如果是配额不足 (StatusCode.HTTP_FORBIDDEN / QUOTA_EXHAUSTED)
-          if (isQuotaError) {
-             ui.showModal({
-               title: t('jobs.quotaExhaustedTitle', lang),
-               content: err?.data?.message || t('jobs.quotaExhaustedContent', lang),
-               confirmText: t('jobs.quotaExhaustedConfirm', lang),
-               cancelText: t('jobs.quotaExhaustedCancel', lang),
-               success: (res) => {
-                 if (res.confirm) {
-                   const app = getApp<IAppOption>();
-                   app.globalData.tabSelected = 2;
-                   app.globalData.openMemberHubOnShow = true;
-                   wx.reLaunch({
-                     url: '/pages/main/index'
-                   })
-                 }
-               }
-             })
-             return;
-          }
-
-          ui.showModal({
-            title: t('jobs.generateFailedTitle', lang),
-            content: err?.data?.message || err?.message || t('jobs.generateFailedTitle', lang),
-            showCancel: false
-          })
-        }
-      } else {
-        ui.hideLoading()
+    await requestGenerateResume(this.data.job, {
+      onStart: () => {
+        this.setData({ isGenerating: true })
+      },
+      onFinish: () => {
         this.setData({ isGenerating: false })
-        
-        // 简历不完整，跳转到简历资料页
-        ui.showModal({
-          title: t('jobs.profileIncompleteTitle', lang),
-          content: t('jobs.profileIncompleteContent', lang),
-          confirmText: t('jobs.profileIncompleteConfirm', lang),
-          cancelText: t('resume.cancel', lang),
-          success: (res) => {
-            if (res.confirm) {
-              wx.navigateTo({
-                url: '/pages/resume-profile/index',
-              })
-            }
-          }
-        })
       }
-    } catch (err) {
-      ui.hideLoading()
-      this.setData({ isGenerating: false })
-      console.error('检查完整度失败:', err)
-      ui.showError(t('jobs.checkFailed', lang))
-    }
+    })
   },
 
   async addSavedRecord(job: JobDetailItem) {

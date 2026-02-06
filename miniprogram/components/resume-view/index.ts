@@ -5,6 +5,7 @@ import { callApi } from '../../utils/request'
 import { normalizeLanguage, t } from '../../utils/i18n'
 import { attachLanguageAware } from '../../utils/languageAware'
 import { checkIsAuthed } from '../../utils/util'
+import { requestGenerateResume } from '../../utils/resume'
 
 Component({
   properties: {
@@ -186,35 +187,45 @@ Component({
     },
 
     validateForm() {
-        const { title, content } = this.data.targetJob
-        // Must have JD content OR Job Title
-        const hasContent = content && content.trim().length > 10
+        const { title, content, experience } = this.data.targetJob
+        // Must have Job Title AND JD content AND Experience
         const hasTitle = title && title.trim().length >= 2
+        const hasContent = content && content.trim().length > 10
+        const hasExperience = experience && experience.trim().length >= 1
         
-        const valid = hasContent || hasTitle
+        const valid = hasTitle && hasContent && hasExperience
         this.setData({ canSubmit: !!valid })
     },
 
-    async onOptimizeKeywords() {
+    async onOptimizeKeywords(e: any) {
         if (!this.data.canSubmit) return
 
         const { targetJob } = this.data
-        const app = getApp<any>()
+        const { complete, fail } = e.detail;
 
-        // Store in globalData for resume generator to pick up
-        app.globalData._generateParams = {
-            mode: 'jd',
-            jdText: targetJob.content || '',
-            targetJobTitle: targetJob.title || '',
-            targetCompany: targetJob.company.trim() || '匿名公司',
-            experience: targetJob.experience || ''
+        // Mock job_data for custom text generation
+        const mockJobData = {
+            _id: `CUSTOM_${Date.now()}`,
+            title: targetJob.title,
+            title_chinese: targetJob.title,
+            title_english: targetJob.title,
+            description: targetJob.content,
+            experience: targetJob.experience,
+            source_name: targetJob.company || '匿名公司',
+            createdAt: new Date().toISOString()
         }
 
-        this.closeJdDrawer()
-        
-        // Navigate to generator page
-        wx.navigateTo({
-            url: '/pages/resume-profile/index?mode=new'
+        await requestGenerateResume(mockJobData, {
+            onFinish: (success) => {
+                if (success) {
+                    complete(true)
+                } else {
+                    fail()
+                }
+            },
+            onCancel: () => {
+                complete(false)
+            }
         })
     },
 
