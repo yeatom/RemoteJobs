@@ -302,17 +302,16 @@ Component({
       }
 
       if (!usePrefetched) {
-          const res = await callApi(functionName, {
+          const res = await callApi<any>(functionName, {
             pageSize: this.data.pageSize,
             skip,
             ...filterParams,
           })
           
-          const responseData = res.data
-          if (res.success && responseData && responseData.ok) {
-            jobs = responseData.jobs || []
+          if (res.success && res.result) {
+            jobs = res.result.jobs || []
           } else {
-            console.error(`[JobTab] ${functionName} failed or ok=false:`, res)
+            console.error(`[JobTab] ${functionName} failed:`, res)
             this.setData({ loading: false, hasMore: true })
             return
           }
