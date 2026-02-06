@@ -15,56 +15,86 @@ export interface ResumeGenerateOptions {
  */
 export async function requestGenerateResume(jobData: any, options: ResumeGenerateOptions = {}) {
   const app = getApp<any>()
-  const lang = normalizeLanguage(app.globalData.language)
-  const isChineseEnv = (lang === 'Chinese' || lang === 'AIChinese')
   
   if (options.onStart) options.onStart()
 
   try {
-    // 1. 实时刷新用户以获取最新的简历完善度 (level)
+    // 1. 实时刷新用户以获取最新的资料
     const user = await app.refreshUser()
-    
-    // 重新获取语言状态，避免 refreshUser 修改了全局语言导致逻辑不一致
-    const currentLang = normalizeLanguage(app.globalData.language)
-    const currentIsChineseEnv = (currentLang === 'Chinese' || currentLang === 'AIChinese')
-    
-    const profile = user?.resume_profile || {}
-    const completeness = currentIsChineseEnv 
-      ? (profile.zh?.completeness || { level: 0, score: 0 }) 
-      : (profile.en?.completeness || { level: 0, score: 0 });
-
-    console.log(`[ResumeService] Level check - Lang: ${currentLang}, Level: ${completeness.level}, Score: ${completeness.score}%`)
-
-    // 2. 简历完整度校验 (Backend: level >= 1 为达标)
-    if (completeness.level < 1) {
+    if (!user) {
       if (options.onFinish) options.onFinish(false)
-      
-      ui.showModal({
-        title: t('jobs.basicInfoIncompleteTitle', currentLang),
-        content: t('jobs.profileIncompleteContent', currentLang),
-        confirmText: t('jobs.profileIncompleteConfirm', currentLang),
-        cancelText: t('jobs.generateAnyway', currentLang),
-        success: async (res) => {
-          if (res.confirm) {
-            wx.navigateTo({ url: '/pages/resume-profile/index' })
-            if (options.onCancel) options.onCancel()
-          } else if (res.cancel) {
-            // 用户选择“直接生成”
-            doGenerate(user, profile, jobData, currentIsChineseEnv, currentLang, options)
-          } else {
-             if (options.onCancel) options.onCancel()
-          }
-        }
-      })
+      ui.showError('获取用户信息失败，请重试')
       return
     }
 
-    // 3. 资料已达标，进入正式生成流程
-    await doGenerate(user, profile, jobData, currentIsChineseEnv, currentLang, options)
+    const profile = user.resume_profile || {}
+    const interfaceLang = normalizeLanguage(app.globalData.language)
+
+    // 2. 语言选择对话框
+    let selectContent = '选择生成简历的语言'
+    if (jobData && typeof jobData.is_english !== 'undefined') {
+      selectContent = jobData.is_english === 1 
+        ? '该岗位为<u>英文</u>，选择生成简历的语言' 
+        : '该岗位为<u>中文</u>，选择生成简历的语言'
+    } else if (jobData && jobData._is_custom) {
+      // 首页手动输入模式
+      selectContent = '选择生成简历的语言'
+    }
+
+    ui.showModal({
+      title: '选择简历语言',
+      content: selectContent,
+      confirmText: '中文',
+      cancelText: 'English',
+      showCancel: true,
+      success: async (selectRes) => {
+        if (!selectRes || (!selectRes.confirm && !selectRes.cancel)) {
+          if (options.onCancel) options.onCancel()
+          if (options.onFinish) options.onFinish(false)
+          return
+        }
+
+        const chosenIsChinese = selectRes.confirm
+        const targetLang: AppLanguage = chosenIsChinese ? 'Chinese' : 'English'
+        
+        // 3. 简历完整度校验 (一切以后端物理字段 level 为准)
+        const completeness = chosenIsChinese 
+          ? (profile.zh?.completeness || { level: 0 }) 
+          : (profile.en?.completeness || { level: 0 });
+
+        console.log(`[ResumeService] Chosen: ${targetLang}, User Data (zh/en pool): ${!!profile.zh}/${!!profile.en}, Backend Level: ${completeness.level}`)
+
+        if (completeness.level < 1) {
+          if (options.onFinish) options.onFinish(false)
+          
+          ui.showModal({
+            title: t('jobs.basicInfoIncompleteTitle', interfaceLang),
+            content: t('jobs.profileIncompleteContent', interfaceLang),
+            confirmText: t('jobs.profileIncompleteConfirm', interfaceLang),
+            cancelText: t('jobs.generateAnyway', interfaceLang),
+            success: async (modalRes) => {
+              if (modalRes.confirm) {
+                wx.navigateTo({ url: '/pages/resume-profile/index' })
+                if (options.onCancel) options.onCancel()
+              } else if (modalRes.cancel) {
+                // 用户选择“直接生成”
+                await doGenerate(user, profile, jobData, chosenIsChinese, interfaceLang, options)
+              }
+            }
+          })
+          return
+        }
+
+        // 4. 资料已达标，进入正式生成流程
+        await doGenerate(user, profile, jobData, chosenIsChinese, interfaceLang, options)
+      }
+    })
 
   } catch (err) {
     console.error('[ResumeService] Generation flow failed:', err)
     if (options.onFinish) options.onFinish(false)
+    const app = getApp<any>()
+    const lang = normalizeLanguage(app.globalData.language)
     ui.showError(t('jobs.checkFailed', lang))
   }
 }

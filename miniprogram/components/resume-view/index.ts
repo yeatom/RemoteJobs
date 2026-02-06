@@ -205,6 +205,7 @@ Component({
         // Mock job_data for custom text generation
         const mockJobData = {
             _id: `CUSTOM_${Date.now()}`,
+            _is_custom: true, // 标记为用户手动输入的简历生成
             title: targetJob.title,
             title_chinese: targetJob.title,
             title_english: targetJob.title,

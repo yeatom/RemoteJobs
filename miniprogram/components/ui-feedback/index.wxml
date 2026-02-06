@@ -21,7 +21,7 @@
         <text class="ui-modal-title">{{title}}</text>
       </view>
       <view class="ui-modal-body">
-        <text class="ui-modal-content">{{modalContent}}</text>
+        <rich-text class="ui-modal-content" nodes="{{modalContent}}"></rich-text>
       </view>
       <view class="ui-modal-footer">
         <view wx:if="{{showCancel}}" class="ui-modal-btn cancel" bindtap="onCancel">{{cancelText}}</view>
