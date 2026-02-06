@@ -1033,7 +1033,7 @@ Page({
     this.setData({ 'workForm.workContent': e.detail.value })
   },
   async onSaveWorkExperience() {
-    const { workForm, editingWorkIndex, workExperiences, ui: uiStrings, currentLang, en } = this.data
+    const { workForm, editingWorkIndex, workExperiences, ui: uiStrings } = this.data
     
     if (!workForm.company.trim()) {
       ui.showToast(uiStrings.companyPlaceholder || '请输入公司名称')
@@ -1119,7 +1119,7 @@ Page({
   },
 
   async onSaveEducation() {
-    const { eduForm, editingEduIndex, educations, ui: uiStrings, currentLang, en } = this.data
+    const { eduForm, editingEduIndex, educations, ui: uiStrings } = this.data
     
     // 全字段校验
     if (!eduForm.school.trim()) {

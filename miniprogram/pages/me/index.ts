@@ -4,7 +4,7 @@ import {isAiChineseUnlocked} from '../../utils/subscription'
 import {normalizeLanguage, type AppLanguage} from '../../utils/i18n'
 import {attachLanguageAware} from '../../utils/languageAware'
 import {toDateMs} from '../../utils/time'
-import {getPhoneNumberFromAuth, updatePhoneNumber} from '../../utils/phoneAuth'
+import {getPhoneNumberFromAuth, updatePhoneNumber, checkIsAuthed} from '../../utils/phoneAuth'
 import {callApi, formatFileUrl} from '../../utils/request'
 import {ui} from '../../utils/ui'
 import * as UIConfig from './ui.config'
@@ -1044,21 +1044,24 @@ Page({
 
         checkPhoneBeforePayment(): boolean {
             if (!this.data.userPhone) {
+                const { ui: uiStrings } = this.data;
                 ui.showModal({
-                }
-            });
-            return false;
-        }
-        return true;
-    },
+                    title: uiStrings.phoneRequiredTitle || '提示',
+                    content: uiStrings.phoneRequired || '请先绑定手机号以继续支付',
+                    showCancel: false
+                });
+                return false;
+            }
+            return true;
+        },
 
-    async executePaymentFlow(schemeId: number, amount?: number) {
-        const { ui: uiStrings } = this.data
-        if (!this.data.userPhone) {
-            this.checkPhoneBeforePayment();
-            return;
-        }
-        ui.showLoading(uiStrings.creatingOrder)
+        async executePaymentFlow(schemeId: number, amount?: number) {
+            const { ui: uiStrings } = this.data
+            if (!this.data.userPhone) {
+                this.checkPhoneBeforePayment();
+                return;
+            }
+            ui.showLoading(uiStrings.creatingOrder)
 
         try {
             const env = require('../../env.js')
@@ -1211,9 +1214,6 @@ Page({
                         } else {
                             this.setData({ phoneAuthBusy: false })
                         }
-                    },
-                    fail: () => {
-                        this.setData({ phoneAuthBusy: false })
                     }
                 })
             } else {

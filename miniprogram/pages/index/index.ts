@@ -1,9 +1,8 @@
 // miniprogram/pages/index/index.ts
 import { normalizeLanguage, t } from '../../utils/i18n'
 import { attachLanguageAware } from '../../utils/languageAware'
-import { toDateMs } from '../../utils/time'
 import { isAiChineseUnlocked } from '../../utils/subscription'
-import { request, callApi } from '../../utils/request'
+import { callApi } from '../../utils/request'
 import { ui } from '../../utils/ui'
 import { checkIsAuthed } from '../../utils/util'
 
@@ -54,7 +53,6 @@ Page({
     this.checkFeaturedSubscription();
 
     // 移除重复定义的 app 变量，统一使用上层定义的常量
-    const lang = normalizeLanguage(app?.globalData?.language);
     wx.setNavigationBarTitle({ title: '' });
     
     // 检查是否有筛选结果需要应用

@@ -1,9 +1,8 @@
 // miniprogram/components/job-tab/index.ts
-import type { JobItem, ResolvedSavedJob } from '../../utils/job'
-import { mapJobs, getJobFieldsByLanguage, mapJobFieldsToStandard } from '../../utils/job'
+import type { JobItem } from '../../utils/job'
+import { mapJobs } from '../../utils/job'
 import { normalizeLanguage, t } from '../../utils/i18n'
-import { matchSalary } from '../../utils/salary'
-import { request, callApi } from '../../utils/request'
+import { callApi } from '../../utils/request'
 import { ui } from '../../utils/ui'
 import { bootManager } from '../../utils/bootManager'
 

@@ -435,7 +435,7 @@ Component({
                 // 计算升级差价 (仅在有方案列表时计算)
                 if (schemes.length > 0) {
                     // ... 保持原有差价计算逻辑 ...
-                    this.calculateUpgradeAmount(memberLevel, schemes, scheme)
+                    this.calculateUpgradeAmount(memberLevel || 0, schemes, scheme)
                 }
             } catch (err) {
                 console.error('[Me] loadMemberBadgeText error:', err)
@@ -1171,7 +1171,7 @@ Component({
 
                 // 5. 刷新用户信息
                 const app = getApp<any>() as any
-                app.globalData.user = activateResult.user
+                app.globalData.user = activateRes.result.user
                 this.syncUserFromApp()
 
                 ui.hideLoading()
@@ -1255,9 +1255,6 @@ Component({
                             } else {
                                 this.setData({ phoneAuthBusy: false })
                             }
-                        },
-                        fail: () => {
-                            this.setData({ phoneAuthBusy: false })
                         }
                     })
                 } else {

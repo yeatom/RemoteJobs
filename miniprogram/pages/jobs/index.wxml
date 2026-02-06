@@ -1,6 +1,7 @@
 <!-- Remote jobs list page -->
 <view class="page">
   <login-wall visible="{{!isLoggedIn}}" bind:loginSuccess="onLoginSuccess" />
+  <ui-feedback id="ui-feedback" />
 
   <!-- 
     取消 wx:if 强制拦截，让底层页面结构在模糊背景下可见。
