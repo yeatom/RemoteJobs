@@ -373,7 +373,7 @@ Page({
         }
         return true
       } else {
-        throw new Error('保存失败')
+        throw new Error(t('resume.saveFailed'))
       }
     } catch (err) {
       console.error(err)
