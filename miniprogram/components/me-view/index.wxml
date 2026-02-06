@@ -218,7 +218,7 @@
           <view class="redeem-input-group {{inputInviteCode.length > 0 ? 'has-value' : ''}}">
             <input class="redeem-input" 
                    type="text" 
-                   placeholder="请输入6位邀请码" 
+                   placeholder="{{ui.inputInviteCodePlaceholder}}" 
                    placeholder-class="redeem-placeholder"
                    value="{{inputInviteCode}}" 
                    bindinput="onInviteCodeInput"

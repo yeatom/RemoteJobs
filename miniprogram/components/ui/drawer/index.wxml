@@ -19,7 +19,7 @@
         bindtap="onConfirm"
       >
         <view wx:if="{{loading}}" class="ui-drawer-loading-icon"></view>
-        <text wx:else>{{confirmText || '完成'}}</text>
+        <text wx:else>{{confirmText}}</text>
       </view>
     </view>
   </view>

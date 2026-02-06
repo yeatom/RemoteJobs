@@ -408,8 +408,10 @@ const dict = {
         quotaExhaustedCancel: { Chinese: '取消', English: 'Cancel' },
         generateFailedTitle: { Chinese: '生成失败', English: 'Generate Failed' },
         profileIncompleteTitle: { Chinese: '简历信息不完整', English: 'Profile Incomplete' },
-        profileIncompleteContent: { Chinese: '为了生成效果，请先补全当前语言简历的基础资料（姓名、联系方式、教育及工作经历）。', English: 'Please complete your current language profile (Name, Contact, Education and Work Experience) first.' },
+        profileIncompleteContent: { Chinese: '为了生成效果，请先补全当前语言简历的基础资料（姓名、微信号/邮箱、毕业院校）。', English: 'To ensure AI quality, please fill in your Name, Email, and University in your profile.' },
         profileIncompleteConfirm: { Chinese: '去完善', English: 'Edit Profile' },
+        generateAnyway: { Chinese: '直接生成', English: 'Generate Anyway' },
+        basicInfoIncompleteTitle: { Chinese: '简历基础信息不完善', English: 'Basic Info Incomplete' },
     },
     drawer: {
         salary: { Chinese: '薪资', English: 'Salary' },
@@ -683,6 +685,8 @@ export type I18nKey =
     | 'jobs.profileIncompleteTitle'
     | 'jobs.profileIncompleteContent'
     | 'jobs.profileIncompleteConfirm'
+    | 'jobs.generateAnyway'
+    | 'jobs.basicInfoIncompleteTitle'
     | 'jobs.salary_all'
     | 'jobs.salary_lt_10k'
     | 'jobs.salary_10_20k'

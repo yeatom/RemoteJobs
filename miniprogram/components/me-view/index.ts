@@ -424,7 +424,10 @@ Component({
                 
                 if (scheme) {
                     memberBadgeText = isChinese ? scheme.name_chinese : scheme.name_english
-                } 
+                } else if (memberLevel === 1) {
+                    // 特殊处理：Level 1 通常是后台过滤掉的“试用期”，使用国际化文案
+                    memberBadgeText = t('me.memberTrial')
+                }
 
                 this.setData({ 
                     memberBadgeText,

@@ -35,12 +35,10 @@ export async function requestGenerateResume(jobData: any, options: ResumeGenerat
       
       const isEnglish = lang === 'English'
       ui.showModal({
-        title: isEnglish ? 'Basic Info Incomplete' : '简历基础信息不完善',
-        content: isEnglish 
-          ? 'To ensure AI quality, please fill in your Name, Email, and University in your profile.'
-          : '为保证 AI 匹配效果，请确保已填写：姓名、微信号/邮箱、毕业院校。是否现在去完善？',
-        confirmText: isEnglish ? 'Go Improve' : '去完善',
-        cancelText: isEnglish ? 'Generate Anyway' : '直接生成',
+        title: t('jobs.basicInfoIncompleteTitle', lang),
+        content: t('jobs.profileIncompleteContent', lang),
+        confirmText: t('jobs.profileIncompleteConfirm', lang),
+        cancelText: t('jobs.generateAnyway', lang),
         success: async (res) => {
           if (res.confirm) {
             wx.navigateTo({ url: '/pages/resume-profile/index' })
@@ -105,12 +103,10 @@ async function doGenerate(user: any, profile: any, job: any, isChineseEnv: boole
       
       // 展示统一的成功提效模态框
       ui.showModal({
-        title: isChineseEnv ? '生成请求已提交' : 'Request Submitted',
-        content: isChineseEnv 
-          ? 'AI 正在为你深度定制简历，大约需要 30 秒。完成后将在“我的简历”中展示，你可以继续浏览其他岗位。'
-          : 'AI is customizing your resume, usually takes 30s. Check "Generated Resumes" later.',
-        confirmText: isChineseEnv ? '去看看' : 'Check',
-        cancelText: isChineseEnv ? '留在本页' : 'Stay',
+        title: t('jobs.generateRequestSubmittedTitle', lang),
+        content: t('jobs.generateRequestSubmittedContent', lang),
+        confirmText: t('jobs.generateRequestSubmittedConfirm', lang),
+        cancelText: t('jobs.generateRequestSubmittedCancel', lang),
         success: (modalRes) => {
           if (modalRes.confirm) {
             wx.navigateTo({ url: '/pages/generated-resumes/index' })

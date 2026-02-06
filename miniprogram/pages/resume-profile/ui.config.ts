@@ -36,7 +36,7 @@ const UI_MAP = {
     /** AI 寄语标题 */
     aiMessageLabel: 'resume.aiMessageLabel',
     /** 编辑文本 */
-    edit: 'resume.editLabel',
+    edit: 'jobs.editLabel',
 
     // --- 字段 Label ---
     /** 性别 */
