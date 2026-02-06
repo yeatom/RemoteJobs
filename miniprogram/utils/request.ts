@@ -12,10 +12,10 @@ export const formatFileUrl = (url: string | undefined): string => {
   return url;
 };
 
-export interface ApiResponse<T = any> {
+export interface IApiResponse<T = any> {
   success: boolean;
   code?: StatusCode;
-  data?: T;
+  result: T; // Change 'data' to 'result' to avoid confusion with wx response.data
   message?: string;
 }
 
@@ -53,7 +53,7 @@ export const request = <T = any>(options: wx.RequestOption): Promise<T> => {
 /**
  * Helper to call standard backend APIs
  */
-export const callApi = async <T = any>(name: string, data: any = {}): Promise<ApiResponse<T>> => {
+export const callApi = async <T = any>(name: string, data: any = {}): Promise<IApiResponse<T>> => {
   // Automatic login if openid is missing (and not already doing login)
   if (name !== 'login' && !wx.getStorageSync('user_openid')) {
     console.log(`[API] Triggering auto-login for ${name}...`);
@@ -66,7 +66,7 @@ export const callApi = async <T = any>(name: string, data: any = {}): Promise<Ap
     }
   }
 
-  return request<ApiResponse<T>>({
+  return request<IApiResponse<T>>({
     url: `/${name}`,
     method: 'POST',
     data,
@@ -97,19 +97,19 @@ export const performLogin = (): Promise<string> => {
         if (res.code) {
           try {
             // Call our own backend to exchange code for openid
-            const loginRes = await request<ApiResponse>({
+            const loginRes = await request<IApiResponse<any>>({
               url: '/login',
               method: 'POST',
               data: { code: res.code }
             });
 
-            const openid = loginRes?.result?.openid || (loginRes as any)?.openid;
+            const openid = loginRes?.result?.openid;
             if (openid) {
               wx.setStorageSync('user_openid', openid);
               // Update app global data if possible
               const app = getApp<IAppOption>();
               if (app?.globalData) {
-                app.globalData.user = loginRes?.result?.user || (loginRes as any)?.user;
+                app.globalData.user = loginRes?.result?.user;
               }
               resolve(openid);
             } else {

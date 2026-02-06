@@ -8,6 +8,7 @@ import {getPhoneNumberFromAuth, updatePhoneNumber} from '../../utils/phoneAuth'
 import {callApi, formatFileUrl} from '../../utils/request'
 import {ui} from '../../utils/ui'
 import * as UIConfig from './ui.config'
+import type { IMemberScheme, IGetMemberSchemesResult, ICalculatePriceResult } from '../../typings/types/api'
 
 
 Component({
@@ -908,22 +909,20 @@ Component({
 
         async fetchSchemes() {
             try {
-                const res = await callApi('getMemberSchemes', {})
-                const resData = (res as any)?.data || res
-                const success = (res as any)?.success && resData?.success
+                const res = await callApi<IGetMemberSchemesResult>('getMemberSchemes', {})
                 
-                if (success) {
-                    const schemes = resData.schemes || []
+                if (res.success && res.result) {
+                    const schemes = res.result.schemes || []
                     
                     // Select first one by default if not set or not in list
                     let selectedId = this.data.selectedSchemeId
-                    const exists = schemes.find((s:any) => s.scheme_id === selectedId)
+                    const exists = schemes.find((s: IMemberScheme) => s.scheme_id === selectedId)
                     
                     if (!exists && schemes.length > 0) {
                         selectedId = schemes[0].scheme_id
                     }
                     
-                    const selectedScheme = schemes.find((s:any) => s.scheme_id === selectedId)
+                    const selectedScheme = schemes.find((s: IMemberScheme) => s.scheme_id === selectedId)
                     
                     this.setData({ 
                         schemsList: schemes,
@@ -944,7 +943,7 @@ Component({
             const id = e.currentTarget.dataset.id
             if (id === this.data.selectedSchemeId) return
             
-            const scheme = this.data.schemsList.find((s: any) => s.scheme_id === id)
+            const scheme = this.data.schemsList.find((s: IMemberScheme) => s.scheme_id === id)
             this.setData({ 
                 selectedSchemeId: id,
                 selectedScheme: scheme,
@@ -956,7 +955,7 @@ Component({
         },
 
         async calculateFinalPrice(schemeId: number) {
-            const scheme = this.data.schemsList.find((s:any) => s.scheme_id === schemeId);
+            const scheme = this.data.schemsList.find((s: IMemberScheme) => s.scheme_id === schemeId);
             if (!scheme) return;
 
             // Check for Discount Condition (Upgrade)
@@ -982,10 +981,9 @@ Component({
             const startTime = Date.now()
 
             try {
-                const res = await callApi('calculatePrice', { scheme_id: schemeId })
-                const result = (res?.result || res) as any
+                const res = await callApi<ICalculatePriceResult>('calculatePrice', { scheme_id: schemeId })
                 
-                if (result.success) {
+                if (res.success && res.result) {
                     // If we showed loading, ensure min display time
                     if (shouldDelay) {
                         const elapsed = Date.now() - startTime
@@ -995,9 +993,9 @@ Component({
                     }
 
                     this.setData({
-                        finalPrice: result.finalPrice,
-                        originalPrice: result.originalPrice,
-                        isUpgradeOrder: result.isUpgrade,
+                        finalPrice: res.result.finalPrice,
+                        originalPrice: res.result.originalPrice,
+                        isUpgradeOrder: res.result.isUpgrade,
                         isCalculatingPrice: false
                     })
                 } else {
@@ -1013,7 +1011,7 @@ Component({
             const { selectedSchemeId, schemsList } = this.data
             if (!selectedSchemeId) return
 
-            const scheme = schemsList.find((s: any) => s.scheme_id === selectedSchemeId)
+            const scheme = schemsList.find((s: IMemberScheme) => s.scheme_id === selectedSchemeId)
             if (!scheme) return
 
             if (!this.checkPhoneBeforePayment()) return;
