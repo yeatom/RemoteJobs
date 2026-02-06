@@ -2,7 +2,6 @@ import { ui } from '../../utils/ui'
 import { t } from '../../utils/i18n/index'
 import { attachLanguageAware } from '../../utils/languageAware'
 import { requestGenerateResume } from '../../utils/resume'
-require('../../env.js')
 
 Page({
   data: {
@@ -31,7 +30,7 @@ Page({
     this.initLanguage();
     
     // Allow passing initial data via query params or event channel
-    if (options.title) {
+    if (options && options.title) {
         this.setData({
             'targetJob.title': decodeURIComponent(options.title || ''),
             'targetJob.company': decodeURIComponent(options.company || ''),
@@ -43,13 +42,15 @@ Page({
   },
 
   onUnload() {
-    if ((this as any)._langDetach) {
-      (this as any)._langDetach();
+    const that = this as any;
+    if (that._langDetach) {
+      that._langDetach();
     }
   },
 
   initLanguage() {
-    (this as any)._langDetach = attachLanguageAware(this, {
+    const that = this as any;
+    that._langDetach = attachLanguageAware(this, {
       onLanguageRevive: () => {
         this.setData({
           ui: {
@@ -65,7 +66,6 @@ Page({
             jdPlaceholder: t('resume.jdPlaceholder'),
           }
         });
-        wx.setNavigationBarTitle({ title: t('resume.toolTextTitle') });
       }
     });
   },
