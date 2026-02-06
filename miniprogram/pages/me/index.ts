@@ -733,7 +733,8 @@ Page({
                 filePath: tempFilePath,
                 name: 'file',
                 header: {
-                    'x-openid': wx.getStorageSync('user_openid')
+                    'x-openid': wx.getStorageSync('user_openid'),
+                    'Authorization': wx.getStorageSync('token') ? `Bearer ${wx.getStorageSync('token')}` : ''
                 },
                 success: async (uploadRes) => {
                     try {

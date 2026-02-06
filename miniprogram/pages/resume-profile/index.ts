@@ -459,31 +459,43 @@ Page({
   // UI Event Handlers
   onEditPhoto() {
     const { ui: uiStrings } = this.data
-    wx.chooseImage({
+    wx.chooseMedia({
       count: 1,
+      mediaType: ['image'],
       sizeType: ['compressed'],
       sourceType: ['album', 'camera'],
       success: async (res) => {
-        const tempFilePath = res.tempFilePaths[0]
+        const tempFilePath = res.tempFiles[0].tempFilePath
         wx.showLoading({ title: uiStrings.uploading })
         try {
+          const openid = wx.getStorageSync('user_openid')
+          const token = wx.getStorageSync('token')
+
           wx.uploadFile({
             url: `${serverUrl}/api/upload`,
             filePath: tempFilePath,
             name: 'file',
             header: {
-              'x-openid': wx.getStorageSync('user_openid')
+              'x-openid': openid || '',
+              'Authorization': token ? `Bearer ${token}` : ''
             },
             success: async (uploadRes) => {
-              const data = JSON.parse(uploadRes.data)
-              if (data.success) {
-                const payload: any = { photo: data.url }
-                await this.saveResumeProfile(payload)
-              } else {
+              try {
+                const data = JSON.parse(uploadRes.data)
+                if (data.success) {
+                  const payload: any = { photo: data.url }
+                  await this.saveResumeProfile(payload)
+                } else {
+                  console.error('[Upload] Backend error:', data)
+                  ui.showToast(data.message || uiStrings.uploadFailed)
+                }
+              } catch (parseErr) {
+                console.error('[Upload] Parse error:', uploadRes.data)
                 ui.showToast(uiStrings.uploadFailed)
               }
             },
-            fail: () => {
+            fail: (err) => {
+              console.error('[Upload] wx.uploadFile fail:', err)
               ui.showToast(uiStrings.uploadFailed)
             },
             complete: () => {
@@ -491,6 +503,7 @@ Page({
             }
           })
         } catch (e) {
+          console.error('[Upload] Exception:', e)
           wx.hideLoading()
           ui.showToast(uiStrings.uploadFailed)
         }

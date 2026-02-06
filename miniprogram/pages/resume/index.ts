@@ -149,7 +149,8 @@ Page({
           filePath: filePath,
           name: 'file',
           header: {
-            'x-openid': wx.getStorageSync('user_openid') || ''
+            'x-openid': wx.getStorageSync('user_openid') || '',
+            'Authorization': wx.getStorageSync('token') ? `Bearer ${wx.getStorageSync('token')}` : ''
           },
           success: (uploadRes) => {
             ui.hideLoading()
@@ -320,7 +321,8 @@ Page({
             filePath: file.path,
             name: 'file',
             header: {
-              'Content-Type': 'multipart/form-data'
+              'x-openid': wx.getStorageSync('user_openid') || '',
+              'Authorization': wx.getStorageSync('token') ? `Bearer ${wx.getStorageSync('token')}` : ''
             }
           })
 
