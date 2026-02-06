@@ -18,30 +18,31 @@ const REGION_KEYS: string[] = ['全部', '国内', '国外', 'web3']
 // 所有来源选项（不再根据区域动态变化）
 const ALL_SOURCE_OPTIONS: string[] = ['全部', 'BOSS直聘', '智联招聘', 'Wellfound']
 
-const EN_SALARY: Record<string, string> = {
-  '全部': 'All',
-  '10k以下': '< 10K',
-  '10-20K': '10–20K',
-  '20-50K': '20–50K',
-  '50K以上': '50K+',
-  '项目制/兼职': 'Project/Part-time',
+// Mapping from internal Chinese keys to i18n key suffixes
+const SALARY_KEY_MAP: Record<string, string> = {
+  '全部': 'salary_all',
+  '10k以下': 'salary_lt_10k',
+  '10-20K': 'salary_10_20k',
+  '20-50K': 'salary_20_50k',
+  '50K以上': 'salary_50_plus',
+  '项目制/兼职': 'salary_project_parttime',
 }
 
-const EN_EXP: Record<string, string> = {
-  '全部': 'All',
-  '经验不限': 'Any',
-  '1年以内': '< 1y',
-  '1-3年': '1–3y',
-  '3-5年': '3–5y',
-  '5-10年': '5–10y',
-  '10年以上': '10y+',
+const EXP_KEY_MAP: Record<string, string> = {
+  '全部': 'exp_all',
+  '经验不限': 'exp_any',
+  '1年以内': 'exp_lt_1y',
+  '1-3年': 'exp_1_3y',
+  '3-5年': 'exp_3_5y',
+  '5-10年': 'exp_5_10y',
+  '10年以上': 'exp_10_plus',
 }
 
-const EN_SOURCE: Record<string, string> = {
-  '全部': 'All',
-  'BOSS直聘': 'BOSS Zhipin',
-  '智联招聘': 'Zhilian Zhaopin',
-  'Wellfound': 'Wellfound',
+const SOURCE_KEY_MAP: Record<string, string> = {
+  '全部': 'source_all',
+  'BOSS直聘': 'source_boss',
+  '智联招聘': 'source_zhilian',
+  'Wellfound': 'source_wellfound',
 }
 
 Page({
@@ -246,8 +247,14 @@ Page({
     const lang = normalizeLanguage(app?.globalData?.language)
 
     const useEnglish = lang === 'English' || lang === 'AIEnglish'
-    const displaySalaryOptions = (this.data.salaryOptions as SalaryKey[]).map((k) => (useEnglish ? EN_SALARY[k] : k))
-    const displayExperienceOptions = (this.data.experienceOptions as ExpKey[]).map((k) => (useEnglish ? EN_EXP[k] : k))
+    const displaySalaryOptions = (this.data.salaryOptions as SalaryKey[]).map((k) => {
+      const mapped = SALARY_KEY_MAP[k]
+      return mapped ? t(`jobs.${mapped}`, lang) : (useEnglish ? k : k)
+    })
+    const displayExperienceOptions = (this.data.experienceOptions as ExpKey[]).map((k) => {
+      const mapped = EXP_KEY_MAP[k]
+      return mapped ? t(`jobs.${mapped}`, lang) : (useEnglish ? k : k)
+    })
     
     // 区域选项显示处理
     const displayRegionOptions = (this.data.regionOptions || []).map((k) => {
@@ -257,7 +264,10 @@ Page({
       if (k === 'web3') return t('jobs.regionWeb3', lang)
       return k
     })
-    const displaySourceOptions = (this.data.sourceOptions || []).map((k) => (useEnglish ? (EN_SOURCE[k] || k) : k))
+    const displaySourceOptions = (this.data.sourceOptions || []).map((k) => {
+      const mapped = SOURCE_KEY_MAP[k]
+      return mapped ? t(`jobs.${mapped}`, lang) : (useEnglish ? k : k)
+    })
 
     // 重新根据 data.navTabs 中的 key 来设置 label
     const navTabs = (this.data.navTabs || []).map(tab => {
