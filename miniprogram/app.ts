@@ -146,10 +146,10 @@ App<IAppOption>({
       }
 
       console.log('[App] Calling loginByOpenid with:', openid);
-      const res = await callApi('loginByOpenid', { openid });
-      const responseData = res.data;
+      const res = await callApi<any>('loginByOpenid', { openid });
       
-      if (res.success && responseData && responseData.user) {
+      if (res.success && res.result && res.result.user) {
+        const responseData = res.result;
         console.log('[App] User refreshed successfully:', responseData.user.phone || responseData.user.phoneNumber);
         this.globalData.user = responseData.user;
         
