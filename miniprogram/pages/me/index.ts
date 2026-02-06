@@ -4,9 +4,10 @@ import {isAiChineseUnlocked} from '../../utils/subscription'
 import {normalizeLanguage, type AppLanguage} from '../../utils/i18n'
 import {attachLanguageAware} from '../../utils/languageAware'
 import {toDateMs} from '../../utils/time'
-import {getPhoneNumberFromAuth, updatePhoneNumber, checkIsAuthed} from '../../utils/phoneAuth'
+import {getPhoneNumberFromAuth, updatePhoneNumber} from '../../utils/phoneAuth'
 import {callApi, formatFileUrl} from '../../utils/request'
 import {ui} from '../../utils/ui'
+import {checkIsAuthed} from '../../utils/util'
 import * as UIConfig from './ui.config'
 
 
@@ -89,7 +90,7 @@ Page({
 
         // 关键：监听全局用户状态变化
         if (app.onUserChange) {
-            (this as any)._userListener = (user: any) => {
+            (this as any)._userListener = (_user: any) => {
                 console.log('[Me] User globally updated, syncing UI...')
                 this.syncUserFromApp()
             }
@@ -345,7 +346,6 @@ Page({
             const app = getApp<any>()
             const prefetched = app.globalData.prefetchedData
             let schemes = this.data.schemsList || []
-            let userScheme = (this as any)._cachedUserScheme || null
 
             // 1. 优先使用已有的缓存数据
             if (schemes.length === 0 && prefetched?.memberSchemes?.length > 0) {
@@ -398,7 +398,7 @@ Page({
             // 计算升级差价 (仅在有方案列表时计算)
             if (schemes.length > 0) {
                 // ... 保持原有差价计算逻辑 ...
-                this.calculateUpgradeAmount(memberLevel, schemes, scheme)
+                this.calculateUpgradeAmount(memberLevel || 0, schemes, scheme)
             }
         } catch (err) {
             console.error('[Me] loadMemberBadgeText error:', err)

@@ -128,7 +128,7 @@ Component({
 
             // 关键：监听全局用户状态变化
             if (app.onUserChange) {
-                (this as any)._userListener = (user: any) => {
+                (this as any)._userListener = (_user: any) => {
                     console.log('[Me] User globally updated, syncing UI...')
                     this.syncUserFromApp()
                 }
@@ -381,7 +381,6 @@ Component({
                 const app = getApp<any>()
                 const prefetched = app.globalData.prefetchedData
                 let schemes = this.data.schemsList || []
-                let userScheme = (this as any)._cachedUserScheme || null
 
                 // 1. 优先使用已有的缓存数据
                 if (schemes.length === 0 && prefetched?.memberSchemes?.length > 0) {

@@ -108,7 +108,7 @@ Page({
         onLanguageRevive: () => {
           this.syncLanguageFromApp()
         const app = getApp<IAppOption>() as any
-        const lang = normalizeLanguage(app?.globalData?.language)
+        normalizeLanguage(app?.globalData?.language)
         wx.setNavigationBarTitle({ title: '' })
       },
     })
