@@ -1159,13 +1159,12 @@ Component({
                 })
 
                 // 4. 激活会员权益
-                const activateRes = await callApi('activateMembership', {
+                const activateRes = await callApi<any>('activateMembership', {
                     order_id
                 })
 
-                const activateResult = (activateRes as any).result || (activateRes as any)
-                if (!activateResult?.success) {
-                    throw new Error(activateResult?.message || uiStrings.activateMemberFailed)
+                if (!activateRes.success) {
+                    throw new Error(activateRes.message || uiStrings.activateMemberFailed)
                 }
 
                 // 5. 刷新用户信息
