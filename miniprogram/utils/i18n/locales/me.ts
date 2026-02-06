@@ -64,7 +64,6 @@ export const me = {
     basicMode: { Chinese: '基础模式', English: 'Basic Mode' },
     aiMode: { Chinese: 'AI 增强模式', English: 'AI Enhanced Mode' },
     vipTag: { Chinese: 'VIP', English: 'VIP' },
-    inputInviteCodePlaceholder: { Chinese: '请输入邀请码', English: 'Enter invite code' },
     copy: { Chinese: '复制', English: 'Copy' },
     apply: { Chinese: '应用', English: 'Apply' },
     contactAuthor: { Chinese: '联系作者', English: 'Contact Author' },
@@ -147,5 +146,4 @@ export const me = {
     endBeforeStart: { Chinese: '结束时间不能早于开始时间', English: 'End date cannot be before start date' },
     selectStartTime: { Chinese: '请选择开始时间', English: 'Please select start date' },
     selectEndTime: { Chinese: '请选择结束时间', English: 'Please select end date' },
-    qrHint: { Chinese: '（长按识别二维码或保存图片）', English: '(Long press to scan or save image)' },
 } as const

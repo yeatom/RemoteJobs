@@ -275,7 +275,7 @@
     40%, 60% { transform: translate3d(4px, 0, 0); }
 }
 
-.nickname-modal-footer-btn ui-button {
+.nickname-btn-instance {
     display: block;
     width: 100%;
 }

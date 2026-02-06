@@ -85,12 +85,12 @@
     </view>
     <view class="nickname-modal-footer">
       <view class="nickname-modal-footer-btn nickname-modal-cancel">
-        <ui-button type="secondary" size="md" bindtap="onCancelEditNickname">
+        <ui-button class="nickname-btn-instance" type="secondary" size="md" bindtap="onCancelEditNickname">
           {{ui.cancel}}
         </ui-button>
       </view>
       <view class="nickname-modal-footer-btn nickname-modal-save {{shouldShake ? 'shake-animation' : ''}}">
-        <ui-button type="primary" size="md" bindtap="onSaveNickname">
+        <ui-button class="nickname-btn-instance" type="primary" size="md" bindtap="onSaveNickname">
           {{ui.save}}
         </ui-button>
       </view>

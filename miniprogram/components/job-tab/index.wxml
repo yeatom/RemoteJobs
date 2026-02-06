@@ -39,6 +39,7 @@
 
   <view class="job-list-wrapper {{tabType === 1 ? 'featured-tab-wrapper' : ''}}">
     <job-list
+      class="job-list-instance"
       jobs="{{jobs}}"
       loading="{{loading}}"
       has-more="{{hasMore}}"
