@@ -1007,27 +1007,29 @@ Page({
   },
   async onSaveWorkExperience() {
     const { workForm, editingWorkIndex, workExperiences, ui: uiStrings } = this.data
-    
+    const app = getApp() as any
+    const lang = normalizeLanguage(this.data.interfaceLang || app?.globalData?.language)
+
     if (!workForm.company.trim()) {
-      ui.showToast(uiStrings.companyPlaceholder || '请输入公司名称')
+      ui.showToast(uiStrings.companyPlaceholder || t('resume.companyPlaceholder', lang))
       return
     }
     if (!workForm.jobTitle.trim()) {
-      ui.showToast(uiStrings.jobTitlePlaceholder || '请输入职位名称')
+      ui.showToast(uiStrings.jobTitlePlaceholder || t('resume.jobTitlePlaceholder', lang))
       return
     }
     if (!workForm.startDate) {
-      ui.showToast('请选择开始时间')
+      ui.showToast(t('me.selectStartTime', lang))
       return
     }
     if (!workForm.endDate) {
-      ui.showToast('请选择结束时间')
+      ui.showToast(t('me.selectEndTime', lang))
       return
     }
 
     if (workForm.startDate && workForm.endDate && workForm.startDate !== uiStrings.toPresent && workForm.endDate !== uiStrings.toPresent) {
       if (workForm.startDate > workForm.endDate) {
-        ui.showToast('开始时间不能晚于结束时间')
+        ui.showToast(t('me.startAfterEnd', lang))
         return
       }
     }
@@ -1052,10 +1054,12 @@ Page({
   async onDeleteWorkExperience() {
     const { editingWorkIndex, workExperiences } = this.data
     if (editingWorkIndex === -1) return
+    const app = getApp() as any
+    const lang = normalizeLanguage(this.data.interfaceLang || app?.globalData?.language)
 
     ui.showModal({
-      title: '删除确认',
-      content: '确定要删除这段工作经历吗？',
+      title: t('resume.delete', lang),
+      content: t('resume.deleteWorkConfirm', lang),
       success: async (res) => {
         if (res.confirm) {
           const newWorks = [...workExperiences]
@@ -1093,33 +1097,35 @@ Page({
 
   async onSaveEducation() {
     const { eduForm, editingEduIndex, educations, ui: uiStrings } = this.data
-    
+    const app = getApp() as any
+    const lang = normalizeLanguage(this.data.interfaceLang || app?.globalData?.language)
+
     // 全字段校验
     if (!eduForm.school.trim()) {
-      ui.showToast(uiStrings.schoolPlaceholder || '请输入学校')
+      ui.showToast(uiStrings.schoolPlaceholder || t('resume.schoolPlaceholder', lang))
       return
     }
     if (!eduForm.degree) {
-      ui.showToast(uiStrings.degreePlaceholder || '请选择学历')
+      ui.showToast(uiStrings.degreePlaceholder || t('resume.degreePlaceholder', lang))
       return
     }
     if (!eduForm.major.trim()) {
-      ui.showToast(uiStrings.majorPlaceholder || '请输入专业')
+      ui.showToast(uiStrings.majorPlaceholder || t('resume.majorPlaceholder', lang))
       return
     }
     if (!eduForm.startDate) {
-      ui.showToast('请选择开始时间')
+      ui.showToast(t('me.selectStartTime', lang))
       return
     }
     if (!eduForm.endDate) {
-      ui.showToast('请选择结束时间')
+      ui.showToast(t('me.selectEndTime', lang))
       return
     }
 
     // 时间逻辑校验
     if (eduForm.startDate && eduForm.endDate && eduForm.startDate !== uiStrings.toPresent && eduForm.endDate !== uiStrings.toPresent) {
       if (eduForm.startDate > eduForm.endDate) {
-        ui.showToast('开始时间不能晚于结束时间')
+        ui.showToast(t('me.startAfterEnd', lang))
         return
       }
     }
@@ -1196,10 +1202,12 @@ Page({
   async onDeleteEducation() {
     const { editingEduIndex, educations } = this.data
     if (editingEduIndex === -1) return
+    const app = getApp() as any
+    const lang = normalizeLanguage(this.data.interfaceLang || app?.globalData?.language)
 
     ui.showModal({
-      title: '删除确认',
-      content: '确定要删除这段教育经历吗？',
+      title: t('resume.delete', lang),
+      content: t('resume.deleteEducationConfirm', lang),
       success: async (res) => {
         if (res.confirm) {
           const newEducations = [...educations]
