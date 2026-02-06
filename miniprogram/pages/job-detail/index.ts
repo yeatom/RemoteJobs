@@ -3,13 +3,11 @@ import { normalizeLanguage, t } from '../../utils/i18n'
 import { normalizeJobTags, translateFieldValue } from '../../utils/job'
 import { attachLanguageAware } from '../../utils/languageAware'
 import { requestGenerateResume } from '../../utils/resume'
-import { request, callApi } from '../../utils/request'
-import { StatusCode, StatusMessage } from '../../utils/statusCodes'
+import { callApi } from '../../utils/request'
 import { ui } from '../../utils/ui'
 import { checkIsAuthed } from '../../utils/util'
-const { cloudRunEnv } = require('../../env.js')
+require('../../env.js')
 
-const SAVED_COLLECTION = 'saved_jobs'
 const SAVE_DEBOUNCE_DELAY = 300
 
 function formatDescription(description?: string): string {
@@ -355,7 +353,6 @@ Page({
   },
 
   async addSavedRecord(job: JobDetailItem) {
-    const app = getApp<IAppOption>() as any
     // Removed strict openid check as backend uses phoneNumber from JWT
     
     const res = await callApi<any>('saveJob', {
@@ -372,8 +369,6 @@ Page({
   },
 
   async removeSavedRecord(_id: string) {
-    const app = getApp<IAppOption>() as any
-
     const res = await callApi<any>('unsaveJob', { jobId: _id })
     if (res.success) {
       this.setData({ saveDocId: '' })

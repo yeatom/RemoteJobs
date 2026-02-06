@@ -19,7 +19,7 @@ export interface IApiResponse<T = any> {
   message?: string;
 }
 
-export const request = <T = any>(options: wx.RequestOption): Promise<T> => {
+export const request = <T = any>(options: WechatMiniprogram.RequestOption): Promise<T> => {
   return new Promise((resolve, reject) => {
     // 获取本地存储的身份标识
     const openid = wx.getStorageSync('user_openid');

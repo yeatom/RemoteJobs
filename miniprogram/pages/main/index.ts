@@ -1,7 +1,7 @@
 
 import { bootManager } from '../../utils/bootManager';
 import { attachLanguageAware } from '../../utils/languageAware';
-import { t, normalizeLanguage } from '../../utils/i18n';
+import { t } from '../../utils/i18n';
 import { checkIsAuthed } from '../../utils/util';
 
 const app = getApp<IAppOption>();

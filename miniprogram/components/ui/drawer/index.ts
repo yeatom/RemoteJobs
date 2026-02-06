@@ -1,4 +1,4 @@
-import { normalizeLanguage, t } from '../../utils/i18n'
+import { t } from '../../../utils/i18n'
 
 Component({
   options: {
@@ -32,6 +32,11 @@ Component({
         this.setData({
           confirmText: t('resume.done')
         })
+      }
+    },
+    detached() {
+      if ((this as any)._confirmTimeout) {
+        clearTimeout((this as any)._confirmTimeout);
       }
     }
   },
@@ -88,18 +93,12 @@ Component({
       });
 
       // Default timeout for safety
-      this._confirmTimeout = setTimeout(() => {
+      (this as any)._confirmTimeout = setTimeout(() => {
         if (this.data.loading) {
           this.setData({ loading: false });
           console.warn('[ui-drawer] Confirm timeout reached (30s)');
         }
       }, 30000);
-    },
-
-    detached() {
-      if (this._confirmTimeout) {
-        clearTimeout(this._confirmTimeout);
-      }
     }
   }
 })

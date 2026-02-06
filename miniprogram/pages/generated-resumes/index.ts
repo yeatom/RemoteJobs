@@ -1,4 +1,4 @@
-import { normalizeLanguage, t } from '../../utils/i18n'
+import { normalizeLanguage, t } from '../../utils/i18n/index'
 import { ui } from '../../utils/ui'
 import { callApi, formatFileUrl } from '../../utils/request'
 import { StatusCode } from '../../utils/statusCodes'
@@ -11,6 +11,7 @@ Page({
     hasMore: true,
     ui: {} as any,
     isEditMode: false,
+    isPolling: false,
   },
 
   watcher: null as any,

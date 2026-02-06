@@ -1,5 +1,5 @@
 // miniprogram/pages/resume-profile/index.ts
-import { normalizeLanguage, t } from '../../utils/i18n'
+import { normalizeLanguage, t, AppLanguage } from '../../utils/i18n'
 import { attachLanguageAware } from '../../utils/languageAware'
 import { ui } from '../../utils/ui'
 import { callApi, formatFileUrl } from '../../utils/request'
@@ -126,7 +126,7 @@ Page({
     percent_en: 0,
     currentPercent: 0,
     currentCompleteness: 0,
-    interfaceLang: '',
+    interfaceLang: 'Chinese' as AppLanguage,
   },
 
   onLoad() {

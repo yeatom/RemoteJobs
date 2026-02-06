@@ -1,7 +1,7 @@
 // miniprogram/utils/resume.ts
 import { ui } from './ui'
 import { callApi } from './request'
-import { normalizeLanguage, t } from './i18n'
+import { normalizeLanguage, t, AppLanguage } from './i18n'
 import { StatusCode } from './statusCodes'
 
 export interface ResumeGenerateOptions {
@@ -15,7 +15,7 @@ export interface ResumeGenerateOptions {
  */
 export async function requestGenerateResume(jobData: any, options: ResumeGenerateOptions = {}) {
   const app = getApp<any>()
-  const lang = normalizeLanguage()
+  const lang = normalizeLanguage(app.globalData.language)
   const isChineseEnv = (lang === 'Chinese' || lang === 'AIChinese')
   
   if (options.onStart) options.onStart()
@@ -33,7 +33,6 @@ export async function requestGenerateResume(jobData: any, options: ResumeGenerat
     if (completeness.level < 1) {
       if (options.onFinish) options.onFinish(false)
       
-      const isEnglish = lang === 'English'
       ui.showModal({
         title: t('jobs.basicInfoIncompleteTitle', lang),
         content: t('jobs.profileIncompleteContent', lang),
@@ -67,7 +66,7 @@ export async function requestGenerateResume(jobData: any, options: ResumeGenerat
 /**
  * 执行实际的生成请求
  */
-async function doGenerate(user: any, profile: any, job: any, isChineseEnv: boolean, lang: string, options: ResumeGenerateOptions) {
+async function doGenerate(user: any, profile: any, job: any, isChineseEnv: boolean, lang: AppLanguage, options: ResumeGenerateOptions) {
   try {
     // 构造 AI 生成所需的 Profile 数据，合并顶层字段与当前语言偏好
     let aiProfile: any = {

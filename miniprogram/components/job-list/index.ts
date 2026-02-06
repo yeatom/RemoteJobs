@@ -115,9 +115,7 @@ Component({
   },
 
   observers: {
-    'loading,hasMore,jobs': function(loading: boolean, hasMore: boolean, jobs: any[]) {
-      const prevLoading = this.data._prevLoading
-      
+    'loading,hasMore': function(loading: boolean, hasMore: boolean) {
       // Reset flag and hide immediately when a new loading starts
       if (loading) {
         (this as any)._hasShownNoMore = false

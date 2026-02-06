@@ -1,7 +1,6 @@
 // components/resume-view/index.ts
 
 import { ui } from '../../utils/ui'
-import { callApi } from '../../utils/request'
 import { normalizeLanguage, t } from '../../utils/i18n'
 import { attachLanguageAware } from '../../utils/languageAware'
 import { checkIsAuthed } from '../../utils/util'
@@ -138,7 +137,7 @@ Component({
     checkPhonePermission() {
         const app = getApp<any>()
         const user = app.globalData.user
-      const lang = normalizeLanguage()
+      const lang = normalizeLanguage(app.globalData.language)
         
         if (!checkIsAuthed(user)) {
       ui.showModal({
@@ -159,7 +158,8 @@ Component({
 
     openJdDrawer() {
         if (!this.checkPhonePermission()) return
-      const lang = normalizeLanguage()
+      const app = getApp<any>()
+      const lang = normalizeLanguage(app.globalData.language)
       this.setData({ 
       showJdDrawer: true,
       drawerTitle: t('resume.toolTextTitle', lang),

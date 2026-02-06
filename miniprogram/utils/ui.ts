@@ -96,7 +96,9 @@ export const ui = {
     title?: string;
     content?: string;
     confirmText?: string;
+    confirmColor?: string;
     cancelText?: string;
+    cancelColor?: string;
     showCancel?: boolean;
     success?: (res: { confirm: boolean; cancel: boolean }) => void;
   }) {
@@ -109,7 +111,9 @@ export const ui = {
         title: options.title || t('app.prompt'),
         modalContent: options.content || '',
         confirmText: options.confirmText || t('app.confirm'),
+        confirmColor: options.confirmColor || '#07c160',
         cancelText: options.cancelText || t('app.cancel'),
+        cancelColor: options.cancelColor || '#000000',
         showCancel: options.showCancel !== false,
         type: 'modal',
         mask: true,

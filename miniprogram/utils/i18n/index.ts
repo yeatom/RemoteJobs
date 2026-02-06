@@ -1,27 +1,38 @@
-import { AppLanguage, TranslationItem } from './types';
+import { AppLanguage } from './types';
 import { normalizeLanguage } from './core';
-import * as locales from './locales';
+import { app } from './locales/app';
+import { drawer } from './locales/drawer';
+import { jobs } from './locales/jobs';
+import { me } from './locales/me';
+import { resume } from './locales/resume';
+import { tab } from './locales/tab';
 
 export { AppLanguage, TranslationItem } from './types';
 export * from './core';
-// Export individual locales if needed, but typically not used directly
-export { locales };
 
 export const SUPPORTED_LANGUAGES: AppLanguage[] = ['Chinese', 'English', 'AIChinese', 'AIEnglish'];
 
 // Combine all locales into the dictionary
-const dict = locales;
+const dict = {
+  app,
+  drawer,
+  jobs,
+  me,
+  resume,
+  tab
+};
 
 // Helper type to generate keys like 'tab.jobs' | 'jobs.tabPublic'
-type LocaleSchema = typeof locales;
-type Join<K, P> = K extends string | number ?
-    P extends string | number ?
-    `${K}.${P}`
-    : never : never;
+type Join<K extends string, P extends string | number | symbol> = 
+    P extends string ? `${K}.${P}` : never;
 
-export type I18nKey = {
-    [K in keyof LocaleSchema]: Join<K, keyof LocaleSchema[K]>
-}[keyof LocaleSchema];
+export type I18nKey = 
+    | Join<'app', keyof typeof app>
+    | Join<'drawer', keyof typeof drawer>
+    | Join<'jobs', keyof typeof jobs>
+    | Join<'me', keyof typeof me>
+    | Join<'resume', keyof typeof resume>
+    | Join<'tab', keyof typeof tab>;
 
 function getByPath(obj: any, path: string) {
     return path.split('.').reduce((acc, k) => (acc ? acc[k] : undefined), obj);

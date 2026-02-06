@@ -1,12 +1,12 @@
-import { normalizeLanguage, type AppLanguage, t } from './utils/i18n'
+import { normalizeLanguage, type AppLanguage } from './utils/i18n'
 import { bootManager, type BootStatus } from './utils/bootManager'
 import { request, callApi, performLogin } from './utils/request'
-import { StatusCode } from './utils/statusCodes'
 import { checkIsAuthed } from './utils/util'
 
 App<IAppOption>({
   globalData: {
     user: null as any,
+    userPromise: null,
     bootStatus: 'loading' as BootStatus,
     language: 'AIChinese' as AppLanguage,
     _langListeners: new Set<any>(),
@@ -19,6 +19,10 @@ App<IAppOption>({
       filterTabIndex: 0,
       filterResult: null,
       filterAction: null,
+    },
+    systemConfig: {
+      isBeta: true,
+      isMaintenance: false,
     },
     prefetchedData: {
       publicJobs: null,
@@ -36,10 +40,10 @@ App<IAppOption>({
     });
 
     bootManager.onStatusChange((status) => {
-      (this as any).globalData.bootStatus = status;
+      this.globalData.bootStatus = status;
     });
 
-    (this as any).bootstrap().catch(err => {
+    this.bootstrap().catch((err: any) => {
       console.error('[App] Bootstrap crash:', err);
     });
   },
@@ -56,13 +60,13 @@ App<IAppOption>({
 
     await bootManager.start(coreTasks);
 
-    const user = (this as any).globalData.user;
+    const user = this.globalData.user;
     const currentStatus = bootManager.getStatus();
     
     if (currentStatus === 'loading' || currentStatus === 'success') {
         if (checkIsAuthed(user)) {
             bootManager.setStatus('success');
-        } else if ((this as any).globalData.bootStatus !== 'server-down' && (this as any).globalData.bootStatus !== 'no-network') {
+        } else if (this.globalData.bootStatus !== 'server-down' && this.globalData.bootStatus !== 'no-network') {
             bootManager.setStatus('unauthorized');
         } else if (currentStatus === 'loading') {
             // 如果加载完成但没有用户数据，判定为未授权
@@ -87,7 +91,7 @@ App<IAppOption>({
       if (res.isConnected && bootManager.getStatus() === 'no-network') {
         bootManager.setStatus('loading');
         this.refreshUser().then(() => {
-          if (checkIsAuthed((this as any).globalData.user)) {
+          if (checkIsAuthed(this.globalData.user)) {
             bootManager.setStatus('success');
           }
         }).catch(() => {});

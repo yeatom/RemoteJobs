@@ -108,6 +108,7 @@ export const resume = {
     assetCount: { Chinese: '份简历资产', English: 'Resume assets' },
     syncingAssets: { Chinese: '正在同步 AI 资产...', English: 'Syncing AI assets...' },
     statusFailed: { Chinese: '失败', English: 'Failed' },
+    retry: { Chinese: '重试', English: 'Retry' },
     generalResume: { Chinese: '通用简历', English: 'General Resume' },
     view: { Chinese: '查看', English: 'View' },
     aiProcessing: { Chinese: 'AI 正在努力生成中，请稍候', English: 'AI is generating, please wait' },

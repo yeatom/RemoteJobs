@@ -125,13 +125,21 @@ interface IAppOption {
       isBeta: boolean,
       isMaintenance: boolean,
       maintenanceMessage?: string,
-    }
+    },
+    prefetchedData: {
+      publicJobs: any,
+      featuredJobs: any,
+      memberSchemes: any,
+      timestamp: number,
+    },
   }
   refreshUser: () => Promise<any>,
   refreshSystemConfig: () => Promise<void>,
+  preFetchJobs: () => Promise<void>,
   setLanguage: (lang: import('../miniprogram/utils/i18n').AppLanguage) => Promise<void>,
   applyLanguage: () => void,
-  emitLanguageChange: (lang: import('../miniprogram/utils/i18n').AppLanguage) => void,
+  notifyLanguageListeners: (lang: import('../miniprogram/utils/i18n').AppLanguage) => void,
+  notifyUserListeners: (user: any) => void,
   onLanguageChange: (cb: (lang: import('../miniprogram/utils/i18n').AppLanguage) => void) => void,
   offLanguageChange: (cb: (lang: import('../miniprogram/utils/i18n').AppLanguage) => void) => void,
   onUserChange: (cb: (user: any) => void) => void,
