@@ -39,7 +39,7 @@ Page({
     this.syncState();
 
     // 2. Listen for boot changes
-    bootManager.onStatusChange((status) => {
+    bootManager.onStatusChange((_status) => {
       this.syncState();
     });
   },
@@ -63,7 +63,7 @@ Page({
         hasPhone,
         bootStatus,
         isLoggedIn,
-        userId: user?._id
+        userId: (user as any)?._id
     });
     
     this.setData({ 
@@ -78,7 +78,7 @@ Page({
     this.syncState();
   },
 
-  onLoginSuccess(e: any) {
+  onLoginSuccess(_e: any) {
     console.log('[Main] Login Success event caught');
     this.syncState();
   },
