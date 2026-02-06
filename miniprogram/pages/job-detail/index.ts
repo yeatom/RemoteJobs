@@ -2,6 +2,7 @@
 import { normalizeLanguage, t } from '../../utils/i18n/index'
 import { normalizeJobTags, translateFieldValue } from '../../utils/job'
 import { attachLanguageAware } from '../../utils/languageAware'
+import { attachThemeAware } from '../../utils/themeAware'
 import { requestGenerateResume } from '../../utils/resume'
 import { callApi } from '../../utils/request'
 import { ui } from '../../utils/ui'
@@ -135,12 +136,18 @@ Page({
     })
 
     this.updateLanguage()
+
+    ;(this as any)._themeDetach = attachThemeAware(this)
   },
 
   onUnload() {
     const fn = (this as any)._langDetach
     if (typeof fn === 'function') fn()
     ;(this as any)._langDetach = null
+
+    const themeFn = (this as any)._themeDetach
+    if (typeof themeFn === 'function') themeFn()
+    ;(this as any)._themeDetach = null
   },
 
   onShow() {

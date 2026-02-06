@@ -1,6 +1,7 @@
 
 import { bootManager } from '../../utils/bootManager';
 import { attachLanguageAware } from '../../utils/languageAware';
+import { attachThemeAware } from '../../utils/themeAware'
 import { t } from '../../utils/i18n/index';
 import { checkIsAuthed } from '../../utils/util';
 
@@ -35,6 +36,9 @@ Page({
       }
     });
 
+    // 监听主题变化 (Industrial-Grade Theme Support)
+    ;(this as any)._themeDetach = attachThemeAware(this);
+
     // 1. Initial Sync
     this.syncState();
 
@@ -47,6 +51,9 @@ Page({
   onUnload() {
     if (typeof (this as any)._langDetach === 'function') {
       (this as any)._langDetach();
+    }
+    if (typeof (this as any)._themeDetach === 'function') {
+        (this as any)._themeDetach();
     }
   },
 

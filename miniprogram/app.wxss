@@ -37,6 +37,38 @@ page {
   --shadow-md: 0 10rpx 15rpx -3rpx rgb(0 0 0 / 10%);
 }
 
+@media (prefers-color-scheme: dark) {
+  page {
+    /* 核心颜色 Core Colors - 略微降低饱和度，提升暗色背景下的舒适度 */
+    --primary: #60A5FA;
+    --primary-dark: #3B82F6;
+    --primary-mid: #2563EB;
+    --primary-light: rgba(59, 130, 246, 0.15);
+    
+    /* 基础背景与文字 Neutral Colors */
+    --bg-page: #0F172A;     /* 深色背景 (Slate 900) */
+    --bg-main: #0F172A;
+    --bg-card: #1E293B;     /* 卡片背景 (Slate 800) - 形成层级感 */
+    --text-main: #F8FAFC;   /* 主文字 (Slate 50) */
+    --text-sub: #94A3B8;    /* 次要文字 (Slate 400) */
+    --text-value: #CBD5E1;  /* 数值文字 (Slate 300) */
+    --text-holder: #475569;
+    
+    /* 分割线与边框 Dividers & Borders */
+    --divider: #334155;     /* Slate 700 */
+    --border: #1E293B;      /* 与卡片同色或略深 */
+
+    /* 状态色 - 调整为更柔和的深色模式色值 */
+    --success: #4ADE80;
+    --warning: #FBBF24;
+    --danger: #F87171;
+
+    /* 阴影 - 暗色模式下阴影应更深或改用边框 */
+    --shadow-sm: 0 4rpx 6rpx -1rpx rgb(0 0 0 / 30%);
+    --shadow-md: 0 10rpx 15rpx -3rpx rgb(0 0 0 / 50%);
+  }
+}
+
 ::-webkit-scrollbar {
   display: none;
   width: 0;

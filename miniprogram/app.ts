@@ -9,6 +9,7 @@ App<IAppOption>({
     user: null as any,
     userPromise: null,
     bootStatus: 'loading' as BootStatus,
+    theme: 'light' as 'light' | 'dark',
     language: 'AIChinese' as AppLanguage,
     _langListeners: new Set<any>(),
     _userListeners: new Set<any>(),

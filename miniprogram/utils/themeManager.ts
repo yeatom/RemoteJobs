@@ -40,6 +40,11 @@ class ThemeManager {
       const sysInfo = wx.getSystemInfoSync();
       // 'theme' property is available since base lib 2.11.0
       this.currentTheme = (sysInfo.theme as ThemeMode) || 'light';
+      
+      const app = getApp() as any;
+      if (app && app.globalData) {
+        app.globalData.theme = this.currentTheme;
+      }
     } catch (e) {
       console.warn('[ThemeManager] Failed to get system theme info, defaulting to light.');
     }
@@ -58,6 +63,11 @@ class ThemeManager {
    * Handle internal processing of theme change
    */
   private handleThemeChange(newTheme: ThemeMode): void {
+    const app = getApp() as any;
+    if (app && app.globalData) {
+      app.globalData.theme = newTheme;
+    }
+
     // Determine effective theme (handle 'system' logic here if we add that later)
     if (newTheme !== this.currentTheme) {
       console.log(`[ThemeManager] Theme Changed: ${this.currentTheme} -> ${newTheme}`);
