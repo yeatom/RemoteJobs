@@ -199,7 +199,7 @@
                 <view class="edu-details">
                   <text wx:if="{{item.jobTitle}}">{{item.jobTitle}}</text>
                 </view>
-                <view class="edu-details" wx:if="{{item.workContent}}" style="margin-top: 4px; color: #666; font-size: 13px;">
+                <view class="edu-details" wx:if="{{item.workContent}}" style="margin-top: 4px; color: var(--text-sub); font-size: 13px;">
                   <text>{{item.workContent}}</text>
                 </view>
                 <view class="edu-details business-dir" wx:if="{{item.businessDirection}}">

@@ -271,17 +271,17 @@
   background: var(--border); /* 更中性的背景色 */
   padding: 24rpx;
   border-radius: 32rpx;
-  border: 1rpx solid rgb(15 23 42 / 5%);
+  border: 1rpx solid var(--divider);
 }
 
 .ai-item {
   background: var(--bg-card) !important;
-  border: 1rpx solid rgb(15 23 42 / 5%);
-  box-shadow: 0 4rpx 12rpx rgb(0 0 0 / 2%);
+  border: 1rpx solid var(--divider);
+  box-shadow: 0 4rpx 12rpx var(--shadow-sm);
 }
 
 .ai-text {
-  color: #0f172a; /* 使用深藏青色，不再用亮蓝色 */
+  color: var(--text-main); /* 使用深藏青色，不再用亮蓝色 */
   font-weight: 600;
 }
 

@@ -3,7 +3,7 @@
 
 .page {
   height: 100vh;
-  background-color: #f8fafc; /* Softer background */
+  background-color: var(--bg-page); /* Softer background */
   display: flex;
   flex-direction: column;
 }
@@ -11,19 +11,19 @@
 /* Header Section */
 .header-section {
   padding: 40rpx 40rpx 20rpx;
-  background-color: #fff;
+  background-color: var(--bg-card);
 }
 
 .page-title {
   font-size: 44rpx;
   font-weight: 700;
-  color: #111827;
+  color: var(--text-main);
   letter-spacing: -0.5px;
 }
 
 .tips-card {
   margin-top: 32rpx;
-  background-color: #e5f0ff; /* Theme blue background */
+  background-color: var(--primary-light); /* Theme blue background */
   padding: 24rpx 32rpx;
   border-radius: 20rpx;
   display: flex;
@@ -81,10 +81,10 @@
 
 /* Card Styling */
 .card {
-  background-color: #fff;
+  background-color: var(--bg-card);
   border-radius: 28rpx;
   padding: 0 32rpx;
-  box-shadow: 0 4rpx 20rpx rgb(0 0 0 / 3%);
+  box-shadow: 0 4rpx 20rpx var(--shadow-sm);
 }
 
 /* List Item Styling */
@@ -121,7 +121,7 @@
 
 .value-text {
   font-size: 30rpx;
-  color: #111827;
+  color: var(--text-main);
   font-weight: 400;
   text-align: right;
   max-width: 350rpx;
@@ -155,7 +155,7 @@
   width: 100rpx;
   height: 100rpx;
   border-radius: 50%;
-  background-color: #fff; /* Fallback */
+  background-color: var(--bg-card); /* Fallback */
 }
 
 .avatar-placeholder {
@@ -172,7 +172,7 @@
 /* Add Button */
 .add-btn {
   padding: 10rpx 20rpx;
-  background-color: #eff6ff;
+  background-color: var(--primary-light);
   border-radius: 12rpx;
 }
 
@@ -210,7 +210,7 @@
 .edu-school {
   font-size: 30rpx;
   font-weight: 600;
-  color: #111827;
+  color: var(--text-main);
   flex: 1;
 }
 
@@ -241,7 +241,7 @@
 }
 
 .tag-item {
-  background-color: #e5f0ff;
+  background-color: var(--primary-light);
   padding: 12rpx 24rpx;
   border-radius: 40rpx;
   display: flex;
@@ -272,7 +272,7 @@
 .empty-tags {
   width: 100%;
   padding: 40rpx 0;
-  background-color: #fff;
+  background-color: var(--bg-card);
   border-radius: 28rpx;
   display: flex;
   justify-content: center;
@@ -287,7 +287,7 @@
 
 .cert-text {
   font-size: 30rpx;
-  color: #111827;
+  color: var(--text-main);
   flex: 1;
 }
 
@@ -328,14 +328,14 @@
 .ai-message-input-content {
   flex: 1;
   padding: 32rpx 40rpx;
-  background-color:rgb(255 255 255);
+  background-color:var(--bg-card);
 }
 
 .ai-message-textarea {
   width: 100%;
   height: 100%;
   font-size: 30rpx;
-  color: #111827;
+  color: var(--text-main);
   line-height: 1.6;
 }
 
@@ -361,13 +361,13 @@
 }
 
 .add-action {
-  background-color: #eff6ff;
+  background-color: var(--primary-light);
   border: 1px solid #bfdbfe;
   color: var(--primary-mid);
 }
 
 .remove-action {
-  background-color: #f8fafc;
+  background-color: var(--bg-page);
   border: 1px solid var(--divider);
   color: var(--text-holder);
 }
@@ -382,7 +382,7 @@
 .drawer-mask {
   position: fixed;
   inset: 0;
-  background-color: rgb(0 0 0 / 40%);
+  background-color: rgba(0, 0, 0, 0.4);
   z-index: 1000;
   
   opacity: 0;
@@ -416,7 +416,7 @@
   width: 85vw;
   height: 100%;
   
-  background-color: #fff;
+  background-color: var(--bg-card);
   z-index: 1001;
   
   /* Initial State: Moved 100% to the right (offscreen) */
@@ -428,7 +428,7 @@
   pointer-events: none;
   display: flex;
   flex-direction: column;
-  box-shadow: -10rpx 0 30rpx rgb(0 0 0 / 5%);
+  box-shadow: var(--shadow-md);
   /* Use transform only to be safe */
   will-change: transform;
   backface-visibility: hidden;
@@ -488,23 +488,23 @@
 .form-input {
   width: 100%;
   height: 90rpx;
-  background-color: #f8fafc;
+  background-color: var(--bg-page);
   border-radius: 16rpx;
   padding: 0 30rpx;
   box-sizing: border-box;
   font-size: 30rpx;
-  color: #111827;
+  color: var(--text-main);
 }
 
 .form-textarea {
   width: 100%;
   min-height: 320rpx;
-  background-color: #f8fafc;
+  background-color: var(--bg-page);
   border-radius: 16rpx;
   padding: 24rpx 30rpx;
   box-sizing: border-box;
   font-size: 30rpx;
-  color: #111827;
+  color: var(--text-main);
   line-height: 1.6;
 }
 
@@ -518,12 +518,12 @@
 .picker-value {
   width: 100%;
   height: 90rpx;
-  background-color: #f8fafc;
+  background-color: var(--bg-page);
   border-radius: 16rpx;
   padding: 0 30rpx;
   box-sizing: border-box;
   font-size: 30rpx;
-  color: #111827;
+  color: var(--text-main);
   display: flex;
   align-items: center;
 }
@@ -568,18 +568,18 @@
 
 .delete-text {
   font-size: 28rpx;
-  color: #ef4444;
+  color: var(--danger);
 }
 
 .btn-delete {
   flex: 0.5;
   height: 100rpx;
-  background-color: #fee2e2;
+  background-color: var(--bg-danger);
   border-radius: 20rpx;
   display: flex;
   justify-content: center;
   align-items: center;
-  color: #dc2626;
+  color: var(--danger);
   font-size: 32rpx;
   font-weight: 600;
 }
@@ -604,7 +604,7 @@
 }
 
 .picker-option:active {
-  background-color: #f8fafc;
+  background-color: var(--bg-page);
 }
 
 .picker-option-active .option-text {
@@ -614,7 +614,7 @@
 
 .option-text {
   font-size: 30rpx;
-  color: #334155;
+  color: var(--text-main);
 }
 
 .check-icon {
@@ -629,7 +629,7 @@
 .bottom-sheet-mask {
   position: fixed;
   inset: 0;
-  background-color: rgb(0 0 0 / 40%);
+  background-color: rgba(0, 0, 0, 0.4);
   z-index: 2000;
   visibility: hidden;
   opacity: 0;
@@ -647,7 +647,7 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: #fff;
+  background-color: var(--bg-card);
   z-index: 2001;
   border-top-left-radius: 40rpx;
   border-top-right-radius: 40rpx;
@@ -784,10 +784,10 @@
   transition: all 0.2s;
 }
 .lang-tab.active {
-  background: #fff;
-  color: #0f172a;
+  background: var(--bg-card);
+  color: var(--primary-dark);
   font-weight: 600;
-  box-shadow: 0 2rpx 4rpx rgb(0 0 0 / 5%);
+  box-shadow: var(--shadow-sm);
 }
 
 /* Suggestions Dropdown */
@@ -799,9 +799,9 @@
   top: 100%;
   left: 0;
   right: 0;
-  background: #fff;
+  background: var(--bg-card);
   border-radius: 20rpx;
-  box-shadow: 0 8rpx 32rpx rgb(0 0 0 / 12%);
+  box-shadow: var(--shadow-md);
   max-height: 480rpx;
   z-index: 2000;
   margin-top: 12rpx;
@@ -810,12 +810,12 @@
 }
 .suggestion-item {
   padding: 28rpx 32rpx;
-  border-bottom: 1rpx solid #f8fafc;
-  background: #fff;
+  border-bottom: 1rpx solid var(--bg-page);
+  background: var(--bg-card);
   transition: background 0.2s;
 }
 .suggestion-item:active {
-  background: #f8fafc;
+  background: var(--bg-page);
 }
 .suggestion-item:last-child {
   border-bottom: none;

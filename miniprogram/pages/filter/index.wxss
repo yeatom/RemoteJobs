@@ -1,7 +1,7 @@
 /* miniprogram/pages/filter/index.wxss */
 .page {
   height: 100vh;
-  background-color: #fff;
+  background-color: var(--bg-card);
   display: flex;
   flex-direction: column;
 }
@@ -16,8 +16,8 @@
 
 .filter-nav {
   width: 176rpx;
-  background-color: #fff;
-  border-right: 1rpx solid #eef2f7;
+  background-color: var(--bg-card);
+  border-right: 1rpx solid var(--divider);
   display: flex;
   flex-direction: column;
   padding: 0 8rpx 16rpx;
@@ -33,7 +33,7 @@
   top: 0; /* 顶部对齐，无padding-top */
   width: calc(100% - 16rpx); /* 减去左右padding */
   height: 67rpx;
-  background: #e5f0ff; /* 主题蓝色背景，与首页tab滑块一致 */
+  background: var(--primary-light); /* 主题蓝色背景，与首页tab滑块一致 */
   border-radius: 8rpx;
   transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   z-index: 0;
@@ -68,7 +68,7 @@
   transition: color 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   position: relative;
   z-index: 1;
-  color: #6b7280;
+  color: var(--text-sub);
   width: 100%;
   background-color: transparent;
   -webkit-tap-highlight-color: transparent;
@@ -133,7 +133,7 @@
 .filter-section-title {
   font-size: 28rpx;
   font-weight: 600;
-  color: #111827;
+  color: var(--text-main);
   margin-bottom: 18rpx;
 }
 
@@ -150,21 +150,21 @@
 .filter-chip {
   height: 35px;
   border-radius: 12rpx;
-  background: #f3f4f6;
+  background: var(--bg-page);
   display: flex;
   align-items: center;
   justify-content: center;
   box-sizing: border-box;
-  border: 2rpx solid #e5e7eb;
+  border: 2rpx solid var(--divider);
 }
 
 .filter-chip-text {
   font-size: 27rpx;
-  color: #111827;
+  color: var(--text-main);
 }
 
 .filter-chip-active {
-  background: #e5f0ff; 
+  background: var(--primary-light); 
   border-color: var(--primary-dark); /* 主题蓝色边框 */
 }
 
@@ -176,8 +176,8 @@
 .filter-footer {
   padding: 16rpx 24rpx;
   padding-bottom: calc(16rpx + env(safe-area-inset-bottom));
-  background: #fff;
-  border-top: 1rpx solid #eef2f7;
+  background: var(--bg-card);
+  border-top: 1rpx solid var(--divider);
   display: flex;
   gap: 16rpx;
   box-sizing: border-box;
