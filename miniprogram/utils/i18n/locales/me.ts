@@ -5,7 +5,7 @@ export const me = {
     languageEntry: { Chinese: '语言与内容显示', English: 'Language & Display' },
     langChinese: { Chinese: '中文 (标准)', English: 'Chinese (Standard)' },
     langChineseDesc: { Chinese: '界面中文，岗位内容保持原样', English: 'Chinese UI, original job content' },
-    langEnglish: { Chinese: '英文', English: 'English' },
+    langEnglish: { Chinese: 'English', English: 'English' },
     langEnglishDesc: { Chinese: 'Interface in English, original job content', English: 'Interface in English, original job content' },
     langAIChinese: { Chinese: 'AI 智能全中文', English: 'AI Smart Chinese' },
     langAIChineseDesc: { Chinese: '全中阅读，AI 自动提取薪资/经验/技能标签', English: 'Full Chinese, AI extracts salary/exp/skills' },
