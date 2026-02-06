@@ -140,12 +140,11 @@ Page({
     if (!silent) this.setData({ loading: true })
     
     try {
-      const res = await callApi('getGeneratedResumes', {
+      const res = await callApi<any>('getGeneratedResumes', {
         limit: 20
       })
 
-      const responseData = res.data
-      const list = responseData?.data || []
+      const list = res.result?.items || []
       this.processResumes(list)
       this.setData({ loading: false })
       

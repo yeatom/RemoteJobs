@@ -235,13 +235,12 @@ Page({
     if (!openid) return
 
       try {
-        const res = await callApi('getSavedSearchConditions', {
+        const res = await callApi<any>('getSavedSearchConditions', {
           tabIndex: tabType,
           openid
         })
 
-        const responseData = res.data
-        const savedConditions = (responseData?.conditions || []) as any[]
+        const savedConditions = (res.result?.items || []) as any[]
         
         // 如果没有保存的搜索条件，只显示toast，不弹窗
         if (savedConditions.length === 0) {

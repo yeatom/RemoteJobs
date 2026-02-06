@@ -299,13 +299,12 @@ Page({
       ui.showLoading('检查状态...')
       
       // 1. 前置检查：是否已经为该岗位生成过简历
-      const checkRes = await callApi('getGeneratedResumes', {
+      const checkRes = await callApi<any>('getGeneratedResumes', {
         jobId,
         status: 'completed',
         limit: 1
       })
-      const responseData = checkRes.data
-      const existingList = responseData?.data || []
+      const existingList = checkRes.result?.items || []
 
       if (existingList.length > 0) {
         ui.hideLoading()
@@ -404,7 +403,7 @@ Page({
             en: profile.en
           }
           
-          const res: any = await callApi('generate', {
+          const res = await callApi<any>('generate', {
             jobId: this.data.job?._id, // 岗位 ID
             openid: user.openid,      // Standardized OpenID
             resume_profile: aiProfile, // 传处理后的资料
@@ -415,8 +414,8 @@ Page({
           ui.hideLoading()
           this.setData({ isGenerating: false })
           
-          if (res && res.task_id) {
-            const taskId = res.task_id
+          if (res.success && res.result?.task_id) {
+            const taskId = res.result.task_id
             
             // 提示用户任务已提交
             wx.showModal({
@@ -541,14 +540,13 @@ Page({
     const openid = app?.globalData?.user?.openid
     if (!openid) throw new Error('missing openid')
 
-    const res = await callApi('saveJob', {
+    const res = await callApi<any>('saveJob', {
       jobId: job._id,
       type: job.type,
       createdAt: job.createdAt,
     })
 
-    const responseData = res.data
-    this.setData({ saveDocId: String(responseData?._id || '') })
+    this.setData({ saveDocId: String(res.result?._id || '') })
   },
 
   async removeSavedRecord(_id: string) {
@@ -571,11 +569,10 @@ Page({
     }
 
     try {
-      const res = await callApi('checkJobSaved', { jobId: _id })
-      const responseData = res.data
-      const exists = !!responseData?.exists
+      const res = await callApi<any>('checkJobSaved', { jobId: _id })
+      const exists = !!res.result?.exists
       const updates: Partial<typeof this.data> = {
-        saveDocId: String(responseData?._id || ''),
+        saveDocId: String(res.result?._id || ''),
       }
       if (!silent) updates.saved = exists
       this.setData(updates)
