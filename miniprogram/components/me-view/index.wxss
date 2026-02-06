@@ -105,7 +105,7 @@
 }
 
 .avatar-placeholder-large {
-    background: var(--border);
+    background: var(--divider);
 }
 
 .edit-badge {
@@ -283,11 +283,24 @@
     border: 1rpx solid rgba(138, 180, 248, 0.2);
 }
 
+@media (prefers-color-scheme: dark) {
+    .card-badge-wrap {
+        background: rgba(255, 255, 255, 0.06);
+        border-color: rgba(255, 255, 255, 0.1);
+    }
+}
+
 .vip-name {
     font-size: 24rpx;
     font-weight: 700;
     color: var(--primary);
     letter-spacing: 1rpx;
+}
+
+@media (prefers-color-scheme: dark) {
+    .vip-name {
+        color: var(--text-main);
+    }
 }
 
 .card-points {
@@ -500,7 +513,7 @@
 .mode-card {
     margin: 12rpx 32rpx;
     padding: 24rpx;
-    background: #f9fafb;
+    background: var(--bg-main);
     border-radius: 20rpx;
     display: flex;
     align-items: center;
@@ -1556,9 +1569,25 @@
     border-radius: 100rpx;
     border: 1rpx solid rgba(138, 180, 248, 0.1);
 }
+
+@media (prefers-color-scheme: dark) {
+    .dash-status-pill {
+        background: rgba(255, 255, 255, 0.06);
+        border-color: rgba(255, 255, 255, 0.1);
+        color: var(--text-desc);
+    }
+}
+
 .dash-status-pill.active {
     color: var(--primary);
     background: var(--primary-light);
+}
+
+@media (prefers-color-scheme: dark) {
+    .dash-status-pill.active {
+        background: rgba(138, 180, 248, 0.15);
+        color: var(--primary);
+    }
 }
 
 .dash-balance-row {

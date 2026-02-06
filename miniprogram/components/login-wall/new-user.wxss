@@ -41,24 +41,22 @@
 
 /* 初始阶段 & 开屏：适配背景 */
 .login-wall.sm-new.s-splash .glass-mask {
-  background: var(--bg-page) !important;
+  background: var(--bg-card) !important;
   backdrop-filter: none !important;
 }
 
-/* 登录墙阶段：毛玻璃 */
+/* 登录墙阶段：保持沉浸式背景 */
 .login-wall.sm-new.s-login .glass-mask,
 .login-wall.sm-new.s-loading .glass-mask {
-  background: rgba(255, 255, 255, 0.4) !important;
+  background: var(--bg-card) !important;
   backdrop-filter: blur(12px) !important;
   -webkit-backdrop-filter: blur(12px) !important;
 }
 
-/* 注册成功 & 最终阶段：透明 */
-.login-wall.sm-new.s-success .glass-mask,
+/* 注册成功 & 最终阶段：透明 (仅在 s-hidden 阶段由 index.wxss 统一处理淡出) */
 .login-wall.sm-new.s-hidden .glass-mask {
   background: transparent !important;
   background-color: transparent !important;
-  /* 优化：保留轻微模糊让星星在大背景上更立体，或根据需要改为 none */
   backdrop-filter: blur(4px) !important; 
   -webkit-backdrop-filter: blur(4px) !important;
 }

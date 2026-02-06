@@ -42,19 +42,18 @@
   width: 100%;
   height: 100%;
   z-index: 0;
-  /* 修复暗黑模式闪烁：显式使用变量并提供透明兜底，避免渲染瞬间回退到白色 */
-  background: var(--bg-page, transparent); 
+  /* 启动页/登录墙背景色与 Nav/Tab Bar 保持一致，形成沉浸式整体 */
+  background: var(--bg-card); 
   backdrop-filter: none;
   -webkit-backdrop-filter: none;
-  /* 缩短过渡时间，减少从默认值（如果有）插值到目标值的视觉停留 */
-  transition: background 0.8s cubic-bezier(0.23, 1, 0.32, 1), 
-              backdrop-filter 0.8s cubic-bezier(0.23, 1, 0.32, 1);
+  /* 仅对模糊进行过渡，背景色保持静态以防止阶段切换时的闪烁 */
+  transition: backdrop-filter 0.8s cubic-bezier(0.23, 1, 0.32, 1);
 }
 
-/* 核心修复：登录墙 & 加载中 阶段，背景默认进入毛玻璃态 (通透) */
+/* 核心修复：登录墙 & 加载中 阶段，背景保持沉浸色或进入微透明态 */
 .login-wall.s-login .glass-mask,
 .login-wall.s-loading .glass-mask {
-  background: rgba(255, 255, 255, 0.1) !important;
+  background: var(--bg-card) !important;
   backdrop-filter: blur(8px) !important;
   -webkit-backdrop-filter: blur(8px) !important;
 }
@@ -62,7 +61,7 @@
 @media (prefers-color-scheme: dark) {
   .login-wall.s-login .glass-mask,
   .login-wall.s-loading .glass-mask {
-    background: rgba(19, 19, 20, 0.75) !important; /* Gemini Deep Dark */
+    background: var(--bg-card) !important;
   }
 }
 

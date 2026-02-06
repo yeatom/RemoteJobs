@@ -8,7 +8,7 @@
   <view class="main-content" style="height: calc(100vh - 96rpx - env(safe-area-inset-bottom)); overflow: hidden;">
     <block wx:if="{{bootStatus === 'loading'}}">
       <!-- 基础占位，具体动画由 login-wall 的 splash-phase 承载 -->
-      <view style="height: 100vh; background: var(--bg-page);"></view>
+      <view style="height: 100vh; background: var(--bg-card);"></view>
     </block>
 
     <block wx:else>
