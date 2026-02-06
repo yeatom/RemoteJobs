@@ -182,7 +182,7 @@ App<IAppOption>({
     this.globalData.language = normalized;
     if (this.globalData.user) {
       this.globalData.user.language = normalized;
-      await callApi('updateUser', { language: normalized });
+      await callApi('updateUserLanguage', { language: normalized });
     }
     this.notifyLanguageListeners(normalized);
     this.applyLanguage();
