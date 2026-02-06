@@ -272,57 +272,6 @@ Page({
     })
   },
 
-  calculateCompleteness(profile: any, lang: string) {
-    let score = 0;
-    
-    // 1. Name: 10%
-    if (profile.name) score += 10;
-    
-    // 2. Photo: 5%
-    if (profile.photo) score += 5;
-    
-    // 3. Gender/Birthday: 5% + 5%
-    if (profile.gender) score += 5;
-    if (profile.birthday) score += 5;
-    
-    // 4. Contact: 15% (CN: Phone/Email/Wechat, EN: Email/Phone/etc)
-    if (lang === 'Chinese') {
-      if (profile.wechat || profile.phone || profile.email) score += 15;
-    } else {
-      if (profile.email) score += 10;
-      if (profile.location) score += 5;
-    }
-    
-    // 5. Educations: 20%
-    if ((profile.educations || []).length > 0) score += 20;
-    
-    // 6. Work Experiences: 20%
-    if ((profile.workExperiences || []).length > 0) score += 20;
-    
-    // 7. Skills: 10%
-    if ((profile.skills || []).length > 0) score += 10;
-    
-    // 8. Certificates: 5%
-    if ((profile.certificates || []).length > 0) score += 5;
-    
-    // 9. AI Message: 5%
-    if (profile.aiMessage) score += 5;
-    
-    // Map score to backend levels (0, 1, 2)
-    // Level 1: Meets basic requirements (Name, Contact, Education, Work)
-    const hasBasic = !!profile.name && 
-                     (lang === 'Chinese' ? (profile.wechat || profile.phone || profile.email) : profile.email) &&
-                     (profile.educations || []).length > 0 &&
-                     (profile.workExperiences || []).length > 0;
-                     
-    let level = 0;
-    if (hasBasic) {
-      level = (score === 100) ? 2 : 1;
-    }
-    
-    return { score, level };
-  },
-
   updateLanguage() {
     const app = getApp<IAppOption>() as any
     const lang = normalizeLanguage(app?.globalData?.language)
@@ -357,41 +306,17 @@ Page({
 
     if (user) {
       console.log('[ResumeProfile] Loading data for user:', user._id)
-      const profile = user.resume_profile || {}
-      
-      // 直接从 zh/en 字段获取，不再考虑旧的扁平结构
-      const zh = (profile.zh || {}) as any
-      const en = (profile.en || {}) as any
-
-      // 设置英文版所在地默认值
-      if (!en.location) {
-        en.location = 'China'
-      }
-
-      // 如果后端有计算好的百分比则优先使用，否则本地计算兜底
-      let score_cn = user.resume_percent;
-      let score_en = user.resume_percent_en;
-      let level_cn = user.resume_completeness;
-      let level_en = user.resume_completeness_en;
-
-      if (score_cn === undefined) {
-        const res = this.calculateCompleteness(zh, 'Chinese');
-        score_cn = res.score;
-        level_cn = res.level;
-      }
-      if (score_en === undefined) {
-        const res = this.calculateCompleteness(en, 'English');
-        score_en = res.score;
-        level_en = res.level;
-      }
+      // 直接从后端返回的 completeness 字段获取
+      const zhCompleteness = zh.completeness || { score: 0, level: 0 };
+      const enCompleteness = en.completeness || { score: 0, level: 0 };
 
       this.setData({
         zh,
         en,
-        completeness_cn: level_cn,
-        completeness_en: level_en,
-        percent_cn: score_cn,
-        percent_en: score_en
+        completeness_cn: zhCompleteness.level,
+        completeness_en: enCompleteness.level,
+        percent_cn: zhCompleteness.score,
+        percent_en: enCompleteness.score
       }, () => {
         this.refreshDisplayData()
         this.updateTips()

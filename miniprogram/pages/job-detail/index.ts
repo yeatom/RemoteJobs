@@ -347,31 +347,17 @@ Page({
       const user = await app.refreshUser()
       
       const profile = user?.resume_profile || {}
-      const comp_cn = user?.resume_completeness || 0
-      const comp_en = user?.resume_completeness_en || 0
-
-      // Manual check for basic completeness (fallback if backend flag is outdated)
-      const p_zh = profile.zh || {}
-      const p_en = profile.en || {}
       
-      // CN: Require Name + (Email/Phone/Wechat) + Edu + Work
-      const hasBasicZh = !!p_zh.name && (!!p_zh.email || !!p_zh.phone || !!p_zh.wechat) && (p_zh.educations?.length > 0) && (p_zh.workExperiences?.length > 0)
-      
-      // EN: Require Name + (Email/PhoneEn/Whatsapp/Telegram/Linkedin/Website) + Edu + Work (Location is optional but good)
-      const hasBasicEn = !!p_en.name && (!!p_en.email || !!p_en.phone_en || !!p_en.whatsapp || !!p_en.telegram || !!p_en.linkedin || !!p_en.website) && (p_en.educations?.length > 0) && (p_en.workExperiences?.length > 0)
-
       // Determine language context
       const lang = normalizeLanguage(app?.globalData?.language)
       const isChineseEnv = (lang === 'Chinese' || lang === 'AIChinese')
       
-      let isReady = false
-      if (isChineseEnv) {
-        // In Chinese env, check Chinese resume
-        isReady = (comp_cn >= 1 || hasBasicZh)
-      } else {
-        // In English env, check English resume
-        isReady = (comp_en >= 1 || hasBasicEn)
-      }
+      // 直接根据后端存储的 level 判断
+      const completeness = isChineseEnv 
+        ? (profile.zh?.completeness || { level: 0 }) 
+        : (profile.en?.completeness || { level: 0 });
+
+      let isReady = completeness.level >= 1;
 
       // Check Readiness
       if (isReady) {
@@ -488,25 +474,9 @@ Page({
         ui.hideLoading()
         this.setData({ isGenerating: false })
         
-        // Construct localized error message
-        const missing = []
-        
-        if (isChineseEnv) {
-           if (!p_zh.name) missing.push('姓名')
-           if (!(p_zh.email || p_zh.phone || p_zh.wechat)) missing.push('联系方式')
-           if (!(p_zh.educations?.length > 0)) missing.push('教育经历')
-           if (!(p_zh.workExperiences?.length > 0)) missing.push('工作经历')
-        } else {
-           if (!p_en.name) missing.push('Name')
-           const hasContact = p_en.email || p_en.phone_en || p_en.whatsapp || p_en.telegram || p_en.linkedin || p_en.website
-           if (!hasContact) missing.push('Contact')
-           if (!(p_en.educations?.length > 0)) missing.push('Education')
-           if (!(p_en.workExperiences?.length > 0)) missing.push('Experience')
-        }
-        
-        const content = missing.length > 0 
-          ? `${isChineseEnv ? '为了生成效果，请至少补全当前语言简历的' : 'Please complete your current language profile'}: ${missing.join('、')}`
-          : (isChineseEnv ? '请先完善简历资料' : 'Please complete your profile')
+        const content = isChineseEnv 
+          ? '为了生成效果，请先补全当前语言简历的基础资料（姓名、联系方式、教育及工作经历）。' 
+          : 'Please complete your current language profile (Name, Contact, Education and Work Experience) first.'
 
         // 简历不完整，跳转到简历资料页
         ui.showModal({
