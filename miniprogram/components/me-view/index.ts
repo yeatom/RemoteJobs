@@ -1,7 +1,7 @@
 // components/me-view/index.ts
 
 import {isAiChineseUnlocked} from '../../utils/subscription'
-import {normalizeLanguage, t, type AppLanguage} from '../../utils/i18n'
+import {normalizeLanguage, t, type AppLanguage} from '../../utils/i18n/index'
 import {attachLanguageAware} from '../../utils/languageAware'
 import {toDateMs} from '../../utils/time'
 import {getPhoneNumberFromAuth, updatePhoneNumber} from '../../utils/phoneAuth'

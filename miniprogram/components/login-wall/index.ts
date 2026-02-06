@@ -2,7 +2,7 @@ import { callApi } from '../../utils/request';
 import { InternalPhase, AuthState, SuccessMode, TIMINGS } from './constants';
 import { getCeremonyConfig, executeFadeOut } from './ceremonies';
 import { checkIsAuthed } from '../../utils/util';
-import { t } from '../../utils/i18n';
+import { t } from '../../utils/i18n/index';
 
 Component({
   properties: {

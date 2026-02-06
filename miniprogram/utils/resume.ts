@@ -1,7 +1,7 @@
 // miniprogram/utils/resume.ts
 import { ui } from './ui'
 import { callApi } from './request'
-import { normalizeLanguage, t, AppLanguage } from './i18n'
+import { normalizeLanguage, t, AppLanguage } from './i18n/index'
 import { StatusCode } from './statusCodes'
 
 export interface ResumeGenerateOptions {

@@ -1,5 +1,5 @@
 // miniprogram/pages/resume-profile/index.ts
-import { normalizeLanguage, t, AppLanguage } from '../../utils/i18n'
+import { normalizeLanguage, t, AppLanguage } from '../../utils/i18n/index'
 import { attachLanguageAware } from '../../utils/languageAware'
 import { ui } from '../../utils/ui'
 import { callApi, formatFileUrl } from '../../utils/request'

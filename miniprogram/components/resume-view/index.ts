@@ -1,7 +1,7 @@
 // components/resume-view/index.ts
 
 import { ui } from '../../utils/ui'
-import { normalizeLanguage, t } from '../../utils/i18n'
+import { normalizeLanguage, t } from '../../utils/i18n/index'
 import { attachLanguageAware } from '../../utils/languageAware'
 import { checkIsAuthed } from '../../utils/util'
 import { requestGenerateResume } from '../../utils/resume'

@@ -1,4 +1,4 @@
-import { t, type AppLanguage } from '../../utils/i18n'
+import { t, type AppLanguage } from '../../utils/i18n/index'
 
 /**
  * 界面文案配置映射表

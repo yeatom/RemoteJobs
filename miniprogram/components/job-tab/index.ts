@@ -1,7 +1,7 @@
 // miniprogram/components/job-tab/index.ts
 import type { JobItem } from '../../utils/job'
 import { mapJobs } from '../../utils/job'
-import { normalizeLanguage, t } from '../../utils/i18n'
+import { normalizeLanguage, t } from '../../utils/i18n/index'
 import { callApi } from '../../utils/request'
 import { ui } from '../../utils/ui'
 import { bootManager } from '../../utils/bootManager'

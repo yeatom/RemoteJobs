@@ -1,5 +1,5 @@
 // miniprogram/components/job-list/index.ts
-import { normalizeLanguage, t } from '../../utils/i18n'
+import { normalizeLanguage, t } from '../../utils/i18n/index'
 
 Component({
   properties: {

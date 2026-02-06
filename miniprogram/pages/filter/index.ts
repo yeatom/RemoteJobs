@@ -1,6 +1,6 @@
 // miniprogram/pages/filter/index.ts
 
-import { normalizeLanguage, t } from '../../utils/i18n'
+import { normalizeLanguage, t } from '../../utils/i18n/index'
 import { attachLanguageAware } from '../../utils/languageAware'
 
 type DrawerValue = { salary: string; experience: string; source_name?: string[]; region?: string }

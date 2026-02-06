@@ -2,7 +2,7 @@
 // 手机号授权相关工具函数（仅使用 code 方式）
 import { callApi } from './request'
 import { ui } from './ui'
-import { t } from './i18n'
+import { t } from './i18n/index'
 
 interface PhoneAuthDetail {
     code?: string

@@ -1,4 +1,4 @@
-import { normalizeLanguage, type AppLanguage } from './utils/i18n'
+import { normalizeLanguage, type AppLanguage } from './utils/i18n/index'
 import { bootManager, type BootStatus } from './utils/bootManager'
 import { request, callApi, performLogin } from './utils/request'
 import { checkIsAuthed } from './utils/util'

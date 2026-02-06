@@ -1,4 +1,4 @@
-import { t, type AppLanguage } from '../../utils/i18n'
+import { t, type AppLanguage } from '../../utils/i18n/index'
 
 /**
  * 简历编辑页面 UI 文案配置映射表

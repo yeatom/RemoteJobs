@@ -1,4 +1,4 @@
-import { normalizeLanguage, t, type AppLanguage } from './i18n'
+import { normalizeLanguage, t, type AppLanguage } from './i18n/index'
 
 export type LanguageAwareOptions = {
   /** Called whenever language changes (including initial attach). */

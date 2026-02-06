@@ -1,5 +1,5 @@
 // miniprogram/pages/job-detail/index.ts
-import { normalizeLanguage, t } from '../../utils/i18n'
+import { normalizeLanguage, t } from '../../utils/i18n/index'
 import { normalizeJobTags, translateFieldValue } from '../../utils/job'
 import { attachLanguageAware } from '../../utils/languageAware'
 import { requestGenerateResume } from '../../utils/resume'
