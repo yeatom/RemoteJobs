@@ -163,11 +163,12 @@
 .nickname-modal-mask {
     position: fixed;
     inset: 0;
-    background: rgb(0 0 0 / 15%);
-    z-index: 2600;
+    background: rgba(0, 0, 0, 0.4); /* 加深遮罩颜色，更有沉浸感 */
+    z-index: 11000; /* 高于 ui-drawer (9999) 和 login-wall (10000) */
     opacity: 0;
-    transition: opacity 0.2s ease;
+    transition: opacity 0.3s ease;
     pointer-events: none;
+    backdrop-filter: blur(4rpx); /* 增加毛玻璃效果 */
 }
 
 .nickname-modal-mask-open {
@@ -178,95 +179,86 @@
 .nickname-modal {
     position: fixed;
     left: 50%;
-    top: 40%;
-    transform: translate3d(-50%, -50%, 0) scale(0.9);
-    transform: translate3d(-50%, -50%, 0) scale(0.9);
-    width: 80vw;
+    top: 45%; /* 稍微靠上一点，避开键盘 */
+    transform: translate3d(-50%, -50%, 0) scale(0.85);
+    width: 600rpx; /* 使用固定宽度，在大屏手机上更协调 */
     background: #fff;
-    border-radius: 50rpx;
-    z-index: 2601;
+    border-radius: 40rpx; /* 统一圆角 */
+    z-index: 11001;
     opacity: 0;
-    transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-    will-change: transform, opacity;
+    transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); /* 增加 Q 弹效果 */
     display: flex;
     flex-direction: column;
-    padding: 40rpx 30rpx;
+    padding: 48rpx 40rpx;
     box-sizing: border-box;
-    box-shadow: 0 25rpx 70rpx rgb(0 0 0 / 18%);
+    box-shadow: 0 40rpx 100rpx rgba(0, 0, 0, 0.2);
     pointer-events: none;
 }
 
 .nickname-modal-open {
     opacity: 1;
     transform: translate3d(-50%, -50%, 0) scale(1);
-    transform: translate3d(-50%, -50%, 0) scale(1);
     pointer-events: auto;
 }
 
 .nickname-modal-header {
-    margin-bottom: 35rpx;
+    margin-bottom: 40rpx;
     text-align: center;
-    display: flex;
-    justify-content: center;
 }
 
 .nickname-modal-title {
-    font-size: 34rpx;
-    font-weight: 700;
-    color: #1f2933;
-    line-height: 1;
+    font-size: 36rpx;
+    font-weight: 600;
+    color: #1a202c;
 }
 
 .nickname-modal-body {
-    margin-bottom: 40rpx;
+    margin-bottom: 48rpx;
 }
 
 .nickname-modal-input {
     width: 100%;
-    height: 80rpx;
-    background: #fff;
-    border: 2rpx solid var(--divider);
+    height: 100rpx;
+    background: #f8fafc; /* 使用浅灰色背景 */
+    border: 2rpx solid #e2e8f0;
     border-radius: 20rpx;
-    padding: 0 25rpx;
-    font-size: 30rpx;
-    color: #1f2933;
+    padding: 0 32rpx;
+    font-size: 32rpx;
+    color: #1a202c;
     box-sizing: border-box;
+    transition: border-color 0.2s;
+}
+
+.nickname-modal-input:focus {
+    border-color: var(--primary);
 }
 
 .nickname-modal-footer {
     display: flex;
-    gap: 20rpx;
+    gap: 24rpx;
+    width: 100%;
+    margin-top: 10rpx;
+    box-sizing: border-box; /* 确保 padding 不会导致溢出 */
 }
 
-.nickname-modal-btn {
+.nickname-modal-footer-btn {
     flex: 1;
-    height: 80rpx;
-    border-radius: 25rpx;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    min-width: 0; /* 允许 flex 项目缩小到其内容大小以下 */
+}
+
+.nickname-modal-footer-btn ui-button {
+    width: 100%; /* 强制子组件占满容器 */
 }
 
 .nickname-modal-cancel {
-    background: var(--border);
-}
-
-.nickname-modal-cancel .nickname-modal-btn-text {
-    color: #4f7ef7;
+    --primary-light: #f1f5f9; /* 灰色背景 */
+    --primary: #64748b; /* 灰色文字 */
 }
 
 .nickname-modal-save {
-    background:rgb(73 121 252);
+    --primary: #2e5fe9; /* 蓝色背景 */
 }
 
-.nickname-modal-save .nickname-modal-btn-text {
-    color: #fff;
-}
-
-.nickname-modal-btn-text {
-    font-size: 30rpx;
-    font-weight: 600;
-}
 
 /* ========== 过期日期 Item - 特有样式 ========== */
 .profile-expired-item {

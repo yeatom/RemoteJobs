@@ -3,8 +3,7 @@
   title="{{ui.userProfileTitle}}" 
   show="{{showProfileSheet}}" 
   bind:close="closeProfileSheet" 
-  bind:confirm="onProfileConfirm"
-  confirmText="{{ui.confirm}}"
+  showConfirm="{{false}}"
 >
   <view class="bottom-sheet-content profile-sheet-content">
     <!-- Upload Avatar - 独立一栏，左右布局 -->
@@ -31,7 +30,7 @@
         <view class="profile-nickname-header">
           <text class="profile-nickname-title">{{ui.editNickname}}</text>
           <view class="profile-nickname-change-btn" catchtap="onEditNickname">
-            <text class="profile-nickname-change-btn-text">{{ui.changePhone}}</text>
+            <text class="profile-nickname-change-btn-text">修改</text>
           </view>
         </view>
         <view class="profile-nickname-content">
@@ -82,12 +81,16 @@
       />
     </view>
     <view class="nickname-modal-footer">
-      <ui-button type="secondary" size="md" bindtap="onCancelEditNickname" custom-class="nickname-modal-cancel">
-        {{ui.cancel}}
-      </ui-button>
-      <ui-button type="primary" size="md" bindtap="onSaveNickname" custom-class="nickname-modal-save">
-        {{ui.save}}
-      </ui-button>
+      <view class="nickname-modal-footer-btn nickname-modal-cancel">
+        <ui-button type="secondary" size="md" bindtap="onCancelEditNickname">
+          {{ui.cancel}}
+        </ui-button>
+      </view>
+      <view class="nickname-modal-footer-btn nickname-modal-save">
+        <ui-button type="primary" size="md" bindtap="onSaveNickname">
+          {{ui.save}}
+        </ui-button>
+      </view>
     </view>
   </view>
 </block>
