@@ -566,7 +566,7 @@ Component({
           }
         })
         
-        const res = await callApi('batchSaveJobs', {
+        await callApi('batchSaveJobs', {
           jobIds,
           jobData,
         })

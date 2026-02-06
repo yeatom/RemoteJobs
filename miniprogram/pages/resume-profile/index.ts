@@ -139,7 +139,7 @@ Page({
     })
 
     const app = getApp<IAppOption>() as any
-    const userUpdateHandler = (user: any) => {
+    const userUpdateHandler = () => {
       console.log('[ResumeProfile] User updated, reloading data...')
       this.loadResumeData()
     }
@@ -1207,7 +1207,7 @@ Page({
   },
 
   async onSaveSkills() {
-    const { skillsForm, currentLang } = this.data
+    const { skillsForm } = this.data
     // 过滤掉空项
     const newSkills = skillsForm.map(s => s.trim()).filter(s => s !== '')
     
@@ -1280,7 +1280,7 @@ Page({
   },
 
   async onSaveCertificates() {
-    const { certificatesForm, currentLang } = this.data
+    const { certificatesForm } = this.data
     // 过滤掉空项
     const newCertificates = certificatesForm.map(c => c.trim()).filter(c => c !== '')
     
