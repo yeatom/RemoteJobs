@@ -301,7 +301,7 @@ export async function waitForTask(taskId: string): Promise<boolean> {
       const res = await callApi<any>('getGeneratedResumes', { task_id: taskId });
       if (res.success && res.result?.items && res.result.items.length > 0) {
         const task = res.result.items[0];
-        if (task.status === 'success') {
+        if (task.status === 'completed' || task.status === 'success') {
           return true;
         } else if (task.status === 'failed') {
           return false;
@@ -383,7 +383,7 @@ async function pollTaskStatus(taskId: string, attempt = 0) {
     const res = await callApi<any>('getGeneratedResumes', { task_id: taskId });
     if (res.success && res.result?.items && res.result.items.length > 0) {
       const task = res.result.items[0];
-      if (task.status === 'success') {
+      if (task.status === 'completed' || task.status === 'success') {
         console.log(`[TaskCheck] Task ${taskId} finished successfully! Showing modal.`);
         pollingTasks.delete(taskId);
         const lang = normalizeLanguage(getApp().globalData.language);

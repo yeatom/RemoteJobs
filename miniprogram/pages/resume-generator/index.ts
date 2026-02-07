@@ -63,11 +63,12 @@ Page({
       },
     })
 
-    // Check for draft if no explicit options provided
-    if (Object.keys(options).length === 0) {
-      // Try EventChannel
+    // Check for draft or passed data
+    if (options && (options.title || options.from === 'screenshot' || options.content)) {
+        this.initializeWithData(options);
+    } else if (Object.keys(options).length === 0) {
+      // Try EventChannel (usually from components)
       const eventChannel = this.getOpenerEventChannel();
-      // Check if eventChannel exists and has the method (in case opened directly)
       if (eventChannel && typeof eventChannel.on === 'function') {
         eventChannel.on('acceptDataFromOpenerPage', (data: any) => {
             if (data) {
@@ -77,16 +78,24 @@ Page({
       } else {
          this.checkDraft();
       }
-    } else if (options && options.title) {
-        // Fallback for URL params
-        this.initializeWithData(options);
     } else {
         this.checkDraft();
     }
   },
 
   initializeWithData(options: any) {
-      let experience = decodeURIComponent(options.experience || '');
+      const safeDecode = (str: any) => {
+        if (!str) return '';
+        try {
+          // If already decoded, decodeURIComponent might throw if it contains %
+          // But usually we want to ensure it's decoded once.
+          return decodeURIComponent(str);
+        } catch (e) {
+          return str;
+        }
+      };
+
+      let experience = safeDecode(options.experience);
       // Handle direct years number passing (from EventChannel or processed options)
       if (!experience && options.years !== undefined && options.years !== null) {
         const yearSuffix = t('resume.year') || '年';
@@ -97,8 +106,8 @@ Page({
       }
 
       this.setData({
-        'targetJob.title': decodeURIComponent(options.title || ''),
-        'targetJob.content': decodeURIComponent(options.content || ''),
+        'targetJob.title': safeDecode(options.title),
+        'targetJob.content': safeDecode(options.content),
         'targetJob.experience': experience,
         isPaid: options.from === 'screenshot',
         parsedData: options.from === 'screenshot' ? { from: 'screenshot' } : null
