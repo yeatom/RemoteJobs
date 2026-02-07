@@ -138,4 +138,12 @@ export const resume = {
     month: { Chinese: '月', English: 'Month' },
     totalPrefix: { Chinese: '共 ', English: 'Total ' },
     china: { Chinese: '中国', English: 'China' },
+    generateResumeTitle: { Chinese: '选择简历语言', English: 'Select Resume Language' },
+    generateResumeContent: { Chinese: '选择生成简历的语言', English: 'Choose the language for resume generation' },
+    jobMayBeEnglish: { Chinese: '该岗位可能为<u>英文</u>，请选择简历语言', English: 'This job may be in <u>English</u>, please select resume language' },
+    jobMayBeChinese: { Chinese: '该岗位可能为<u>中文</u>，请选择简历语言', English: 'This job may be in <u>Chinese</u>, please select resume language' },
+    jobIsEnglish: { Chinese: '该岗位为<u>英文</u>，选择生成简历的语言', English: 'This job is in <u>English</u>, select resume language' },
+    jobIsChinese: { Chinese: '该岗位为<u>中文</u>，选择生成简历的语言', English: 'This job is in <u>Chinese</u>, select resume language' },
+    langChinese: { Chinese: '中文', English: 'Chinese' },
+    langEnglish: { Chinese: 'English', English: 'English' },
 } as const

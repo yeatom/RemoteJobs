@@ -32,7 +32,7 @@ export async function requestGenerateResume(jobData: any, options: ResumeGenerat
     const interfaceLang = normalizeLanguage(app.globalData.language)
 
     // 2. 语言选择对话框
-    let selectContent = '选择生成简历的语言'
+    let selectContent = t('resume.generateResumeContent', interfaceLang)
     let isEnglishStatus = jobData?.is_english
 
     if (jobData && jobData._is_custom) {
@@ -44,23 +44,23 @@ export async function requestGenerateResume(jobData: any, options: ResumeGenerat
       
       isEnglishStatus = isActuallyEnglish ? 1 : 0
       selectContent = isActuallyEnglish 
-        ? '该岗位描述包含<u>大量英文</u>，请选择简历语言' 
-        : '该岗位描述包含<u>大量中文</u>，请选择简历语言'
+        ? t('resume.jobMayBeEnglish', interfaceLang) 
+        : t('resume.jobMayBeChinese', interfaceLang)
     } else if (jobData && typeof jobData.is_english !== 'undefined') {
       selectContent = jobData.is_english === 1 
-        ? '该岗位为<u>英文</u>，选择生成简历的语言' 
-        : '该岗位为<u>中文</u>，选择生成简历的语言'
+        ? t('resume.jobIsEnglish', interfaceLang) 
+        : t('resume.jobIsChinese', interfaceLang)
     }
 
     const primaryBlue = '#2E5FE9'
     const defaultGray = '#000000'
 
     ui.showModal({
-      title: '选择简历语言',
+      title: t('resume.generateResumeTitle', interfaceLang),
       content: selectContent,
-      confirmText: '中文',
+      confirmText: t('resume.langChinese', interfaceLang),
       confirmColor: isEnglishStatus === 0 ? primaryBlue : defaultGray,
-      cancelText: 'English',
+      cancelText: t('resume.langEnglish', interfaceLang),
       cancelColor: isEnglishStatus === 1 ? primaryBlue : defaultGray,
       showCancel: true,
       success: async (selectRes) => {
