@@ -40,7 +40,13 @@ export const request = <T = any>(options: WechatMiniprogram.RequestOption): Prom
         if (res.statusCode >= 200 && res.statusCode < 300) {
           resolve(res.data as T);
         } else {
-          reject(res);
+          // Construct a proper Error object from the response
+          const errorData = res.data as any;
+          const errorMessage = errorData?.message || `Request failed with status ${res.statusCode}`;
+          const error = new Error(errorMessage);
+          (error as any).data = errorData;
+          (error as any).statusCode = res.statusCode;
+          reject(error);
         }
       },
       fail: (err) => {
