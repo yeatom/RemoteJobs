@@ -389,75 +389,60 @@ Component({
     },
     */
 
-    processUpload(path: string, name: string) {
+    async processUpload(path: string, name: string) {
         const app = getApp<any>();
         const lang = normalizeLanguage(app.globalData.language);
         ui.showLoading(t('resume.doNotExit', lang));
-        const token = wx.getStorageSync('token');
-        const env = require('../../env.js');
-        const baseUrl = env.serverUrl || 'https://feiwan.online';
+        
+        try {
+            const data = await uploadApi<any>({
+                url: '/refine-resume',
+                filePath: path,
+                name: 'file'
+            });
 
-        wx.uploadFile({
-            url: `${baseUrl}/api/refine-resume`,
-            filePath: path,
-            name: 'file',
-            header: {
-                'Authorization': `Bearer ${token}`
-            },
-            formData: {
-                // You can add extra data here if needed
-            },
-            success: (res: any) => {
-               ui.hideLoading();
+            ui.hideLoading();
 
-               if (res.statusCode === 401) {
-                  wx.removeStorageSync('token');
-                  ui.showModal({
-                      title: t('app.error', lang) || '错误',
-                      content: '登录已过期，请重新登录',
-                      showCancel: false,
-                      success: () => { this.syncLoginState(); }
-                  });
-                  return;
-               }
-
-               try {
-                   const data = JSON.parse(res.data);
-                   if (data.success) {
-                       // Using the customized modal strings from common UI utility
-                       ui.showGenerationSuccessModal(
-                           t('jobs.generateFinishedTitle', lang),
-                           t('jobs.generateFinishedContent', lang)
-                       );
-                   } else {
-                       // Handle Specific Errors
-                       if (data.code === 40002 || data.code === 40003) { 
-                           ui.showModal({
-                               title: t('resume.refineErrorTitle', lang) || '识别受阻',
-                               content: data.message || t('resume.refineErrorContent', lang),
-                               showCancel: false,
-                               isAlert: true
-                           });
-                       } else if (data.code === 40302) {
-                           ui.showModal({
-                               title: t('membership.quotaExceededTitle', lang) || '额度不足',
-                               content: data.message || t('membership.quotaExceededContent', lang),
-                               showCancel: false,
-                               isAlert: true
-                           });
-                       } else {
-                           ui.showModal({ title: 'Error', content: data.message || 'Upload failed', showCancel: false, isAlert: true });
-                       }
-                   }
-               } catch (e) {
-                   ui.showToast('Upload failed');
-               }
-            },
-            fail: (e: any) => {
-                ui.hideLoading();
-                ui.showToast('Upload error ' + e.errMsg);
+            if (data.success) {
+                ui.showGenerationSuccessModal(
+                    t('jobs.generateFinishedTitle', lang),
+                    t('jobs.generateFinishedContent', lang)
+                );
+                // 启动轮询检查任务状态
+                if (data.taskId) {
+                    startBackgroundTaskCheck();
+                }
+            } else {
+                // Handle Specific Errors
+                if (data.code === 40002 || data.code === 40003) { 
+                    ui.showModal({
+                        title: t('resume.refineErrorTitle', lang) || '识别受阻',
+                        content: data.message || t('resume.refineErrorContent', lang),
+                        showCancel: false,
+                        isAlert: true
+                    });
+                } else if (data.code === 40302) {
+                    ui.showModal({
+                        title: t('membership.quotaExceededTitle', lang) || '额度不足',
+                        content: data.message || t('membership.quotaExceededContent', lang),
+                        showCancel: false,
+                        isAlert: true
+                    });
+                } else {
+                    ui.showToast(data.message || t('app.error', lang));
+                }
             }
-        })
+        } catch (err: any) {
+            ui.hideLoading();
+            console.error('[Upload] Error:', err);
+            
+            // uploadApi handles 401 and retries once, so if it still fails with 401, we show error
+            if (err.statusCode === 401) {
+                ui.showToast('认证失败，请通过主页重新登录');
+            } else {
+                ui.showToast(t('app.error', lang));
+            }
+        }
     },
 
     // --- Template Actions ---
