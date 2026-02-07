@@ -134,7 +134,7 @@ Page({
     });
   },
 
-  onExperienceChange(e: any) {
+  onExperienceChange() {
     // Deprecated by custom picker confirm
   },
 
