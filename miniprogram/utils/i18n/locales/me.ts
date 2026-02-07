@@ -3,14 +3,20 @@ export const me = {
     appShareTitle: { Chinese: '丈月尺 - 远程办公岗位', English: 'WeChatJobs - Remote Positions' },
     favoritesEntry: { Chinese: '我收藏的岗位', English: 'Saved jobs' },
     languageEntry: { Chinese: '语言与内容显示', English: 'Language & Display' },
+
+    // 语言与内容展示
     langChinese: { Chinese: '中文', English: '中文' },
-    langChineseDesc: { Chinese: '界面中文，岗位内容保持原样', English: 'Chinese UI, original job content' },
+    langChineseDesc: { Chinese: '界面中文，岗位内容保持原样', English: '界面中文，岗位内容保持原样' },
+
     langEnglish: { Chinese: 'English', English: 'English' },
     langEnglishDesc: { Chinese: 'Interface in English, original job content', English: 'Interface in English, original job content' },
+
     langAIChinese: { Chinese: 'AI 智能全中文', English: 'AI 智能全中文' },
-    langAIChineseDesc: { Chinese: '全中阅读，AI 自动提取薪资/经验/技能标签', English: 'Full Chinese, AI extracts salary/exp/skills' },
+    langAIChineseDesc: { Chinese: '全中阅读，AI 自动提取薪资/经验/技能标签', English: '全中阅读，AI 自动提取薪资/经验/技能标签' },
+
     langAIEnglish: { Chinese: 'AI Smart English', English: 'AI Smart English' },
     langAIEnglishDesc: { Chinese: 'Full English, AI extracts salary/exp/skills', English: 'Full English, AI extracts salary/exp/skills' },
+
     comingSoon: { Chinese: '敬请期待', English: 'Coming soon' },
     loginSuccess: { Chinese: '登录成功', English: 'Logged in' },
     phoneAuthFailed: { Chinese: '手机号授权失败', English: 'Phone authorization failed' },
