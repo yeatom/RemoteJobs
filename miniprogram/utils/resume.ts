@@ -103,28 +103,18 @@ export async function requestGenerateResume(jobData: any, options: ResumeGenerat
               return;
             }
 
-            // Ensure minimum 2.5s loading time
-            const elapsedTime = Date.now() - startTime;
-            const remainingTime = Math.max(0, 2500 - elapsedTime);
-            if (remainingTime > 0) {
-              await new Promise(resolveTime => setTimeout(resolveTime, remainingTime));
-            }
-            
-            if (options.waitForCompletion) {
-               ui.showLoading(t('resume.aiChecking', interfaceLang), true);
-            } else {
-               ui.hideLoading(); 
-            }
-
-          } catch (err) {
-            ui.hideLoading();
-            ui.showError('检测服务暂不可用，请稍后重试');
-            if (options.onFinish) options.onFinish(false);
-            resolve(false)
-            return;
+          // --- RE-RESTORE 2.5S DELAY ---
+          // Ensure minimum 2.5s loading time for AI transition UX
+          const elapsedTime = Date.now() - startTime;
+          const remainingTime = Math.max(0, 2500 - elapsedTime);
+          if (remainingTime > 0) {
+            await new Promise(resolveTime => setTimeout(resolveTime, remainingTime));
           }
-          // --- END NEW LOGIC ---
+          // --- END DELAY ---
 
+          // Move to generation phase
+          ui.showLoading(t('resume.generating', interfaceLang), true);
+          
           // 3. 简历完整度校验 (一切以后端物理字段 level 为准)
           const completeness = chosenIsChinese 
             ? (profile.zh?.completeness || { level: 0 }) 
@@ -146,6 +136,7 @@ export async function requestGenerateResume(jobData: any, options: ResumeGenerat
                   resolve(false)
                 } else if (modalRes.cancel) {
                   // 用户选择“直接生成”
+                  ui.showLoading(t('resume.generating', interfaceLang), true);
                   const result = await doGenerate(user, profile, jobData, chosenIsChinese, interfaceLang, options)
                   resolve(result)
                 } else {
@@ -159,9 +150,17 @@ export async function requestGenerateResume(jobData: any, options: ResumeGenerat
           // 4. 资料已达标，进入正式生成流程
           const result = await doGenerate(user, profile, jobData, chosenIsChinese, interfaceLang, options)
           resolve(result)
+
+        } catch (err) {
+          ui.hideLoading();
+          ui.showError('检测服务暂不可用，请稍后重试');
+          if (options.onFinish) options.onFinish(false);
+          resolve(false)
+          return;
         }
-      })
+      }
     })
+  })
 
   } catch (err) {
     console.error('[ResumeService] Generation flow failed:', err)

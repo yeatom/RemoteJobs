@@ -344,7 +344,8 @@ Page({
             this.isSubmitting = false;
             this.handleSuccess();
         } else {
-             this.isSubmitting = false;
+            ui.hideLoading();
+            this.isSubmitting = false;
         }
     };
 
