@@ -149,8 +149,8 @@
   <!-- Login Wall & Splash Loader -->
   
   <!-- Custom File Preview Modal -->
-  <view class="preview-mask {{showPreviewModal ? 'visible' : ''}}" bindtap="onCancelPreview">
-    <view class="preview-container" catchtap="true">
+  <view class="preview-mask {{showPreviewModal ? 'visible' : ''}}">
+    <view class="preview-container">
         <view class="preview-header">
             <text class="preview-title">确认上传</text>
         </view>

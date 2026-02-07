@@ -15,10 +15,14 @@
       <view class="ui-error-line ui-error-line-2"></view>
     </view>
 
+    <view wx:if="{{type === 'alert'}}" class="ui-icon-warn">
+      <view class="ui-warn-exclamation"></view>
+    </view>
+
     <!-- Modal Content -->
-    <block wx:if="{{type === 'modal'}}">
+    <block wx:if="{{type === 'modal' || type === 'alert'}}">
       <view class="ui-modal-header">
-        <text class="ui-modal-title">{{title}}</text>
+        <text class="ui-modal-title" style="{{type === 'alert' ? 'color: #F59E0B' : ''}}">{{title}}</text>
       </view>
       <view class="ui-modal-body">
         <rich-text class="ui-modal-content" nodes="{{modalContent}}"></rich-text>

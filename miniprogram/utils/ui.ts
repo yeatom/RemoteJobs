@@ -1,4 +1,4 @@
-import { t } from './i18n/index'
+import { t, normalizeLanguage } from './i18n/index'
 
 /**
  * UI 反馈工具类
@@ -9,16 +9,16 @@ export const ui = {
   /**
    * 显示加载中
    */
-  showLoading(title?: string, mask: boolean = true) {
+  showLoading(title?: string, mask: boolean = true, maskClosable: boolean = false) {
     const finalTitle = title || t('app.loading')
     const pages = getCurrentPages();
     const page = pages[pages.length - 1];
     const feedback = page?.selectComponent('#ui-feedback') as any;
     if (feedback) {
-      feedback.setData({ title: finalTitle, type: 'loading', mask, visible: true });
+      feedback.setData({ title: finalTitle, type: 'loading', mask, maskClosable, visible: true });
     } else {
       // 降级使用原生
-      // wx.showLoading({ title: finalTitle, mask });
+      wx.showLoading({ title: finalTitle, mask });
     }
   },
 
@@ -36,8 +36,26 @@ export const ui = {
     }
   },
 
-  /**
-   * 显示成功提示
+  /**   * 显示生成成功的统一弹窗
+   */
+  showGenerationSuccessModal() {
+    const app = getApp<any>()
+    const lang = normalizeLanguage(app.globalData.language)
+    
+    this.showModal({
+      title: t('jobs.generateRequestSubmittedTitle', lang),
+      content: t('jobs.generateRequestSubmittedContent', lang),
+      confirmText: t('jobs.generateRequestSubmittedConfirm', lang),
+      cancelText: t('jobs.generateRequestSubmittedCancel', lang),
+      success: (res) => {
+        if (res.confirm) {
+          wx.navigateTo({ url: '/pages/generated-resumes/index' });
+        }
+      }
+    });
+  },
+
+  /**   * 显示成功提示
    */
   showSuccess(title: string, duration: number = 2000) {
     // 自动隐藏任何可能存在的原生 Toast (如剪贴板提示)
@@ -102,6 +120,7 @@ export const ui = {
     showCancel?: boolean;
     maskClosable?: boolean;
     emphasis?: 'left' | 'right';
+    isAlert?: boolean;
     success?: (res: { confirm: boolean; cancel: boolean }) => void;
   }) {
     const pages = getCurrentPages();
@@ -113,13 +132,13 @@ export const ui = {
         title: options.title || '',
         modalContent: options.content || '',
         confirmText: options.confirmText || t('app.confirm'),
-        confirmColor: options.confirmColor || (options.emphasis === 'left' ? '#64748B' : '#2E5FE9'),
+        confirmColor: options.confirmColor || (options.isAlert ? '#F59E0B' : (options.emphasis === 'left' ? '#64748B' : '#2E5FE9')),
         cancelText: options.cancelText || t('app.cancel'),
         cancelColor: options.cancelColor || (options.emphasis === 'left' ? '#2E5FE9' : '#64748B'),
         showCancel: options.showCancel !== false,
         maskClosable: options.maskClosable !== false,
         emphasis: options.emphasis || 'right',
-        type: 'modal',
+        type: options.isAlert ? 'alert' : 'modal',
         mask: true,
         visible: true
       });

@@ -128,6 +128,38 @@
 .ui-error-line-1 { transform: rotate(45deg); }
 .ui-error-line-2 { transform: rotate(-45deg); }
 
+.ui-icon-warn {
+  width: 80rpx;
+  height: 80rpx;
+  margin-bottom: 28rpx;
+  position: relative;
+  border: 5rpx solid #F59E0B;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: icon-pop 0.4s cubic-bezier(0.18, 0.89, 0.32, 1.28);
+}
+
+.ui-warn-exclamation {
+  width: 6rpx;
+  height: 30rpx;
+  background: #F59E0B;
+  border-radius: 4rpx;
+  position: relative;
+}
+
+.ui-warn-exclamation::after {
+  content: '';
+  position: absolute;
+  bottom: -12rpx;
+  left: 0;
+  width: 6rpx;
+  height: 6rpx;
+  background: #F59E0B;
+  border-radius: 50%;
+}
+
 /* --- Text Styles --- */
 .ui-message {
   font-size: 30rpx;
@@ -140,13 +172,19 @@
 }
 
 /* --- Modal Styles --- */
-.ui-content.modal {
+.ui-content.modal,
+.ui-content.alert {
   padding: 0;
   width: 600rpx;
   max-width: 85%;
   align-items: stretch;
   overflow: hidden;
 }
+
+.ui-content.alert {
+  padding-top: 48rpx;
+}
+
 
 .ui-modal-header {
   padding: 48rpx 48rpx 16rpx;

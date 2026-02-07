@@ -308,7 +308,8 @@ Component({
             ui.showModal({
                 title: '文件过大',
                 content: `文件大小不能超过 10MB。当前大小: ${(file.size / 1024 / 1024).toFixed(2)}MB`,
-                showCancel: false
+                showCancel: false,
+                isAlert: true
             });
             return;
         }
@@ -317,7 +318,8 @@ Component({
             ui.showModal({
                 title: '文件无效',
                 content: '文件过小或为空，请重新选择有效的文件。',
-                showCancel: false
+                showCancel: false,
+                isAlert: true
             });
             return;
         }
@@ -332,7 +334,8 @@ Component({
              ui.showModal({
                 title: '格式不支持',
                 content: '仅支持 PDF, PNG, JPG, JPEG 格式的文件。',
-                showCancel: false
+                showCancel: false,
+                isAlert: true
             });
             return;
         }
@@ -399,23 +402,25 @@ Component({
                try {
                    const data = JSON.parse(res.data);
                    if (data.success) {
-                       showGenerationSuccessModal();
+                       ui.showGenerationSuccessModal();
                    } else {
                        // Handle Specific Errors
                        if (data.code === 40002 || data.code === 40003) { 
                            ui.showModal({
                                title: '识别受阻',
                                content: data.message || '未识别到有效信息，请确保上传的简历包含姓名和联系方式。',
-                               showCancel: false
+                               showCancel: false,
+                               isAlert: true
                            });
                        } else if (data.code === 40302) {
                            ui.showModal({
                                title: '额度不足',
                                content: data.message || '您的生成额度已用完，请获取更多次数。',
-                               showCancel: false
+                               showCancel: false,
+                               isAlert: true
                            });
                        } else {
-                           ui.showModal({ title: 'Error', content: data.message || 'Upload failed', showCancel: false });
+                           ui.showModal({ title: 'Error', content: data.message || 'Upload failed', showCancel: false, isAlert: true });
                        }
                    }
                } catch (e) {

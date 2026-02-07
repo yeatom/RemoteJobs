@@ -209,22 +209,10 @@ async function doGenerate(user: any, profile: any, job: any, isChineseEnv: boole
 
 /**
  * 成功触发生成后的全局统一提示
+ * @deprecated Use ui.showGenerationSuccessModal()
  */
 export function showGenerationSuccessModal() {
-  const app = getApp<any>()
-  const lang = normalizeLanguage(app.globalData.language)
-  
-  ui.showModal({
-    title: t('jobs.generateRequestSubmittedTitle', lang),
-    content: t('jobs.generateRequestSubmittedContent', lang),
-    confirmText: t('jobs.generateRequestSubmittedConfirm', lang),
-    cancelText: t('jobs.generateRequestSubmittedCancel', lang),
-    success: (res) => {
-      if (res.confirm) {
-        wx.navigateTo({ url: '/pages/generated-resumes/index' });
-      }
-    }
-  });
+  ui.showGenerationSuccessModal();
 }
 
 /**
@@ -239,7 +227,8 @@ function handleGenerateError(err: any, _lang: string) {
       title: t('jobs.generatingTitle'),
       content: t('jobs.generatingContent'),
       showCancel: false,
-      confirmText: t('jobs.generatingConfirm')
+      confirmText: t('jobs.generatingConfirm'),
+      isAlert: true
     });
     return;
   }
@@ -250,6 +239,7 @@ function handleGenerateError(err: any, _lang: string) {
       content: err?.data?.message || t('jobs.quotaExhaustedContent'),
       confirmText: t('jobs.quotaExhaustedConfirm'),
       cancelText: t('jobs.quotaExhaustedCancel'),
+      isAlert: true,
       success: (res) => {
         if (res.confirm) {
           const app = getApp<any>();
@@ -265,6 +255,7 @@ function handleGenerateError(err: any, _lang: string) {
   ui.showModal({
     title: t('jobs.generateFailedTitle'),
     content: err?.data?.message || err?.message || t('jobs.generateFailedTitle'),
-    showCancel: false
+    showCancel: false,
+    isAlert: true
   })
 }
