@@ -38,6 +38,8 @@ Page({
     shakeField: '', // 触发抖动的字段名
     isReady: false
   },
+  
+  isSubmitting: false,
 
   onLoad(options: any) {
     this.initUIStrings();
@@ -232,11 +234,13 @@ Page({
   },
 
   handleSubmit() {
-    if (!this.data.isReady) return; // Should be handled by disabled state, but double check
+    if (this.data.isReady && !this.isSubmitting) {
+      this.isSubmitting = true;
+      this.clearDraft();
+      
+      wx.vibrateShort({ type: 'medium' });
 
-    wx.vibrateShort({ type: 'medium' });
-
-    const { targetJob, aiMessage } = this.data
+      const { targetJob, aiMessage } = this.data
     const mockJobData = {
       _id: `CUSTOM_${Date.now()}`,
       _is_custom: true,
@@ -251,21 +255,22 @@ Page({
     }
 
     requestGenerateResume(mockJobData, {
-      showSuccessModal: false,
-      onFinish: (success) => {
-        if (success) {
-          ui.showLoading('生成中...', true);
-          setTimeout(() => {
-            ui.hideLoading();
-            this.handleSuccess();
-          }, 2000);
-        } else {
-          this.handleError(new Error('生成请求未成功'));
+        showSuccessModal: false,
+        onFinish: (success) => {
+          if (success) {
+            ui.showLoading('生成中...', true);
+            setTimeout(() => {
+              ui.hideLoading();
+              this.handleSuccess();
+            }, 2000);
+          } else {
+            this.handleError(new Error('生成请求未成功'));
+          }
+        },
+        onCancel: () => {
         }
-      },
-      onCancel: () => {
-      }
-    })
+      })
+    }
   },
 
   showMissingFieldsToast() {
@@ -284,6 +289,7 @@ Page({
   },
 
   handleError(err: any) {
+    this.isSubmitting = false;
     ui.showModal({
       title: '提示',
       content: (err && err.message) || '系统繁忙，请重试',
@@ -324,6 +330,8 @@ Page({
   },
 
   saveDraft() {
+    if (this.isSubmitting) return;
+
     // Only save if there's actual content or non-default AI message
     const { targetJob, aiMessage, experienceIndex } = this.data;
     if (targetJob.title || targetJob.content || aiMessage !== AI_MESSAGE_DEFAULT) {
