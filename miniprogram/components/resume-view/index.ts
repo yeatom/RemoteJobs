@@ -517,28 +517,6 @@ Component({
             }
         }
     },
-            if (err.statusCode === 401) {
-                ui.showToast(t('resume.authFailedLogin', lang));
-            } else if (code === StatusCode.QUOTA_EXHAUSTED) { // Quota Exhausted (403)
-                ui.showModal({
-                    title: t('membership.quotaExceededTitle', lang) || '额度不足',
-                    content: t('membership.quotaExceededContent', lang),
-                    showCancel: false,
-                    isAlert: true
-                });
-            } else if (code === StatusCode.INVALID_DOCUMENT_CONTENT || code === StatusCode.MISSING_IDENTITY_INFO) { // Identify/Content Error (403/400)
-                 ui.showModal({
-                        title: t('resume.refineErrorTitle', lang) || '识别受阻',
-                        content: t('resume.refineErrorContent', lang),
-                        showCancel: false,
-                        isAlert: true
-                });
-            } else {
-                const msg = (errData && errData.message) || err.message || t('app.error', lang);
-                ui.showToast(msg);
-            }
-        }
-    },
 
     async processScreenshotUpload() {
         const path = this.data.previewPath;
