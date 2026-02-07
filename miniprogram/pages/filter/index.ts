@@ -158,8 +158,6 @@ Page({
   },
 
   onShow() {
-    const app = getApp<IAppOption>() as any
-    const lang = normalizeLanguage(app?.globalData?.language)
     wx.setNavigationBarTitle({ title: '' })
   },
 
@@ -253,21 +251,21 @@ Page({
     const useEnglish = lang === 'English' || lang === 'AIEnglish'
     const displaySalaryOptions = (this.data.salaryOptions as SalaryKey[]).map((k) => {
       const mapped = SALARY_KEY_MAP[k]
-      return mapped ? t(`jobs.${mapped}`) : (useEnglish ? k : k)
+      return mapped ? t(`jobs.${mapped}` as any) : (useEnglish ? k : k)
     })
     const displayExperienceOptions = (this.data.experienceOptions as ExpKey[]).map((k) => {
       const mapped = EXP_KEY_MAP[k]
-      return mapped ? t(`jobs.${mapped}`) : (useEnglish ? k : k)
+      return mapped ? t(`jobs.${mapped}` as any) : (useEnglish ? k : k)
     })
     
     // 区域选项显示处理
     const displayRegionOptions = (this.data.regionOptions || []).map((k) => {
       const mapped = REGION_KEY_MAP[k]
-      return mapped ? t(`jobs.${mapped}`) : k
+      return mapped ? t(`jobs.${mapped}` as any) : k
     })
     const displaySourceOptions = (this.data.sourceOptions || []).map((k) => {
       const mapped = SOURCE_KEY_MAP[k]
-      return mapped ? t(`jobs.${mapped}`) : (useEnglish ? k : k)
+      return mapped ? t(`jobs.${mapped}` as any) : (useEnglish ? k : k)
     })
 
     // 重新根据 data.navTabs 中的 key 来设置 label

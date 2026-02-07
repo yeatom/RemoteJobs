@@ -108,6 +108,7 @@ interface IAppOption {
     user: AppUser | null,
     userPromise: Promise<any> | null,
     bootStatus: import('../miniprogram/utils/bootManager').BootStatus,
+    theme: 'light' | 'dark',
     language: import('../miniprogram/utils/i18n').AppLanguage,
     _langListeners: Set<(lang: import('../miniprogram/utils/i18n').AppLanguage) => void>,
     _userListeners: Set<(user: any) => void>,
