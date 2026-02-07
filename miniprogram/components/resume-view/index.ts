@@ -408,6 +408,18 @@ Component({
             },
             success: (res: any) => {
                ui.hideLoading();
+
+               if (res.statusCode === 401) {
+                  wx.removeStorageSync('token');
+                  ui.showModal({
+                      title: t('app.error', lang) || '错误',
+                      content: '登录已过期，请重新登录',
+                      showCancel: false,
+                      success: () => { this.syncLoginState(); }
+                  });
+                  return;
+               }
+
                try {
                    const data = JSON.parse(res.data);
                    if (data.success) {
