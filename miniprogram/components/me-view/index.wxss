@@ -1628,14 +1628,15 @@
 
 .product-scroll-v3 {
     display: flex;
-    padding: 4rpx 0 0 32rpx; /* Reduced top padding by 20rpx */
-    height: 540rpx; /* Adjusted container height for +20rpx card height */
+    padding: 4rpx 32rpx 0 32rpx; /* Added 32rpx to the right to match the left margin */
+    height: 540rpx; 
     box-sizing: border-box;
     overflow: visible;
 }
 
 .product-scroll-spacer {
-    width: 40rpx; 
+    display: none; /* Hide the spacer to eliminate the extra tail gap */
+    width: 0; 
     flex-shrink: 0;
 }
 
@@ -1644,7 +1645,7 @@
     flex-direction: column;
     justify-content: space-between;
     width: 280rpx;
-    height: 360rpx; /* Increased height by 20rpx */
+    height: 360rpx; 
     background: var(--bg-card);
     border-radius: 40rpx; 
     padding: 36rpx;
@@ -1653,9 +1654,14 @@
     border: 3rpx solid transparent; 
     box-shadow: 0 10rpx 30rpx rgba(148, 163, 184, 0.08); 
     flex-shrink: 0;
-    margin-right: 24rpx; 
-    margin-bottom: 100rpx; /* Increased bottom margin within flex item to protect shadow */
+    margin-right: 19rpx; 
+    margin-bottom: 100rpx; 
     transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+/* Ensure the very last card in the loop has no right margin to touch the edge */
+.product-scroll-v3 .prod-card-v3:nth-last-child(2) {
+    margin-right: 0;
 }
 
 /* Plan Styles (Blue Theme) */
@@ -1735,7 +1741,7 @@
 
 /* Detail Box */
 .selection-detail-box {
-    margin: -60rpx 32rpx 17rpx; /* Negative margin to pull it closer to the cards, compensating for card margin-bottom and extra scroll-view height */
+    margin: -70rpx 32rpx 17rpx; /* Reduced distance by 10rpx by increasing negative margin */
     background: var(--border); /* Slate 100 - cleaner than semi-transparent */
     padding: 24rpx;
     border-radius: 20rpx;
