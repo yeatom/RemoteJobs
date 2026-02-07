@@ -1614,20 +1614,28 @@
 /* 2. Shop Section */
 .shop-section {
     padding-top: 12rpx;
+    overflow: visible; /* Prevent clipping of children shadows */
 }
 .section-head { padding: 0 32rpx 24rpx; }
-.sec-title { font-size: 28rpx; font-weight: 800; color: #334155; text-transform: uppercase; letter-spacing: 1rpx; }
+.sec-title { 
+    font-size: 28rpx; 
+    font-weight: 800; 
+    color: var(--text-main); 
+    text-transform: uppercase; 
+    letter-spacing: 1rpx; 
+    opacity: 0.8;
+}
 
 .product-scroll-v3 {
     display: flex;
-    padding: 0 0 0 32rpx; /* Start padding */
-    height: 380rpx;
+    padding: 4rpx 0 0 32rpx; /* Reduced top padding by 20rpx */
+    height: 540rpx; /* Adjusted container height for +20rpx card height */
     box-sizing: border-box;
-    overflow: hidden;
+    overflow: visible;
 }
 
 .product-scroll-spacer {
-    width: 40rpx; /* Increased to ensure visible trailing gap */
+    width: 40rpx; 
     flex-shrink: 0;
 }
 
@@ -1636,32 +1644,34 @@
     flex-direction: column;
     justify-content: space-between;
     width: 280rpx;
-    height: 340rpx;
+    height: 360rpx; /* Increased height by 20rpx */
     background: var(--bg-card);
-    border-radius: 36rpx;
+    border-radius: 40rpx; 
     padding: 36rpx;
     box-sizing: border-box;
     position: relative;
-    border: 3rpx solid transparent; /* Prepare for border */
-    box-shadow: 0 8rpx 20rpx rgb(148 163 184 / 5%);
+    border: 3rpx solid transparent; 
+    box-shadow: 0 10rpx 30rpx rgba(148, 163, 184, 0.08); 
     flex-shrink: 0;
-    margin-right: 20rpx; /* Increased spacing between cards */
+    margin-right: 24rpx; 
+    margin-bottom: 100rpx; /* Increased bottom margin within flex item to protect shadow */
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 
 /* Plan Styles (Blue Theme) */
-.type-plan { background: var(--bg-main); border-color: var(--border); }
+.type-plan { background: var(--bg-card); border: 2rpx solid var(--border); }
 .type-plan.selected {
     background: var(--primary-light);
     border-color: var(--primary);
-    box-shadow: 0 12rpx 32rpx rgb(46 95 233 / 20%);
+    box-shadow: 0 16rpx 40rpx rgba(46, 95, 233, 0.15);
 }
 
 /* Topup Styles (Light Blue Theme) */
-.type-topup { background: var(--bg-main); border-color: var(--border); }
+.type-topup { background: var(--bg-card); border: 2rpx solid var(--border); }
 .type-topup.selected {
-    background: var(--primary-light); /* Blue 50 */
-    border-color: var(--primary-mid); /* Blue 500 */
-    box-shadow: 0 12rpx 32rpx rgb(59 130 246 / 15%);
+    background: var(--primary-light); 
+    border-color: var(--primary-mid); 
+    box-shadow: 0 16rpx 40rpx rgba(138, 180, 248, 0.15);
 }
 
 .prod-tag {
@@ -1674,52 +1684,58 @@
     border-radius: 8rpx;
     text-transform: uppercase;
 }
-.type-plan .prod-tag { background: var(--primary); color: var(--bg-card); }
-.type-topup .prod-tag { background: var(--primary-mid); color: var(--bg-card); } /* Blue Tag */
+.type-plan .prod-tag { background: var(--primary); color: #fff; }
+.type-topup .prod-tag { background: var(--primary-mid); color: #fff; } 
 
 .prod-upper { display: flex; flex-direction: column; gap: 8rpx; }
 .prod-name { font-size: 30rpx; font-weight: 700; color: var(--text-main); white-space: normal; line-height: 1.2; }
-.prod-price { font-size: 40rpx; font-weight: 700; color: var(--text-main); }
-.curr { font-size: 24rpx; margin-right: 4rpx; font-weight: 700; }
+.prod-price { font-size: 44rpx; font-weight: 850; color: var(--text-main); letter-spacing: -1rpx; }
+.curr { font-size: 26rpx; margin-right: 4rpx; font-weight: 700; opacity: 0.6; }
 
 .prod-lower { display: flex; flex-direction: column; gap: 4rpx; }
 .prod-points { display: flex; align-items: baseline; }
-.pts-val { font-size: 32rpx; font-weight: 700; color: var(--primary); } 
-.type-topup .pts-val { color: #2563eb; } /* Blue 600 */
-.pts-unit { font-size: 20rpx; color: var(--text-sub); font-weight: 600; margin-left: 6rpx; }
+.pts-val { font-size: 34rpx; font-weight: 800; color: var(--primary); } 
+.pts-unit { font-size: 22rpx; color: var(--text-sub); font-weight: 600; margin-left: 6rpx; }
 .prod-days { font-size: 20rpx; color: var(--text-holder); font-weight: 600; }
 
-/* Selection Checkmark */
+/* Selection Checkmark Improved */
 .selection-check {
     position: absolute;
-    bottom: 24rpx;
-    right: 24rpx;
-    width: 32rpx;
-    height: 32rpx;
+    bottom: 32rpx;
+    right: 32rpx;
+    width: 40rpx;
+    height: 40rpx;
     border-radius: 50%;
     background: var(--border);
-    display: none;
+    transition: all 0.2s ease;
+    display: flex;
     align-items: center;
     justify-content: center;
 }
+
 .selected .selection-check {
-    display: flex;
     background: var(--primary);
+    box-shadow: 0 4rpx 12rpx rgba(46, 95, 233, 0.3);
 }
-.type-topup.selected .selection-check { background: var(--primary-mid); } /* Blue Check */
-.selection-check::after {
+
+.type-topup.selected .selection-check {
+    background: var(--primary-mid);
+    box-shadow: 0 4rpx 12rpx rgba(138, 180, 248, 0.3);
+}
+
+.selected .selection-check::after {
     content: '';
     width: 10rpx;
     height: 18rpx;
-    border: solid var(--bg-card);
-    border-width: 0 4rpx 4rpx 0;
-    transform: rotate(45deg);
-    margin-top: -4rpx;
+    border: 3.5rpx solid #fff;
+    border-top: 0;
+    border-left: 0;
+    transform: rotate(45deg) translateY(-2rpx);
 }
 
 /* Detail Box */
 .selection-detail-box {
-    margin: 17rpx 32rpx 17rpx; /* Increased bottom margin: 12rpx -> 32rpx, reduced to 27rpx per user request */
+    margin: -60rpx 32rpx 17rpx; /* Negative margin to pull it closer to the cards, compensating for card margin-bottom and extra scroll-view height */
     background: var(--border); /* Slate 100 - cleaner than semi-transparent */
     padding: 24rpx;
     border-radius: 20rpx;

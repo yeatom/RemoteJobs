@@ -131,6 +131,10 @@ Component({
     },
     
     detached() {
+      if ((this as any)._themeDetach) {
+        (this as any)._themeDetach()
+      }
+      
       const app = getApp<IAppOption>() as any
       const listener = (this as any)._langListener
       if (listener && app?.offLanguageChange) {
