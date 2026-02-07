@@ -108,6 +108,7 @@ export const me = {
     aiUnlockTitle: { Chinese: 'AI翻译与提炼 🔒', English: 'AI translation & intel 🔒' },
     aiUnlockContent: { Chinese: '开启 AI 增强模式需要付费解锁。', English: 'Payment is required to unlock AI Enhanced Mode.' },
     toPay: { Chinese: '去支付', English: 'To Pay' },
+    updateSuccess: { Chinese: '设置成功', English: 'Updated successfully' },
     settingsUpdated: { Chinese: '设置已更新', English: 'Settings updated' },
     loadInviteCodeFailed: { Chinese: '加载邀请码失败', English: 'Failed to load invite code' },
     uploading: { Chinese: '上传中...', English: 'Uploading...' },

@@ -25,7 +25,7 @@ Page({
       content: ''
     },
     aiMessage: '',
-    experienceRange: Array.from({ length: 50 }, (_, i) => `${i + 1}年`),
+    experienceRange: [],
     experienceIndex: 0,
     tempExperienceIndex: [0], // picker-view value is an array
     showExperiencePicker: false,
@@ -91,7 +91,9 @@ Page({
   },
 
   initUIStrings() {
+    const yearSuffix = t('resume.year') || '年';
     this.setData({
+      experienceRange: Array.from({ length: 50 }, (_, i) => `${i + 1}${yearSuffix}`),
       'ui.title': t('resume.toolTextTitle') || '文字生成简历',
       'ui.subtitle': t('resume.tips') || '完善以下信息，让 AI 更好地为您生成简历',
       'ui.jobTitle': t('resume.jobTitle') || '职位名称',

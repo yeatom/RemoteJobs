@@ -47,10 +47,26 @@ export const resume = {
     education: { Chinese: '毕业院校', English: 'Education' },
     degree: { Chinese: '学历', English: 'Degree' },
     major: { Chinese: '专业', English: 'Major' },
+    start_date: { Chinese: '开始日期', English: 'Start Date' }, // Correcting key name if needed, seeing 'startDate' in read_file
     startDate: { Chinese: '开始日期', English: 'Start Date' },
     endDate: { Chinese: '结束日期', English: 'End Date' },
     schoolPlaceholder: { Chinese: '请输入学校名称', English: 'Enter school name' },
     inputSchool: { Chinese: '请输入学校名称', English: 'Please enter school name' },
+    
+    // --- Upload & File Errors ---
+    uploadFailed: { Chinese: '上传失败', English: 'Upload Failed' },
+    selectFileFailed: { Chinese: '选择文件失败', English: 'Failed to select file' },
+    selectImageFailed: { Chinese: '选择图片失败', English: 'Failed to select image' },
+    fileTooLarge: { Chinese: '文件过大', English: 'File Too Large' },
+    fileSizeExceededPrefix: { Chinese: '文件大小不能超过 10MB。当前大小: ', English: 'File size must not exceed 10MB. Current size: ' },
+    fileInvalid: { Chinese: '文件无效', English: 'Invalid File' },
+    fileEmptyOrTooSmall: { Chinese: '文件过小或为空，请重新选择有效的文件。', English: 'File is too small or empty. Please select a valid file.' },
+    formatNotSupported: { Chinese: '格式不支持', English: 'Format Not Supported' },
+    supportedFormats: { Chinese: '仅支持 PDF, PNG, JPG, JPEG 格式的文件。', English: 'Only PDF, PNG, JPG, JPEG files are supported.' },
+    cannotPreview: { Chinese: '无法预览文件', English: 'Cannot preview file' },
+    authFailedLogin: { Chinese: '认证失败，请通过主页重新登录', English: 'Authentication failed. Please login from Home page.' },
+    loginExpired: { Chinese: '登录已过期，请重新登录', English: 'Session expired. Please login again.' },
+
     majorPlaceholder: { Chinese: '请输入专业名称', English: 'Enter major name' },
     degreePlaceholder: { Chinese: '请选择学历', English: 'Select degree' },
     genderPlaceholder: { Chinese: '请选择性别', English: 'Select gender' },

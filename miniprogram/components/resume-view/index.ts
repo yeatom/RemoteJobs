@@ -279,7 +279,7 @@ Component({
            },
            fail: (err) => {
                if (err.errMsg.indexOf('cancel') === -1) {
-                   ui.showToast('选择文件失败');
+                   ui.showToast(t('resume.selectFileFailed'));
                }
            }
        });
@@ -301,7 +301,7 @@ Component({
             },
            fail: (err) => {
                if (err.errMsg.indexOf('cancel') === -1) {
-                   ui.showToast('选择图片失败');
+                   ui.showToast(t('resume.selectImageFailed'));
                }
            }
         });
@@ -314,8 +314,8 @@ Component({
         // 1. Size Validation
         if (file.size > MAX_SIZE) {
             ui.showModal({
-                title: '文件过大',
-                content: `文件大小不能超过 10MB。当前大小: ${(file.size / 1024 / 1024).toFixed(2)}MB`,
+                title: t('resume.fileTooLarge'),
+                content: t('resume.fileSizeExceededPrefix') + (file.size / 1024 / 1024).toFixed(2) + 'MB',
                 showCancel: false,
                 isAlert: true
             });
@@ -324,8 +324,8 @@ Component({
 
         if (file.size < MIN_SIZE) {
             ui.showModal({
-                title: '文件无效',
-                content: '文件过小或为空，请重新选择有效的文件。',
+                title: t('resume.fileInvalid'),
+                content: t('resume.fileEmptyOrTooSmall'),
                 showCancel: false,
                 isAlert: true
             });
@@ -340,8 +340,8 @@ Component({
         // For local images, we force name="image.jpg" so it passes, but wx.chooseImage ensures it's an image.
         if (ext && !allowedExts.includes(ext)) { 
              ui.showModal({
-                title: '格式不支持',
-                content: '仅支持 PDF, PNG, JPG, JPEG 格式的文件。',
+                title: t('resume.formatNotSupported'),
+                content: t('resume.supportedFormats'),
                 showCancel: false,
                 isAlert: true
             });
@@ -377,7 +377,7 @@ Component({
                     console.log('PDF Preview Open');
                  },
                  fail: (err) => {
-                     ui.showToast('无法预览文件');
+                     ui.showToast(t('resume.cannotPreview'));
                  }
              })
         }
@@ -417,14 +417,14 @@ Component({
                 if (data.code === 40002 || data.code === 40003) { 
                     ui.showModal({
                         title: t('resume.refineErrorTitle', lang) || '识别受阻',
-                        content: data.message || t('resume.refineErrorContent', lang),
+                        content: t('resume.refineErrorContent', lang), // Prioritize local translation over backend message
                         showCancel: false,
                         isAlert: true
                     });
                 } else if (data.code === 40302) {
                     ui.showModal({
                         title: t('membership.quotaExceededTitle', lang) || '额度不足',
-                        content: data.message || t('membership.quotaExceededContent', lang),
+                        content: t('membership.quotaExceededContent', lang), // Prioritize local translation over backend message
                         showCancel: false,
                         isAlert: true
                     });
@@ -438,7 +438,7 @@ Component({
             
             // uploadApi handles 401 and retries once, so if it still fails with 401, we show error
             if (err.statusCode === 401) {
-                ui.showToast('认证失败，请通过主页重新登录');
+                ui.showToast(t('resume.authFailedLogin', lang));
             } else {
                 ui.showToast(t('app.error', lang));
             }
