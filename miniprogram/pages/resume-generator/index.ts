@@ -63,15 +63,31 @@ Page({
     })
 
     // Check for draft if no explicit options provided
-    if (!options.title) {
-      this.checkDraft();
+    if (Object.keys(options).length === 0) {
+      // Try EventChannel
+      const eventChannel = this.getOpenerEventChannel();
+      // Check if eventChannel exists and has the method (in case opened directly)
+      if (eventChannel && typeof eventChannel.on === 'function') {
+        eventChannel.on('acceptDataFromOpenerPage', (data: any) => {
+            if (data) {
+                this.initializeWithData(data);
+            }
+        });
+      } else {
+         this.checkDraft();
+      }
+    } else if (options && options.title) {
+        // Fallback for URL params
+        this.initializeWithData(options);
+    } else {
+        this.checkDraft();
     }
-    
-    if (options && options.title) {
+  },
+
+  initializeWithData(options: any) {
       let experience = decodeURIComponent(options.experience || '');
-      
-      // Adapt from Screenshot Parsing result
-      if (!experience && options.years) {
+      // Handle direct years number passing (from EventChannel or processed options)
+      if (!experience && options.years !== undefined && options.years !== null) {
         const yearSuffix = t('resume.year') || '年';
         const y = parseInt(options.years, 10);
         if (!isNaN(y)) {
@@ -83,7 +99,7 @@ Page({
         'targetJob.title': decodeURIComponent(options.title || ''),
         'targetJob.content': decodeURIComponent(options.content || ''),
         'targetJob.experience': experience,
-        parsedData: options.years ? { from: 'screenshot' } : null
+        parsedData: options.from === 'screenshot' ? { from: 'screenshot' } : null
       }, () => {
         // 如果有传入经验，尝试匹配 picker index
         if (this.data.targetJob.experience) {
@@ -104,7 +120,7 @@ Page({
         }
         this.validateAllFields();
       });
-    }
+  },
   },
 
   validateAllFields() {

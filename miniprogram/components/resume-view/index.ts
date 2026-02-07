@@ -549,10 +549,17 @@ Component({
                             showCancel: true,
                             success: (confirmRes) => {
                                 if (confirmRes.confirm) {
-                                    // Navigate to generator with pre-filled data
-                                    const params = `title=${encodeURIComponent(title || '')}&years=${years}&content=${encodeURIComponent(description)}`;
+                                    // Navigate to generator with EventChannel to avoid URL length limits
                                     wx.navigateTo({
-                                        url: `/pages/resume-generator/index?${params}`
+                                        url: '/pages/resume-generator/index',
+                                        success: (res) => {
+                                            res.eventChannel.emit('acceptDataFromOpenerPage', { 
+                                                title: title || '',
+                                                years: years, 
+                                                content: description || '',
+                                                from: 'screenshot'
+                                            });
+                                        }
                                     });
                                 }
                             }
