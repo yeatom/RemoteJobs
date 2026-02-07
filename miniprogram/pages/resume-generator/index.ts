@@ -151,9 +151,9 @@ Page({
     let isInvalid = false;
 
     // Helper to calculate length (Chinese=1, English=0.5 based on requirements)
-    // Req: Title >= 2 CN (4 EN) -> threshold 2
-    // Req: Content >= 10 CN (20 EN) -> threshold 10
-    // Req: AI Message <= 500 CN (1000 EN) -> threshold 500
+    // Req: Title >= 2 CN (4 EN), no uncommon special chars, NOT all numbers/punc
+    // Req: Content >= 10 CN (20 EN), NOT all numbers/punc
+    // Req: AI Message <= 500 CN (1000 EN), NOT all numbers/punc
     const getLen = (str: string) => {
       let len = 0;
       for (let i = 0; i < str.length; i++) {
@@ -166,24 +166,17 @@ Page({
       return len;
     };
 
+    const isNotEmptyOrPunc = (str: string) => {
+      // Must contain at least one Chinese character or English letter
+      return /[a-zA-Z\u4e00-\u9fa5]/.test(str);
+    };
+
     if (field === 'title') {
       const len = getLen(targetJob.title);
-      // Title: Min 2 CN (4 EN), no uncommon special chars
-      // Regex: Allow CN, EN, Numbers, spaces, common punctuation
       const isCommonChars = /^[a-zA-Z0-9\u4e00-\u9fa5\s\-\(\)\/]+$/.test(targetJob.title);
-      if (len >= 2 && isCommonChars) isValid = true;
-      else if (targetJob.title.length > 0 && (!isCommonChars || len < 2)) isInvalid = false; // Initial input, don't show red immediately? Prompt says "if exceeds input border red". 
-      // Wait, prompt says: "If satisfy min input -> Light Blue. If exceed input -> Red".
-      // What is "exceed input"? Maybe max length? Or "invalid characters"?
-      // Let's assume red is for invalid state when not empty?
-      // Re-reading: "如果满足了最小输入，输入框边框变为浅蓝色，如果超出了输入，边框变为红色。"
-      // "超出了输入" usually means max length.
-      // But for Title, max length isn't specified, only "uncommon chars". Let's assume invalid chars = red?
+      if (len >= 2 && isCommonChars && isNotEmptyOrPunc(targetJob.title)) isValid = true;
       
-      // Let's simplify: 
-      // Valid (Blue): len >= 2 && isCommonChars
-      // Invalid (Red): !isCommonChars (if not empty) OR len too long (e.g. > 50)? Let's set max 50.
-      if (len > 50 || (targetJob.title.length > 0 && !isCommonChars)) isInvalid = true;
+      if (len > 50 || (targetJob.title.length > 0 && (!isCommonChars || !isNotEmptyOrPunc(targetJob.title)))) isInvalid = true;
     } 
     else if (field === 'experience') {
       // Experience: Selected
@@ -191,15 +184,12 @@ Page({
     } 
     else if (field === 'content') {
       const len = getLen(targetJob.content);
-      // Content: Min 10 CN (20 EN)
-      if (len >= 10) isValid = true;
-      // Max length check?
-      if (len > 2500) isInvalid = true; // 5000 chars max in wxml
+      if (len >= 10 && isNotEmptyOrPunc(targetJob.content)) isValid = true;
+      if (len > 2500 || (targetJob.content.length > 0 && len >= 10 && !isNotEmptyOrPunc(targetJob.content))) isInvalid = true;
     } 
     else if (field === 'aiMessage') {
       const len = getLen(aiMessage);
-      // AI Message: Min 0 (always valid if <= max), Max 500 CN (1000 EN)
-      if (len <= 500) isValid = true;
+      if (len <= 500 && (aiMessage.length === 0 || isNotEmptyOrPunc(aiMessage))) isValid = true;
       else isInvalid = true;
     }
 

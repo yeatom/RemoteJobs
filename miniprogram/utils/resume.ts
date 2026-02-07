@@ -77,6 +77,43 @@ export async function requestGenerateResume(jobData: any, options: ResumeGenerat
         const chosenIsChinese = selectRes.confirm
         const targetLang: AppLanguage = chosenIsChinese ? 'Chinese' : 'English'
         
+        // --- NEW CONTENT CHECK & LOADING LOGIC ---
+        ui.showLoading('内容检测中...', true);
+        const startTime = Date.now();
+
+        try {
+          // Check all relevant text fields
+          const contentToCheck = [
+            jobData.title,
+            jobData.description,
+            jobData.ai_message
+          ].filter(Boolean);
+
+          const checkRes = await callApi('check-content', { content: contentToCheck });
+
+          if (checkRes.code !== StatusCode.SUCCESS) {
+            ui.hideLoading();
+            ui.showError(checkRes.message || '内容包含敏感词汇，请修改后重试');
+            if (options.onFinish) options.onFinish(false);
+            return;
+          }
+
+          // Ensure minimum 2.5s loading time
+          const elapsedTime = Date.now() - startTime;
+          const remainingTime = Math.max(0, 2500 - elapsedTime);
+          if (remainingTime > 0) {
+            await new Promise(resolve => setTimeout(resolve, remainingTime));
+          }
+          
+          ui.showLoading('正在生成简历...', true);
+        } catch (err) {
+          ui.hideLoading();
+          ui.showError('检测服务暂不可用，请稍后重试');
+          if (options.onFinish) options.onFinish(false);
+          return;
+        }
+        // --- END NEW LOGIC ---
+
         // 3. 简历完整度校验 (一切以后端物理字段 level 为准)
         const completeness = chosenIsChinese 
           ? (profile.zh?.completeness || { level: 0 }) 
