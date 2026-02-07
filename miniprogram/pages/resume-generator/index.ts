@@ -26,6 +26,7 @@ Page({
       experience: '',
       content: ''
     },
+    isPaid: false,
     aiMessage: '',
     experienceRange: [] as string[],
     experienceIndex: 0,
@@ -99,6 +100,7 @@ Page({
         'targetJob.title': decodeURIComponent(options.title || ''),
         'targetJob.content': decodeURIComponent(options.content || ''),
         'targetJob.experience': experience,
+        isPaid: options.from === 'screenshot',
         parsedData: options.from === 'screenshot' ? { from: 'screenshot' } : null
       }, () => {
         // 如果有传入经验，尝试匹配 picker index
@@ -317,7 +319,7 @@ Page({
 
     const startGeneration = async () => {
         const result = await requestGenerateResume(mockJobData, {
-            isPaid: this.data.parsedData?.from === 'screenshot',
+            isPaid: this.data.isPaid,
             showSuccessModal: false,
             waitForCompletion: true,
             // We handle finish manually
