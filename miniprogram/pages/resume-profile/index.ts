@@ -4,6 +4,7 @@ import { attachLanguageAware } from '../../utils/languageAware'
 import { attachThemeAware } from '../../utils/themeAware'
 import { ui } from '../../utils/ui'
 import { callApi, formatFileUrl } from '../../utils/request'
+import { checkResumeOnboarding } from '../../utils/resume'
 import * as UIConfig from '../../utils/i18n/configs/resume-profile'
 const { serverUrl } = require('../../env.js')
 
@@ -191,6 +192,7 @@ Page({
   onShow() {
     wx.setNavigationBarTitle({ title: '' })
     this.updateLanguage()
+    checkResumeOnboarding()
   },
 
   onSwitchLang(e: any) {

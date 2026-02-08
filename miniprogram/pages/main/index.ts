@@ -4,7 +4,7 @@ import { attachLanguageAware } from '../../utils/languageAware';
 import { attachThemeAware } from '../../utils/themeAware'
 import { t } from '../../utils/i18n/index';
 import { checkIsAuthed } from '../../utils/util';
-import { startBackgroundTaskCheck, checkResumeOnboarding } from '../../utils/resume';
+import { startBackgroundTaskCheck } from '../../utils/resume';
 
 const app = getApp<IAppOption>();
 
@@ -84,9 +84,6 @@ Page({
 
   onShow() {
     this.syncState();
-    if (this.data.activeTab === 1) {
-      checkResumeOnboarding();
-    }
   },
 
   onLoginSuccess(_e: any) {
@@ -94,9 +91,6 @@ Page({
     this.syncState();
     // After login animation/wall, check for background tasks
     startBackgroundTaskCheck();
-    if (this.data.activeTab === 1) {
-      checkResumeOnboarding();
-    }
   },
 
   onTabChange(e: any) {
@@ -108,10 +102,6 @@ Page({
     this.setData({ activeTab: index });
     app.globalData.tabSelected = index;
     if (wx.vibrateShort) wx.vibrateShort({ type: 'light' });
-
-    if (index === 1) {
-      checkResumeOnboarding();
-    }
   },
 
   onShareAppMessage() {

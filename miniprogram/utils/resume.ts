@@ -464,15 +464,20 @@ export async function checkResumeOnboarding() {
     success: (res) => {
       if (res.confirm) {
         // 点击立刻体验，触发组件内的上传逻辑
-        // 我们通过事件中心或者全局变量通知组件
-        app.globalData._triggerResumeImport = true;
-        // 重新获取当前页面并通知组件
         const pages = getCurrentPages();
         const currentPage = pages[pages.length - 1];
         const resumeView = currentPage.selectComponent('#resume-view');
+        
         if (resumeView && resumeView.onSelectFromLocal) {
             resumeView.setData({ onboardingMode: true });
             resumeView.onSelectFromLocal();
+        } else {
+            // 如果在其他页面（如简历资料页），则跳转回主页 Resume Tab 并触发
+            app.globalData.tabSelected = 1;
+            app.globalData._triggerResumeImport = true;
+            wx.switchTab({
+                url: '/pages/main/index'
+            });
         }
       } else if (res.cancel) {
         // 24h 不再提醒

@@ -114,6 +114,14 @@ Component({
                     this.onRefineOldResume();
                 }, 300);
             }
+
+            if (app.globalData._triggerResumeImport) {
+                app.globalData._triggerResumeImport = false;
+                setTimeout(() => {
+                    this.setData({ onboardingMode: true });
+                    this.onSelectFromLocal();
+                }, 300);
+            }
         }
 
         this.syncLoginState();
