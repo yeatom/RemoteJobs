@@ -1,5 +1,5 @@
 import { ui } from '../../utils/ui'
-import { t } from '../../utils/i18n/index'
+import { t, normalizeLanguage } from '../../utils/i18n/index'
 import { attachLanguageAware } from '../../utils/languageAware'
 import { attachThemeAware } from '../../utils/themeAware'
 import { themeManager } from '../../utils/themeManager'
@@ -211,12 +211,33 @@ Page({
   },
 
   onSyncResume() {
-    // 模拟从简历同步逻辑，这里简单恢复默认提示词，或者可以从 globalData 读取简历信息拼接
-    // 实际项目中可以读取 app.globalData.userProfile 等
-    this.setData({ aiMessage: t('resume.syncResumeTip') || "与简历资料同步：请根据我的简历重点突出与该职位匹配的经历..." }, () => {
-      this.validateField('aiMessage');
-      ui.showToast(t('resume.syncedMessage') || '已同步简历提示词');
-    });
+    const app = getApp<any>();
+    const user = app.globalData?.user;
+    if (!user || !user.resume_profile) return;
+
+    const lang = normalizeLanguage(app.globalData.language);
+    const profile = user.resume_profile;
+    
+    // Choose which profile to sync from based on current UI language
+    const isEn = (lang === 'English' || lang === 'AIEnglish');
+    const primary = isEn ? profile.en : profile.zh;
+    const secondary = isEn ? profile.zh : profile.en;
+
+    // Use primary language aiMessage if available, otherwise fallback to the other one
+    const content = (primary && primary.aiMessage && primary.aiMessage.trim())
+      ? primary.aiMessage
+      : (secondary && secondary.aiMessage && secondary.aiMessage.trim())
+        ? secondary.aiMessage
+        : null;
+
+    if (content) {
+      this.setData({ aiMessage: content }, () => {
+        this.validateField('aiMessage');
+        ui.showToast(t('resume.syncedMessage') || '已同步简历提示词');
+      });
+    } else {
+        // No content found in profile, as per requirement: "无需改动" (no change)
+    }
   },
 
   validateField(field: string) {

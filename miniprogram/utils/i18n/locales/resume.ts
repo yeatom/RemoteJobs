@@ -105,7 +105,7 @@ export const resume = {
     addWorkExperience: { Chinese: '添加工作经历', English: 'Add Work Experience' },
     aiMessageLabel: { Chinese: '想对 AI 说的话', English: 'Message to AI' },
     aiMessagePlaceholder: { Chinese: '给 AI 的提示词...', English: 'Enter message for AI...' },
-    aiMessageDefault: { Chinese: '当工作经验不足时，自动补充工作经历；当过往职位名称与目标岗位不匹配时，根据公司业务方向，灵活变更过往职位名称与工作内容。', English: 'Automatically supplement work experience when experience is insufficient; when past job titles do not match the target position, flexibly change past job titles and work contents based on the company\'s business direction.' },
+    aiMessageDefault: { Chinese: '当工作经验不足时，AI 自动补充工作经历；当过往职位名称与目标岗位不匹配时，根据公司业务方向，AI 灵活变更过往职位名称与工作内容。', English: 'When work experience is insufficient, AI automatically supplements professional history; when past job titles do not match the target role, AI flexibly adapts titles and work content based on the company’s business direction.' },
     addEducation: { Chinese: '添加教育经历', English: 'Add Education' },
     noData: { Chinese: '暂无数据', English: 'No data' },
     edit: { Chinese: '编辑', English: 'Edit' },
