@@ -469,15 +469,23 @@ export async function checkResumeOnboarding() {
         const resumeView = currentPage.selectComponent('#resume-view');
         
         if (resumeView && resumeView.onSelectFromLocal) {
+            // 如果在主页，确保切换到 Resume Tab (Index 1)
+            if (currentPage.route.indexOf('pages/main/index') !== -1) {
+                currentPage.setData({ activeTab: 1 });
+                app.globalData.tabSelected = 1;
+            }
             resumeView.setData({ onboardingMode: true });
             resumeView.onSelectFromLocal();
         } else {
-            // 如果在其他页面（如简历资料页），则跳转回主页 Resume Tab 并触发
+            // 如果在其他页面（如简历资料页），则返回主页 Resume Tab 并触发
             app.globalData.tabSelected = 1;
             app.globalData._triggerResumeImport = true;
-            wx.switchTab({
-                url: '/pages/main/index'
-            });
+            
+            if (pages.length > 1) {
+                wx.navigateBack({ delta: 1 });
+            } else {
+                wx.reLaunch({ url: '/pages/main/index' });
+            }
         }
       } else if (res.cancel) {
         // 24h 不再提醒

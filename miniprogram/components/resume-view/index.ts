@@ -38,7 +38,12 @@ Component({
       toolRefineTitle: t('resume.toolRefineTitle'),
       toolRefineDesc: t('resume.toolRefineDesc'),
       refineRefineReminder: t('resume.refineRefineReminder'),
-      screenshotReminder: t('resume.screenshotReminder')
+      screenshotReminder: t('resume.screenshotReminder'),
+      selectFromChat: t('resume.selectFromChat'),
+      uploadFromLocal: t('resume.uploadFromLocal'),
+      confirmUpload: t('resume.confirmUpload'),
+      previewTip: t('resume.previewTip'),
+      cancel: t('resume.cancel')
     },
     showRefineDrawer: false,
     // Preview Modal State
@@ -67,6 +72,11 @@ Component({
               toolRefineDesc: t('resume.toolRefineDesc', lang),
               refineRefineReminder: t('resume.refineRefineReminder', lang),
               screenshotReminder: t('resume.screenshotReminder', lang),
+              selectFromChat: t('resume.selectFromChat', lang),
+              uploadFromLocal: t('resume.uploadFromLocal', lang),
+              confirmUpload: t('resume.confirmUpload', lang),
+              previewTip: t('resume.previewTip', lang),
+              cancel: t('resume.cancel', lang),
               cursorColor: themeManager.getPrimaryColor()
             }
           });

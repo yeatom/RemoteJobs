@@ -57,17 +57,17 @@
     <view class="drawer-body">
       <view class="upload-options">
          <view class="upload-btn" bindtap="onSelectFromChat">
-            <view class="icon-box green">
+            <view class="icon-box blue">
               <text class="tool-emoji">💬</text>
             </view>
-            <text class="btn-text">Select from Chat</text>
+            <text class="btn-text">{{ui.selectFromChat}}</text>
             <text class="ui-arrow">❯</text>
          </view>
          <view class="upload-btn" bindtap="onSelectFromLocal">
-            <view class="icon-box purple">
+            <view class="icon-box blue">
               <text class="tool-emoji">📁</text>
             </view>
-            <text class="btn-text">Upload from Local</text>
+            <text class="btn-text">{{ui.uploadFromLocal}}</text>
              <text class="ui-arrow">❯</text>
          </view>
       </view>
@@ -80,7 +80,7 @@
   <view class="preview-mask {{showPreviewModal ? 'visible' : ''}}">
     <view class="preview-container">
         <view class="preview-header">
-            <text class="preview-title">确认上传</text>
+            <text class="preview-title">{{ui.confirmUpload}}</text>
         </view>
         
         <view class="preview-content">
@@ -96,7 +96,7 @@
             <view wx:else class="file-preview-pdf" bindtap="openPdfPreview">
                 <view class="pdf-icon">📄</view>
                 <text class="pdf-name">{{previewName}}</text>
-                <text class="pdf-tip">点击预览文件内容</text>
+                <text class="pdf-tip">{{ui.previewTip}}</text>
             </view>
 
             <view class="quota-warning">
@@ -106,8 +106,8 @@
         </view>
 
         <view class="preview-footer">
-            <button class="btn-cancel" bindtap="onCancelPreview">取消</button>
-            <button class="btn-confirm" bindtap="onConfirmPreview">确认上传</button>
+            <button class="btn-cancel" bindtap="onCancelPreview">{{ui.cancel}}</button>
+            <button class="btn-confirm" bindtap="onConfirmPreview">{{ui.confirmUpload}}</button>
         </view>
     </view>
   </view>

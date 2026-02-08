@@ -475,9 +475,9 @@
 }
 
 /* Unified Brand Blue tint for all list icons */
-.blue-bg { background: var(--bg-main); }
-.green-bg { background: var(--bg-green); }
-.purple-bg { background: var(--bg-purple); }
+.blue-bg, .green-bg, .purple-bg { 
+    background: var(--primary-light); 
+}
 
 .action-row .row-text {
     display: flex;
@@ -532,7 +532,7 @@
 .setting-row .row-icon-box {
     width: 56rpx;
     height: 56rpx;
-    background: var(--bg-main);
+    background: var(--primary-light);
     border-radius: 14rpx;
     display: flex;
     align-items: center;
@@ -902,7 +902,7 @@
 .contact-icon-box {
     width: 72rpx;
     height: 72rpx;
-    background: var(--bg-main);
+    background: var(--primary-light);
     border-radius: 20rpx;
     display: flex;
     align-items: center;
@@ -1196,12 +1196,10 @@
   align-items: center;
   justify-content: center;
   font-size: 32rpx;
+  background: var(--primary-light);
 }
 
-.blue { background: var(--primary-light); }
-.purple { background: #f5f3ff; }
-.gold { background: var(--bg-card)beb; }
-.indigo { background: var(--bg-card); }
+.blue, .purple, .gold, .indigo { background: var(--primary-light); }
 
 .p-name {
   font-size: 28rpx;

@@ -202,4 +202,8 @@ export const resume = {
     confirm: { Chinese: '确定', English: 'Confirm' },
     syncedMessage: { Chinese: '已同步简历提示词', English: 'Profile tips synced' },
     syncResumeTip: { Chinese: '与简历资料同步：请根据我的简历重点突出与该职位匹配的经历...', English: 'Sync with profile: Please emphasize experiences from my resume that match this position...' },
+    selectFromChat: { Chinese: '微信聊天文件', English: 'Select from Chat' },
+    uploadFromLocal: { Chinese: '本地文件上传', English: 'Upload from Local' },
+    confirmUpload: { Chinese: '确认上传', English: 'Confirm Upload' },
+    previewTip: { Chinese: '点击预览文件内容', English: 'Click to preview content' },
 } as const

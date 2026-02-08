@@ -71,9 +71,11 @@
   margin-right: 24rpx;
 }
 
-.icon-box.blue { background: var(--primary-light); }
-.icon-box.purple { background: var(--bg-purple); }
-.icon-box.green { background: var(--bg-green); }
+.icon-box.blue,
+.icon-box.purple,
+.icon-box.green { 
+  background: var(--primary-light); 
+}
 
 .tool-icon {
   width: 48rpx;
@@ -171,8 +173,10 @@
     justify-content: center;
     font-size: 36rpx;
 }
-.upload-btn .icon-box.green { background: rgba(52, 199, 89, 0.1); color: #34C759; }
-.upload-btn .icon-box.purple { background: rgba(175, 82, 222, 0.1); color: #AF52DE; }
+.upload-btn .icon-box.blue { 
+    background: var(--primary-light); 
+    color: var(--primary); 
+}
 
 .btn-text {
   font-size: 32rpx;

@@ -14,17 +14,17 @@
     <block wx:else>
       <!-- Tab 0: Jobs -->
       <view hidden="{{activeTab !== 0}}" class="tab-page">
-        <jobs-view active="{{activeTab === 0}}" isLoggedIn="{{isLoggedIn}}" bind:tabChange="onTabChange" />
+        <jobs-view id="jobs-view" active="{{activeTab === 0}}" isLoggedIn="{{isLoggedIn}}" bind:tabChange="onTabChange" />
       </view>
 
       <!-- Tab 1: Resume -->
       <view hidden="{{activeTab !== 1}}" class="tab-page">
-        <resume-view active="{{activeTab === 1}}" isLoggedIn="{{isLoggedIn}}" bind:tabChange="onTabChange" />
+        <resume-view id="resume-view" active="{{activeTab === 1}}" isLoggedIn="{{isLoggedIn}}" bind:tabChange="onTabChange" />
       </view>
 
       <!-- Tab 2: Me -->
       <view hidden="{{activeTab !== 2}}" class="tab-page">
-         <me-view active="{{activeTab === 2}}" isLoggedIn="{{isLoggedIn}}" bind:tabChange="onTabChange" />
+         <me-view id="me-view" active="{{activeTab === 2}}" isLoggedIn="{{isLoggedIn}}" bind:tabChange="onTabChange" />
       </view>
     </block>
   </view>
