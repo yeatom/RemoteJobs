@@ -465,19 +465,24 @@ export async function checkResumeOnboarding() {
       if (res.confirm) {
         // 点击立刻体验，触发组件内的上传逻辑
         const pages = getCurrentPages();
-        const currentPage = pages[pages.length - 1];
+        const currentPage = pages[pages.length - 1] as any;
         const resumeView = currentPage.selectComponent('#resume-view');
         
+        // 分支 1: 如果是在主页 (包含 resume-view 组件)
         if (resumeView && resumeView.onSelectFromLocal) {
-            // 如果在主页，确保切换到 Resume Tab (Index 1)
             if (currentPage.route.indexOf('pages/main/index') !== -1) {
                 currentPage.setData({ activeTab: 1 });
                 app.globalData.tabSelected = 1;
             }
             resumeView.setData({ onboardingMode: true });
             resumeView.onSelectFromLocal();
-        } else {
-            // 如果在其他页面（如简历资料页），则返回主页 Resume Tab 并触发
+        } 
+        // 分支 2: 如果是在简历资料详情页 (resume-profile)
+        else if (currentPage.route.indexOf('pages/resume-profile/index') !== -1 && currentPage.handleOnboardingStart) {
+            currentPage.handleOnboardingStart();
+        }
+        // 分支 3: 其他页面，回退到主页处理
+        else {
             app.globalData.tabSelected = 1;
             app.globalData._triggerResumeImport = true;
             
