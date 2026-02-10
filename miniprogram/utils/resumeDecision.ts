@@ -139,8 +139,7 @@ export const ResumeDecision = {
              // Dismissed
              resolve(null);
           }
-        },
-        fail: () => resolve(null)
+        }
       });
     });
   }

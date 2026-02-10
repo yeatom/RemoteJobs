@@ -6,9 +6,9 @@ import { attachLanguageAware } from '../../utils/languageAware'
 import { attachThemeAware } from '../../utils/themeAware'
 import { themeManager } from '../../utils/themeManager'
 import { checkIsAuthed } from '../../utils/util'
-import { requestGenerateResume, showGenerationSuccessModal, startBackgroundTaskCheck } from '../../utils/resume'
+import { requestGenerateResume, startBackgroundTaskCheck } from '../../utils/resume'
 import { ResumeDecision } from '../../utils/resumeDecision'
-import { callApi, uploadApi } from '../../utils/request'
+import { uploadApi } from '../../utils/request'
 import { StatusCode } from '../../utils/statusCodes'
 
 Component({
@@ -214,7 +214,7 @@ Component({
         }
     },
 
-    applyRefineData(result: any, targetLang: 'chinese' | 'english') {
+    async applyRefineData(result: any, targetLang: 'chinese' | 'english') {
         const app = getApp<any>();
         const lang = normalizeLanguage(app.globalData.language);
 

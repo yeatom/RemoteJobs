@@ -4,6 +4,7 @@ import { app } from './locales/app';
 import { drawer } from './locales/drawer';
 import { jobs } from './locales/jobs';
 import { me } from './locales/me';
+import { membership } from './locales/membership';
 import { resume } from './locales/resume';
 import { tab } from './locales/tab';
 
@@ -18,6 +19,7 @@ const dict = {
   drawer,
   jobs,
   me,
+  membership,
   resume,
   tab
 };
