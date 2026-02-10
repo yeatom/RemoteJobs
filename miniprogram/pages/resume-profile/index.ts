@@ -4,9 +4,8 @@ import { attachLanguageAware } from '../../utils/languageAware'
 import { attachThemeAware } from '../../utils/themeAware'
 import { ui } from '../../utils/ui'
 import { ResumeDecision } from '../../utils/resumeDecision'
-import { callApi, formatFileUrl, uploadApi } from '../../utils/request'
+import { callApi, formatFileUrl } from '../../utils/request'
 import { checkResumeOnboarding, requestGenerateResume } from '../../utils/resume'
-import { StatusCode } from '../../utils/statusCodes'
 import * as UIConfig from '../../utils/i18n/configs/resume-profile'
 const { serverUrl } = require('../../env.js')
 
@@ -17,7 +16,6 @@ Page({
     showOnboardingDrawer: false,
     previewType: 'image' as 'image' | 'pdf',
     previewPath: '',
-    previewName: '',
     previewName: '',
     // 个人信息 (当前显示的数据)
     name: '',
@@ -1385,9 +1383,7 @@ Page({
 
       const profile = data.result.profile;
       const detectedLang = data.result.language; // 'chinese' or 'english'
-      const currentLang = this.data.currentLang; // 'Chinese' or 'English'
       const isCombined = type === 'combined';
-
       const overrideProfile: any = {
         name: profile.name || "", 
         gender: profile.gender || "",
@@ -1464,13 +1460,6 @@ Page({
           overrideProfile.zh = targetData;
           overrideProfile.wechat = extracted.wechat || "";
           if (isCombined) {
-            overrideProfile.en = JSON.parse(JSON.stringify(targetData));
-          }
-        }
-      }
-        } else {
-          overrideProfile.zh = targetData;
-          if (type === 'combined') {
             overrideProfile.en = JSON.parse(JSON.stringify(targetData));
           }
         }

@@ -33,6 +33,7 @@ export type I18nKey =
     | Join<'drawer', keyof typeof drawer>
     | Join<'jobs', keyof typeof jobs>
     | Join<'me', keyof typeof me>
+    | Join<'membership', keyof typeof membership>
     | Join<'resume', keyof typeof resume>
     | Join<'tab', keyof typeof tab>;
 

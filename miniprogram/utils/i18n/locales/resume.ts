@@ -7,6 +7,8 @@ export const resume = {
     toolTextDesc: { Chinese: '粘贴文字，AI 自动生成匹配简历', English: 'Paste text for AI match' },
     toolRefineTitle: { Chinese: '简历润色', English: 'Resume Refinement' },
     toolRefineDesc: { Chinese: '上传旧简历，AI 帮你重写升级', English: 'Upload old resume for AI upgrade' },
+    onboardingSuccess: { Chinese: '简历初始化成功', English: 'Resume initialized successfully' },
+    authFailedLogin: { Chinese: '登录失败，请重试', English: 'Login failed, please try again' },
     refineRefineReminder: { Chinese: '请确保含有基本信息以免浪费生成额度', English: 'Ensure basic info is included to avoid wasting quota' },
     screenshotReminder: { Chinese: '请确保包含年限和JD以免浪费生成额度', English: 'Ensure experience and JD are included to avoid wasting quota' },
     confirmGenerate: { Chinese: '生成', English: 'Generate' },

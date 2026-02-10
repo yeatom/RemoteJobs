@@ -4,5 +4,6 @@ export const membership = {
     creatingOrder: { Chinese: '正在创建订单...', English: 'Creating order...' },
     orderCreateFailed: { Chinese: '创建订单失败', English: 'Failed to create order' },
     payParamMissing: { Chinese: '支付参数缺失', English: 'Payment parameters missing' },
-    mchIdMissing: { Chinese: '商户配置缺失', English: 'Merchant ID missing' }
+    mchIdMissing: { Chinese: '商户配置缺失', English: 'Merchant ID missing' },
+    viewDetails: { Chinese: '查看详情', English: 'View Details' }
 } as const;

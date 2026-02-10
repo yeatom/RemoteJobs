@@ -77,8 +77,7 @@ Component({
               uploadFromLocal: t('resume.uploadFromLocal', lang),
               confirmUpload: t('resume.confirmUpload', lang),
               previewTip: t('resume.previewTip', lang),
-              cancel: t('resume.cancel', lang),
-              cursorColor: themeManager.getPrimaryColor()
+              cancel: t('resume.cancel', lang)
             }
           });
         }
@@ -215,8 +214,6 @@ Component({
     },
 
     async applyRefineData(result: any, targetLang: 'chinese' | 'english') {
-        const app = getApp<any>();
-        const lang = normalizeLanguage(app.globalData.language);
 
         // Map to internal profile structure using Bilingual blocks
         const profile = result.profile;
@@ -367,16 +364,16 @@ Component({
                     }
                 });
             } else {
-                this.handleUploadError(res, lang);
+                this.handleUploadError(res);
             }
         } catch (err: any) {
             ui.hideLoading();
             this.setData({ onboardingMode: false });
-            this.handleUploadError(err, lang);
+            this.handleUploadError(err);
         }
     },
 
-    handleUploadError(err: any, lang: string) {
+    handleUploadError(err: any) {
         let errData = err.data;
         if (typeof errData === 'string') {
             try { errData = JSON.parse(errData); } catch(e){}
@@ -384,23 +381,23 @@ Component({
         const code = (errData && errData.code) || err.code;
 
         if (err.statusCode === 401) {
-            ui.showToast(t('resume.authFailedLogin', lang));
+            ui.showToast(t('resume.authFailedLogin'));
         } else if (code === StatusCode.QUOTA_EXHAUSTED) {
             ui.showModal({
-                title: t('membership.quotaExceededTitle', lang),
-                content: t('membership.quotaExceededContent', lang),
+                title: t('membership.quotaExceededTitle'),
+                content: t('membership.quotaExceededContent'),
                 showCancel: false,
                 isAlert: true
             });
         } else if (code === StatusCode.INVALID_DOCUMENT_CONTENT || code === StatusCode.MISSING_IDENTITY_INFO) {
              ui.showModal({
-                    title: t('resume.refineErrorTitle', lang) || '识别受阻',
-                    content: t('resume.refineErrorContent', lang),
+                    title: t('resume.refineErrorTitle') || '识别受阻',
+                    content: t('resume.refineErrorContent'),
                     showCancel: false,
                     isAlert: true
             });
         } else {
-            const msg = (errData && errData.message) || err.message || t('app.error', lang);
+            const msg = (errData && errData.message) || err.message || t('app.error');
             ui.showToast(msg);
         }
     },
@@ -413,7 +410,7 @@ Component({
                  success: function () {
                     console.log('PDF Preview Open');
                  },
-                 fail: (err) => {
+                 fail: (_err) => {
                      ui.showToast(t('resume.cannotPreview'));
                  }
              })
@@ -426,7 +423,7 @@ Component({
     },
     */
 
-    async processUpload(path: string, name: string) {
+    async processUpload(path: string, _name: string) {
         const app = getApp<any>();
         const lang = normalizeLanguage(app.globalData.language);
         ui.showLoading(t('resume.aiChecking', lang));
@@ -444,20 +441,20 @@ Component({
                 // Handle Logical Errors
                 if (data.code === StatusCode.INVALID_DOCUMENT_CONTENT || data.code === StatusCode.MISSING_IDENTITY_INFO) { 
                     ui.showModal({
-                        title: t('resume.refineErrorTitle', lang) || '识别受阻',
-                        content: t('resume.refineErrorContent', lang),
+                        title: t('resume.refineErrorTitle') || '识别受阻',
+                        content: t('resume.refineErrorContent'),
                         showCancel: false,
                         isAlert: true
                     });
                 } else if (data.code === StatusCode.QUOTA_EXHAUSTED) {
                     ui.showModal({
-                        title: t('membership.quotaExceededTitle', lang) || '额度不足',
-                        content: t('membership.quotaExceededContent', lang),
+                        title: t('membership.quotaExceededTitle') || '额度不足',
+                        content: t('membership.quotaExceededContent'),
                         showCancel: false,
                         isAlert: true
                     });
                 } else {
-                    ui.showToast(data.message || t('app.error', lang));
+                    ui.showToast(data.message || t('app.error'));
                 }
                 return;
             }
@@ -550,23 +547,23 @@ Component({
             const code = (errData && errData.code);
 
             if (err.statusCode === 401) {
-                ui.showToast(t('resume.authFailedLogin', lang));
+                ui.showToast(t('resume.authFailedLogin'));
             } else if (code === StatusCode.QUOTA_EXHAUSTED) { // Quota Exhausted (403)
                 ui.showModal({
-                    title: t('membership.quotaExceededTitle', lang) || '额度不足',
-                    content: t('membership.quotaExceededContent', lang),
+                    title: t('membership.quotaExceededTitle') || '额度不足',
+                    content: t('membership.quotaExceededContent'),
                     showCancel: false,
                     isAlert: true
                 });
             } else if (code === StatusCode.INVALID_DOCUMENT_CONTENT || code === StatusCode.MISSING_IDENTITY_INFO) { // Identify/Content Error (403/400)
                  ui.showModal({
-                        title: t('resume.refineErrorTitle', lang) || '识别受阻',
-                        content: t('resume.refineErrorContent', lang),
+                        title: t('resume.refineErrorTitle') || '识别受阻',
+                        content: t('resume.refineErrorContent'),
                         showCancel: false,
                         isAlert: true
                 });
             } else {
-                const msg = (errData && errData.message) || err.message || t('app.error', lang);
+                const msg = (errData && errData.message) || err.message || t('app.error');
                 ui.showToast(msg);
             }
         }
@@ -618,20 +615,20 @@ Component({
                 // Handle Logical Errors (200 OK but success=false)
                 if (data.code === StatusCode.INVALID_DOCUMENT_CONTENT || data.code === StatusCode.MISSING_IDENTITY_INFO) {
                     ui.showModal({
-                        title: t('resume.refineErrorTitle', lang) || '识别受阻',
-                        content: t('resume.parseJobErrorContent', lang),
+                        title: t('resume.refineErrorTitle') || '识别受阻',
+                        content: t('resume.parseJobErrorContent'),
                         showCancel: false,
                         isAlert: true
                     });
                 } else if (data.code === StatusCode.QUOTA_EXHAUSTED) {
                     ui.showModal({
-                        title: t('membership.quotaExceededTitle', lang) || '额度不足',
-                        content: t('membership.quotaExceededContent', lang),
+                        title: t('membership.quotaExceededTitle') || '额度不足',
+                        content: t('membership.quotaExceededContent'),
                         showCancel: false,
                         isAlert: true
                     });
                 } else {
-                    const errMsg = data.message || t('resume.parseJobFailed', lang);
+                    const errMsg = data.message || t('resume.parseJobFailed');
                     ui.showToast(errMsg);
                 }
             }
@@ -646,23 +643,23 @@ Component({
             const code = (errData && errData.code);
 
             if (err.statusCode === 401) {
-                ui.showToast(t('resume.authFailedLogin', lang));
+                ui.showToast(t('resume.authFailedLogin'));
             } else if (code === StatusCode.QUOTA_EXHAUSTED) {
                 ui.showModal({
-                    title: t('membership.quotaExceededTitle', lang) || '额度不足',
-                    content: t('membership.quotaExceededContent', lang),
+                    title: t('membership.quotaExceededTitle') || '额度不足',
+                    content: t('membership.quotaExceededContent'),
                     showCancel: false,
                     isAlert: true
                 });
             } else if (code === StatusCode.INVALID_DOCUMENT_CONTENT || code === StatusCode.MISSING_IDENTITY_INFO) {
                 ui.showModal({
-                    title: t('resume.refineErrorTitle', lang) || '识别受阻',
-                    content: t('resume.parseJobErrorContent', lang),
+                    title: t('resume.refineErrorTitle') || '识别受阻',
+                    content: t('resume.parseJobErrorContent'),
                     showCancel: false,
                     isAlert: true
                 });
             } else {
-                const errMsg = (errData && errData.message) || err.message || t('resume.parseJobFailed', lang);
+                const errMsg = (errData && errData.message) || err.message || t('resume.parseJobFailed');
                 ui.showToast(errMsg);
             }
         }
@@ -696,10 +693,10 @@ Component({
 
         if (level <= 0) {
             ui.showModal({
-                title: t('membership.quotaExceededTitle', lang) || '需要升级会员',
+                title: t('membership.quotaExceededTitle') || '需要升级会员',
                 content: '该功能仅限会员使用，请前往会员中心升级。', 
                 showCancel: true,
-                confirmText: t('membership.viewDetails', lang),
+                confirmText: t('membership.viewDetails'),
                 success: (res) => {
                     if (res.confirm) {
                          wx.navigateTo({ url: '/pages/membership/index' });
