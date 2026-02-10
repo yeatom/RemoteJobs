@@ -7,6 +7,7 @@ import { attachThemeAware } from '../../utils/themeAware'
 import { themeManager } from '../../utils/themeManager'
 import { checkIsAuthed } from '../../utils/util'
 import { requestGenerateResume, showGenerationSuccessModal, startBackgroundTaskCheck } from '../../utils/resume'
+import { ResumeDecision } from '../../utils/resumeDecision'
 import { callApi, uploadApi } from '../../utils/request'
 import { StatusCode } from '../../utils/statusCodes'
 
@@ -200,24 +201,39 @@ Component({
 
     // Replaces onSelectFromChat, onSelectFromLocal, validateAndConfirm, processUpload
     async onRefineParseSuccess(e: any) {
-        const { result, originalFile } = e.detail;
+        const { result } = e.detail;
+        if (!result) return;
+        
+        const detectedLang = result.language === 'english' ? 'english' : 'chinese';
+        
+        // Use Encapsulated Decision Logic
+        const targetLang = await ResumeDecision.decide('REFINE', detectedLang);
+        
+        if (targetLang) {
+             this.applyRefineData(result, targetLang as 'chinese' | 'english');
+        }
+    },
+
+    applyRefineData(result: any, targetLang: 'chinese' | 'english') {
         const app = getApp<any>();
         const lang = normalizeLanguage(app.globalData.language);
 
-        // Step 1: Extracted Data is already here (from e.detail.result)
-        const extracted = result.profile;
-        const detectedLang = result.language; // 'chinese' or 'english'
+        // Map to internal profile structure using Bilingual blocks
+        const profile = result.profile;
+        const langCode = targetLang === 'english' ? 'en' : 'zh';
+        const extracted = profile[langCode] || profile;
 
         // Step 2: Construct Dummy Job Data for "Polishing" flow
+        const isTargetEn = targetLang === 'english';
         const latestJob = (extracted.experience && extracted.experience[0]) || {};
-        const targetTitle = latestJob.role || (extracted.name ? `${extracted.name}的简历` : "求职者");
+        const targetTitle = latestJob.role || (extracted.name ? (isTargetEn ? `${extracted.name}'s Resume` : `${extracted.name}的简历`) : (isTargetEn ? "Candidate" : "求职者"));
 
         const dummyJob = {
             _id: `POLISH_${Date.now()}`,
             title: targetTitle,
             title_chinese: targetTitle,
             title_english: targetTitle,
-            description: "通用简历润色与增强",
+            description: isTargetEn ? "General Resume Refinement & Enhancement" : "通用简历润色与增强",
             experience: "3 years"
         };
 
@@ -225,11 +241,15 @@ Component({
         const overrideProfile: any = {
             name: extracted.name || "",
             gender: extracted.gender || "",
-            phone: extracted.mobile || "",
-            email: extracted.email || "",
+            phone: profile.mobile || "", // Use shared top-level field
+            email: profile.email || "",   // Use shared top-level field
             wechat: extracted.wechat || "",
-            location: extracted.city || "",
-            language: detectedLang, 
+            location: extracted.city || "", 
+            linkedin: extracted.linkedin || "",
+            whatsapp: extracted.whatsapp || "",
+            telegram: extracted.telegram || "",
+            website: profile.website || "", 
+            language: targetLang, 
             is_override: true 
         };
 
@@ -250,30 +270,30 @@ Component({
         }));
 
         // 如果后端返回了双语结构，优先使用
-        if (extracted.zh && extracted.en) {
+        if (profile.zh && profile.en) {
             overrideProfile.zh = {
-                educations: mapEdu(extracted.zh.education),
-                workExperiences: mapExp(extracted.zh.experience),
+                educations: mapEdu(profile.zh.education),
+                workExperiences: mapExp(profile.zh.experience),
                 completeness: { level: 2 }
             };
             overrideProfile.en = {
-                educations: mapEdu(extracted.en.education),
-                workExperiences: mapExp(extracted.en.experience),
+                educations: mapEdu(profile.en.education),
+                workExperiences: mapExp(profile.en.experience),
                 completeness: { level: 2 }
             };
             // 姓名、位置及社交平台精准映射
-            if (extracted.zh.name) overrideProfile.name = extracted.zh.name;
-            if (extracted.en.city) overrideProfile.location = extracted.en.city;
-            if (extracted.zh.wechat) overrideProfile.wechat = extracted.zh.wechat;
-            if (extracted.en.linkedin) overrideProfile.linkedin = extracted.en.linkedin;
-            if (extracted.en.whatsapp) overrideProfile.whatsapp = extracted.en.whatsapp;
-            if (extracted.en.telegram) overrideProfile.telegram = extracted.en.telegram;
-            if (extracted.website) overrideProfile.website = extracted.website;
+            if (profile.zh.name) overrideProfile.name = profile.zh.name;
+            if (profile.en.city) overrideProfile.location = profile.en.city;
+            if (profile.zh.wechat) overrideProfile.wechat = profile.zh.wechat;
+            if (profile.en.linkedin) overrideProfile.linkedin = profile.en.linkedin;
+            if (profile.en.whatsapp) overrideProfile.whatsapp = profile.en.whatsapp;
+            if (profile.en.telegram) overrideProfile.telegram = profile.en.telegram;
+            if (profile.website) overrideProfile.website = profile.website;
         } else {
             const mappedEducations = mapEdu(extracted.education);
             const mappedExperiences = mapExp(extracted.experience);
 
-            if (detectedLang === 'english') {
+            if (targetLang === 'english') {
                 overrideProfile.en = { educations: mappedEducations, workExperiences: mappedExperiences, completeness: { level: 2 } };
                 // 润色模式下，即使是单语言，也同步一份过去，保证资料库不为空
                 overrideProfile.zh = JSON.parse(JSON.stringify(overrideProfile.en));
@@ -499,17 +519,23 @@ Component({
 
             ui.hideLoading();
 
-            // Step 4: Call Unified Generation Flow (This will show the language modal)
+            // Step 4: Ask User for Decision (Scenario 1: Generate from Scan)
+            // Use Encapsulated Decision Logic
+            const targetLang = await ResumeDecision.decide('GENERATE_SCAN', detectedLang);
+            if (!targetLang) return; // User cancelled
+
+            // Override profile language to match decision
+            overrideProfile.language = targetLang;
+
             const result = await requestGenerateResume(dummyJob, {
                 overrideProfile,
-                isPaid: true, // Mark as paid because /parse already cost 1pt
+                isPaid: true, 
                 showSuccessModal: true,
                 waitForCompletion: false
             });
 
             if (result && typeof result === 'string') {
-                 // Generation task started successfully, task_id returned
-                 startBackgroundTaskCheck();
+                    startBackgroundTaskCheck();
             }
 
         } catch (err: any) {

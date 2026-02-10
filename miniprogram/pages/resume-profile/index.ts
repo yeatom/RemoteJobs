@@ -3,6 +3,7 @@ import { normalizeLanguage, t, AppLanguage } from '../../utils/i18n/index'
 import { attachLanguageAware } from '../../utils/languageAware'
 import { attachThemeAware } from '../../utils/themeAware'
 import { ui } from '../../utils/ui'
+import { ResumeDecision } from '../../utils/resumeDecision'
 import { callApi, formatFileUrl, uploadApi } from '../../utils/request'
 import { checkResumeOnboarding, requestGenerateResume } from '../../utils/resume'
 import { StatusCode } from '../../utils/statusCodes'
@@ -1349,7 +1350,7 @@ Page({
     this.setData({ showOnboardingDrawer: false });
   },
 
-  onOnboardingParseSuccess(e: any) {
+  async onOnboardingParseSuccess(e: any) {
     const { result } = e.detail;
     if (!result) {
       ui.showToast('处理失败');
@@ -1357,26 +1358,16 @@ Page({
     }
 
     const detectedLang = result.language === 'english' ? 'english' : 'chinese';
-    const langLabel = detectedLang === 'english' ? '仅英文' : '仅中文';
-
     this.setData({ showOnboardingDrawer: false });
 
-    // 使用系统原生的 showModal，根据解析出的语言动态调整按钮
-    setTimeout(() => {
-      ui.showModal({
-        title: '简历解析成功',
-        content: `已成功提取您的${detectedLang === 'english' ? '英文' : '中文'}个人资料。\n\n选择“同时更新”将同步生成多语言资料，效果最佳。`,
-        confirmText: '同时更新',
-        cancelText: langLabel,
-        showCancel: true,
-        success: (res) => {
-          if (res.confirm) {
-            this.applyParsedData({ success: true, result }, 'combined');
-          } else if (res.cancel) {
-            this.applyParsedData({ success: true, result }, 'single');
-          }
-        }
-      });
+    // Use Encapsulated Decision Logic (with small delay for smooth transition)
+    setTimeout(async () => {
+         const decision = await ResumeDecision.decide('PROFILE_UPDATE', detectedLang);
+         
+         if (decision) {
+             const type = decision as 'combined' | 'single';
+             this.applyParsedData({ success: true, result }, type);
+         }
     }, 400);
   },
 
@@ -1392,16 +1383,17 @@ Page({
         return;
       }
 
-      const extracted = data.result.profile;
+      const profile = data.result.profile;
       const detectedLang = data.result.language; // 'chinese' or 'english'
+      const currentLang = this.data.currentLang; // 'Chinese' or 'English'
+      const isCombined = type === 'combined';
 
       const overrideProfile: any = {
-        name: extracted.name || "",
-        gender: extracted.gender || "",
-        phone: extracted.mobile || "",
-        email: extracted.email || "",
-        wechat: extracted.wechat || "",
-        location: extracted.city || "",
+        name: profile.name || "", 
+        gender: profile.gender || "",
+        phone: profile.mobile || "",
+        email: profile.email || "",
+        website: profile.website || "",
         language: detectedLang,
         is_override: true
       };
@@ -1423,26 +1415,35 @@ Page({
       }));
 
       // 如果后端返回了双语结构，优先使用
-      if (extracted.zh && extracted.en) {
-        overrideProfile.zh = {
-          educations: mapEdu(extracted.zh.education),
-          workExperiences: mapExp(extracted.zh.experience),
-          completeness: { score: 85, level: 2 }
-        };
-        overrideProfile.en = {
-          educations: mapEdu(extracted.en.education),
-          workExperiences: mapExp(extracted.en.experience),
-          completeness: { score: 85, level: 2 }
-        };
-        // 跨语言字段精准映射
-        if (extracted.zh.name) overrideProfile.name = extracted.zh.name;
-        if (extracted.en.city) overrideProfile.location = extracted.en.city;
-        if (extracted.zh.wechat) overrideProfile.wechat = extracted.zh.wechat;
-        if (extracted.en.linkedin) overrideProfile.linkedin = extracted.en.linkedin;
-        if (extracted.en.whatsapp) overrideProfile.whatsapp = extracted.en.whatsapp;
-        if (extracted.en.telegram) overrideProfile.telegram = extracted.en.telegram;
-        if (extracted.website) overrideProfile.website = extracted.website;
+      if (profile.zh && profile.en) {
+        const targetSingleLang = detectedLang === 'english' ? 'English' : 'Chinese';
+
+        // Handle EN block
+        if (isCombined || targetSingleLang === 'English') {
+          overrideProfile.en = {
+            educations: mapEdu(profile.en.education),
+            workExperiences: mapExp(profile.en.experience),
+            completeness: { score: 85, level: 2 }
+          };
+          if (profile.en.name) overrideProfile.name_en = profile.en.name;
+          if (profile.en.city) overrideProfile.location = profile.en.city;
+          if (profile.en.linkedin) overrideProfile.linkedin = profile.en.linkedin;
+          if (profile.en.whatsapp) overrideProfile.whatsapp = profile.en.whatsapp;
+          if (profile.en.telegram) overrideProfile.telegram = profile.en.telegram;
+        }
+
+        // Handle ZH block
+        if (isCombined || targetSingleLang === 'Chinese') {
+          overrideProfile.zh = {
+            educations: mapEdu(profile.zh.education),
+            workExperiences: mapExp(profile.zh.experience),
+            completeness: { score: 85, level: 2 }
+          };
+          if (profile.zh.name) overrideProfile.name = profile.zh.name;
+          if (profile.zh.wechat) overrideProfile.wechat = profile.zh.wechat;
+        }
       } else {
+        const extracted = profile;
         const mappedEducations = mapEdu(extracted.education);
         const mappedExperiences = mapExp(extracted.experience);
 
@@ -1455,9 +1456,18 @@ Page({
 
         if (detectedLang === 'english') {
           overrideProfile.en = targetData;
-          if (type === 'combined') {
+          overrideProfile.location = extracted.city || "";
+          if (isCombined) {
             overrideProfile.zh = JSON.parse(JSON.stringify(targetData));
           }
+        } else {
+          overrideProfile.zh = targetData;
+          overrideProfile.wechat = extracted.wechat || "";
+          if (isCombined) {
+            overrideProfile.en = JSON.parse(JSON.stringify(targetData));
+          }
+        }
+      }
         } else {
           overrideProfile.zh = targetData;
           if (type === 'combined') {

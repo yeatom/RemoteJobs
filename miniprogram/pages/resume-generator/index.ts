@@ -4,6 +4,7 @@ import { attachLanguageAware } from '../../utils/languageAware'
 import { attachThemeAware } from '../../utils/themeAware'
 import { themeManager } from '../../utils/themeManager'
 import { requestGenerateResume, showGenerationSuccessModal, waitForTask } from '../../utils/resume'
+import { ResumeDecision } from '../../utils/resumeDecision'
 
 const DRAFT_STORAGE_KEY = 'resume_generator_draft';
 
@@ -348,7 +349,24 @@ Page({
     }
 
     const startGeneration = async () => {
-        const result = await requestGenerateResume(mockJobData, {
+        // Step 1: Analyze Input Language
+        const detectedLang = ResumeDecision.analyzeTextLanguage(targetJob.content);
+        
+        // Step 2: Ask User Decision
+        const targetLang = await ResumeDecision.decide('GENERATE_TEXT', detectedLang);
+        
+        if (!targetLang) {
+            this.isSubmitting = false; 
+            return;
+        }
+
+        // Pass explicit language param to backend
+        const payloadWithLang = {
+            ...mockJobData,
+            generation_language: targetLang
+        };
+
+        const result = await requestGenerateResume(payloadWithLang, {
             isPaid: this.data.isPaid,
             showSuccessModal: false,
             waitForCompletion: true,
@@ -356,8 +374,7 @@ Page({
         });
 
         if (typeof result === 'string') {
-            // Poll for task (using standard polling logic but blocking UI)
-            // 'doNotExit' Loading is already shown by requestGenerateResume if waitForCompletion=true
+            // Poll for task
             const success = await waitForTask(result);
             
             ui.hideLoading();
@@ -369,7 +386,6 @@ Page({
                 this.handleError(new Error('生成失败'));
             }
         } else if (result === true) {
-            // Some flows might have already finished or don't return taskId but success
             ui.hideLoading();
             this.isSubmitting = false;
             this.handleSuccess();
