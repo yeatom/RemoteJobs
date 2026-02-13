@@ -4,6 +4,7 @@ import { themeManager } from './utils/themeManager'
 import { request, callApi, performLogin } from './utils/request'
 import { checkIsAuthed } from './utils/util'
 import { startBackgroundTaskCheck } from './utils/resume'
+import { StatusCode } from './utils/statusCodes'
 
 App<IAppOption>({
   globalData: {
@@ -142,6 +143,18 @@ App<IAppOption>({
 
   async refreshUser() {
     try {
+      // 1. 尝试从缓存加载用户，实现"秒开"且避免意外展示登录墙
+      try {
+        const cachedUser = wx.getStorageSync('user_cache');
+        if (cachedUser) {
+          console.log('[App] Loaded user from cache:', cachedUser.phone || cachedUser.phoneNumber);
+          this.globalData.user = cachedUser;
+          // 此时虽然已经 loaded，但为了数据新鲜度，继续走网络请求（静默刷新）
+        }
+      } catch (e) {
+        console.error('[App] Failed to load user cache:', e);
+      }
+
       let openid = wx.getStorageSync('user_openid');
       if (!openid) {
         console.log('[App] No openid in storage, attempting silent login...');
@@ -177,13 +190,49 @@ App<IAppOption>({
         if (responseData.token) {
           wx.setStorageSync('token', responseData.token);
         }
+        
+        // 关键：持久化缓存用户信息，防止无网或 API 异常时应用进入登录墙
+        wx.setStorageSync('user_cache', this.globalData.user);
+
         return this.globalData.user;
       } else {
         console.warn('[App] loginByOpenid failed or no user:', res.message || 'Unknown error');
-        return this.globalData.user;
+        
+        // 如果后端明确返回成功但没有用户 (说明被删号或未注册)，或者 Token 失效
+        // 此时必须清除本地僵尸缓存，否则用户永远卡在"看似已登录但实际无权限"的状态
+        if (this.globalData.user && !res.success) {
+           // 网络正常但返回失败（如数据库查无此人），必须清除缓存
+           console.warn('[App] Local user exists but remote validation failed. Clearing local session.');
+           this.globalData.user = null;
+           wx.removeStorageSync('user_cache');
+           wx.removeStorageSync('token');
+           // 通知 BootManager 状态变为 unauthorized，触发登录墙展示
+           bootManager.setStatus('unauthorized');
+        }
+        
+        return null;
       }
-    } catch (err) {
+    } catch (err: any) {
+      // 关键修正：识别"用户不存在"的业务错误 (404)
+      // 如果后端明确返回 404，说明此 OpenID 无效或用户被删，必须强制登出
+      // request.ts 会将非 2xx 响应包装为 Error 对象并抛出，statusCode 挂载在 error 对象上
+      // 兼容后端逻辑：返回的是 404 状态码，且 code 是 USER_NOT_FOUND (40103)
+      if (err?.statusCode === 404 || err?.data?.code === StatusCode.USER_NOT_FOUND) { 
+          console.warn('[App] Remote confirmed user not found (404). Clearing local session.');
+          this.globalData.user = null;
+          wx.removeStorageSync('user_cache');
+          wx.removeStorageSync('token');
+          bootManager.setStatus('unauthorized');
+          return null;
+      }
+
       console.error('[App] refreshUser fatal error:', err);
+      // 网络断开，保留现有本地登录态，不强制登出
+      if (err?.errMsg?.includes('request:fail') || err?.errMsg === 'Network Error') { 
+          // 弱网或服务器宕机，用户继续使用本地缓存，不触发 unauthorized
+          console.log('[App] Network failed, running in offline mode with cached user.');
+          return this.globalData.user;
+      }
       return this.globalData.user;
     }
   },

@@ -87,9 +87,11 @@ export const callApi = async <T = any>(name: string, data: any = {}): Promise<IA
     });
   } catch (error: any) {
     if (error.statusCode === 401) {
-      console.warn(`[API] ${name} returned 401. Clearing tokens...`);
+      console.warn(`[API] ${name} returned 401. Clearing tokens and cache...`);
       wx.removeStorageSync('token');
       wx.removeStorageSync('user_openid');
+      wx.removeStorageSync('user_cache');  // 清除本地用户缓存，确保重新登录
+      
       // 可以根据需要跳转到登录页，但通常静默登录更好
       // 这里我们尝试静默登录一次并重试
       if (name !== 'login') {
@@ -223,6 +225,7 @@ export const uploadApi = async <T = any>(options: {
     if (error.statusCode === 401) {
       console.warn('[Upload] 401 detected, retrying after login...');
       wx.removeStorageSync('token');
+      wx.removeStorageSync('user_cache');
       await performLogin();
       return await performUpload();
     }
