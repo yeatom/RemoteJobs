@@ -5,6 +5,7 @@ import { attachThemeAware } from '../../utils/themeAware'
 import { ui } from '../../utils/ui'
 import { ResumeDecision } from '../../utils/resumeDecision'
 import { callApi, formatFileUrl } from '../../utils/request'
+import { cacheImage } from '../../utils/fileCache'
 import { checkResumeOnboarding, requestGenerateResume } from '../../utils/resume'
 import * as UIConfig from '../../utils/i18n/configs/resume-profile'
 const { serverUrl } = require('../../env.js')
@@ -297,6 +298,16 @@ Page({
       aiMessage: profile.aiMessage || '',
       currentCompleteness: currentCompleteness,
       currentPercent: currentPercent
+    }, () => {
+       // 如果有头像是远程地址，尝试静默缓存并替换为本地地址
+       if (profile.photo && profile.photo.startsWith('http')) {
+           cacheImage(profile.photo).then(localPath => {
+               if (localPath !== profile.photo) {
+                   console.log('[ResumeProfile] Using cached resume photo:', localPath);
+                   this.setData({ photo: localPath });
+               }
+           }).catch(console.error);
+       }
     })
   },
 
@@ -444,7 +455,16 @@ Page({
               try {
                 const data = JSON.parse(uploadRes.data)
                 if (data.success) {
+                  // 后端返回的是远程 URL，我们保存远程 URL
                   const payload: any = { photo: data.url }
+                  
+                  // 但为了可以立即在界面上看到（不用等下载），我们可以先把本地临时路径存入缓存映射
+                  // 这样下一次 cacheImage(data.url) 就会直接命中这个 tempFilePath (如果它是永久的)
+                  // 不过 tempFilePath 可能是临时文件，所以更好的做法是：
+                  // 保存成功后，setData 先用 tempFilePath 展示，后台再让 cacheImage 去下载/同步
+                  
+                  this.setData({ photo: tempFilePath }); // 立即展示用户选择的图，不等网络与刷新
+                  
                   await this.saveResumeProfile(payload)
                 } else {
                   console.error('[Upload] Backend error:', data)

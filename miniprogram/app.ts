@@ -195,7 +195,7 @@ App<IAppOption>({
         // 尝试预缓存并更新头像为本地路径
         if (responseData.user.avatar) {
              cacheImage(responseData.user.avatar).then(localPath => {
-                 if (this.globalData.user && this.globalData.user.id === responseData.user.id) {
+                 if (this.globalData.user && this.globalData.user._id === responseData.user._id) {
                      this.globalData.user.avatar = localPath;
                      this.notifyUserListeners(this.globalData.user);
                  }
