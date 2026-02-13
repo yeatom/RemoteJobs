@@ -152,6 +152,8 @@ const UI_MAP = {
     saving: 'me.saving',
     /** 上传中 */
     uploading: 'me.uploading',
+    /** 上传成功 */
+    uploadSuccess: 'me.uploadSuccess',
     /** 保存成功 */
     saveSuccess: 'resume.saveSuccess',
     /** 保存失败 */

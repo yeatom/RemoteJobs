@@ -464,8 +464,11 @@ Page({
                   // 保存成功后，setData 先用 tempFilePath 展示，后台再让 cacheImage 去下载/同步
                   
                   this.setData({ photo: tempFilePath }); // 立即展示用户选择的图，不等网络与刷新
-                  
-                  await this.saveResumeProfile(payload)
+
+                  const saved = await this.saveResumeProfile(payload, false)
+                  if (saved) {
+                    ui.showSuccess(uiStrings.uploadSuccess || t('me.uploadSuccess') || t('resume.saveSuccess') || '头像更新成功')
+                  }
                 } else {
                   console.error('[Upload] Backend error:', data)
                   ui.showToast(data.message || uiStrings.uploadFailed)
