@@ -1341,6 +1341,39 @@ Page({
 
   // --- Onboarding Flow ---
   handleOnboardingStart() {
+    const app = getApp<any>();
+    const lang = normalizeLanguage(app.globalData.language);
+    const user = app.globalData.user;
+    const membership = user?.membership || {};
+    const level = membership.level || 0;
+    const lastParseAt = membership.last_resume_parse_at ? new Date(membership.last_resume_parse_at).getTime() : 0;
+    const now = Date.now();
+
+    // Cooldown Strategies
+    let cooldownMs = 24 * 3600 * 1000; // Free: 24h
+    if (level === 1) cooldownMs = 12 * 3600 * 1000;
+    else if (level === 2 || level === 3) cooldownMs = 4 * 3600 * 1000;
+    else if (level >= 4) cooldownMs = 0; // VIP+
+
+    if (now - lastParseAt < cooldownMs) {
+        const remainingHours = Math.ceil((cooldownMs - (now - lastParseAt)) / (3600 * 1000));
+        const limitHours = cooldownMs / 3600000;
+        
+        ui.showModal({
+            title: '更新过于频繁',
+            content: lang === 'English' 
+                ? `Your current plan allows updates every ${limitHours} hours. Please try again in ${remainingHours} hours.` 
+                : `您当前会员等级限制每 ${limitHours} 小时更新一次简历，请 ${remainingHours} 小时后再试。`,
+            confirmText: t('membership.viewDetails', lang),
+            success: (res) => {
+                if (res.confirm) {
+                      wx.navigateTo({ url: '/pages/membership/index' });
+                }
+            }
+        });
+        return;
+    }
+
     this.setData({ showOnboardingDrawer: true });
   },
 

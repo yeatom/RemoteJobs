@@ -158,6 +158,66 @@ Component({
         this.setData({ isLoggedIn: true });
     },
 
+    checkQuota() {
+        const app = getApp<any>();
+        const lang = normalizeLanguage(app.globalData.language);
+        const user = app.globalData.user;
+        // Logic: VIP (level > 0) OR Points > 0
+        const level = user?.membership?.level || 0;
+        const points = user?.membership?.points || 0;
+
+        if (level <= 0 && points <= 0) {
+            ui.showModal({
+                title: t('membership.quotaExceededTitle') || '额度不足',
+                content: t('membership.quotaExceededContent'),
+                confirmText: t('membership.viewDetails'),
+                success: (res) => {
+                    if (res.confirm) {
+                        wx.navigateTo({ url: '/pages/membership/index' });
+                    }
+                }
+            });
+            return false;
+        }
+        return true;
+    },
+
+    checkUpdateCooldown() {
+        const app = getApp<any>();
+        const lang = normalizeLanguage(app.globalData.language);
+        const user = app.globalData.user;
+        const membership = user?.membership || {};
+        const level = membership.level || 0;
+        const lastParseAt = membership.last_resume_parse_at ? new Date(membership.last_resume_parse_at).getTime() : 0;
+        const now = Date.now();
+
+        // Cooldown Strategies
+        let cooldownMs = 24 * 3600 * 1000; // Free: 24h
+        if (level === 1) cooldownMs = 12 * 3600 * 1000;
+        else if (level === 2 || level === 3) cooldownMs = 4 * 3600 * 1000;
+        else if (level >= 4) cooldownMs = 0; // VIP+
+
+        if (now - lastParseAt < cooldownMs) {
+            const remainingHours = Math.ceil((cooldownMs - (now - lastParseAt)) / (3600 * 1000));
+            const limitHours = cooldownMs / 3600000;
+            
+            ui.showModal({
+                title: '更新过于频繁',
+                content: lang === 'English' 
+                    ? `Your current plan allows updates every ${limitHours} hours. Please try again in ${remainingHours} hours.` 
+                    : `您当前会员等级限制每 ${limitHours} 小时更新一次简历，请 ${remainingHours} 小时后再试。`,
+                confirmText: t('membership.viewDetails'),
+                success: (res) => {
+                    if (res.confirm) {
+                         wx.navigateTo({ url: '/pages/membership/index' });
+                    }
+                }
+            });
+            return false;
+        }
+        return true;
+    },
+
     // Helper to ensure phone is bound before AI actions
     checkPhonePermission() {
         const app = getApp<any>()
@@ -191,6 +251,7 @@ Component({
     // --- Resume Refine Actions ---
     onRefineOldResume() {
         if (!this.checkPhonePermission()) return;
+        if (!this.checkQuota()) return;
         this.setData({ showRefineDrawer: true });
     },
 
@@ -684,27 +745,10 @@ Component({
     // Unified action name matching WXML
     onUploadScreenshot() {
         if (!this.checkPhonePermission()) return;
+        if (!this.checkQuota()) return;
         
-        // Level Check: Must be VIP (>0) or have sufficient points? 
-        // User request: "Check level > 0"
         const app = getApp<any>();
-        const level = app.globalData.user?.membership?.level || 0;
         const lang = normalizeLanguage(app.globalData.language);
-
-        if (level <= 0) {
-            ui.showModal({
-                title: t('membership.quotaExceededTitle') || '需要升级会员',
-                content: '该功能仅限会员使用，请前往会员中心升级。', 
-                showCancel: true,
-                confirmText: t('membership.viewDetails'),
-                success: (res) => {
-                    if (res.confirm) {
-                         wx.navigateTo({ url: '/pages/membership/index' });
-                    }
-                }
-            });
-            return;
-        }
 
         wx.chooseMedia({
             count: 1,
@@ -757,8 +801,11 @@ Component({
 
     onImportTap() {
         if (!this.checkPhonePermission()) return
+        if (!this.checkUpdateCooldown()) return
         
-        ui.showToast(t('jobs.featureDeveloping'))
+        // Reuse Refine Drawer for now, but maybe with a different mode if needed
+        // For now, allow upload flow
+        this.setData({ showRefineDrawer: true })
     }
   }
 })

@@ -328,6 +328,26 @@ Page({
   },
 
   handleSubmit() {
+    // Quota Check
+    const app = getApp<any>();
+    const user = app.globalData.user;
+    const level = user?.membership?.level || 0;
+    const points = user?.membership?.points || 0;
+
+    if (level <= 0 && points <= 0) {
+        ui.showModal({
+            title: t('membership.quotaExceededTitle') || '额度不足',
+            content: t('membership.quotaExceededContent'),
+            confirmText: t('membership.viewDetails'),
+            success: (res) => {
+                if (res.confirm) {
+                    wx.navigateTo({ url: '/pages/membership/index' });
+                }
+            }
+        });
+        return;
+    }
+
     if (this.data.isReady && !this.isSubmitting) {
       this.isSubmitting = true;
       this.clearDraft();
