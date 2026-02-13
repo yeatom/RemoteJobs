@@ -30,10 +30,10 @@
       <view class="section-group">
         <view class="section-header-row">
           <view class="section-group-title">{{ui.personalInfo}}</view>
-          <view class="sync-btn-small" wx:if="{{currentLang === 'English'}}" bindtap="onSyncFromChinese">
+          <!-- <view class="sync-btn-small" wx:if="{{currentLang === 'English'}}" bindtap="onSyncFromChinese">
             <text class="sync-icon">🔄</text>
             <text>{{ui.syncFromCn}}</text>
-          </view>
+          </view> -->
         </view>
         <view class="card">
           <!-- 照片 -->
