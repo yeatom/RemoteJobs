@@ -4,7 +4,7 @@
     <view 
       class="ui-dock-btn {{disabled ? 'disabled' : ''}} {{loading ? 'loading' : ''}}" 
       style="width: {{width}}; {{!icon ? 'padding-right: 0;' : ''}}"
-      bindtap="onTap" 
+      catchtap="onTap" 
       hover-class="{{!disabled && !loading ? 'ui-dock-btn-active' : ''}}"
       hover-stay-time="100"
     >
