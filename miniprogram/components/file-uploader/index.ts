@@ -136,7 +136,7 @@ Component({
 
     async processUpload() {
       const app = getApp<any>();
-      const lang = normalizeLanguage(app.globalData.language);
+      const lang: AppLanguage = normalizeLanguage(app.globalData.language);
       
       ui.showLoading(t('resume.aiChecking', lang)); // "AI 校验中"
 
@@ -171,7 +171,7 @@ Component({
       }
     },
 
-    handleUploadError(err: any, lang: string) {
+    handleUploadError(err: any, lang: AppLanguage) {
       let errData = err.data;
       if (typeof errData === 'string') {
         try { errData = JSON.parse(errData); } catch (e) { }
