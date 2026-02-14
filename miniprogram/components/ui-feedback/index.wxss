@@ -5,7 +5,7 @@
   align-items: center;
   justify-content: center;
   padding-bottom: 120rpx; /* Optical centering: shift up slightly */
-  z-index: 10000;
+  z-index: 20000;
   opacity: 0;
   transition: opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   pointer-events: none;

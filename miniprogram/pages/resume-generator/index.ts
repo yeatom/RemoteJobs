@@ -293,10 +293,12 @@ Page({
 
     if (field === 'title') {
       const len = getLen(targetJob.title);
-      const isCommonChars = /^[a-zA-Z0-9\u4e00-\u9fa5\s\-\(\)\/]+$/.test(targetJob.title);
-      if (len >= 2 && isCommonChars && isNotEmptyOrPunc(targetJob.title)) isValid = true;
+      // Removed strict regex check to allow common titles like ".NET" or "C++" 
+      // Just ensure it's not super weird and has content
+      const isCommonChars = true; // /^[a-zA-Z0-9\u4e00-\u9fa5\s\-\(\)\/\.\+&]+$/.test(targetJob.title); 
+      if (len >= 2 && isNotEmptyOrPunc(targetJob.title)) isValid = true;
       
-      if (len > 50 || (targetJob.title.length > 0 && (!isCommonChars || !isNotEmptyOrPunc(targetJob.title)))) isInvalid = true;
+      if (len > 50 || (targetJob.title.length > 0 && !isNotEmptyOrPunc(targetJob.title))) isInvalid = true;
     } 
     else if (field === 'experience') {
       // Experience: Selected
@@ -305,8 +307,9 @@ Page({
     else if (field === 'content') {
       const len = getLen(targetJob.content);
       if (len >= 10 && isNotEmptyOrPunc(targetJob.content)) isValid = true;
-      if (len > 2500 || (targetJob.content.length > 0 && len >= 10 && !isNotEmptyOrPunc(targetJob.content))) isInvalid = true;
-    } 
+      // Increased limit to 10000 (roughly 20k English chars) as per requirement
+      if (len > 10000 || (targetJob.content.length > 0 && len >= 10 && !isNotEmptyOrPunc(targetJob.content))) isInvalid = true;
+    }  
     else if (field === 'aiMessage') {
       const len = getLen(aiMessage);
       if (len <= 500 && (aiMessage.length === 0 || isNotEmptyOrPunc(aiMessage))) isValid = true;
