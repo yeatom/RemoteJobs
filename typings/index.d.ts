@@ -133,6 +133,7 @@ interface IAppOption {
       memberSchemes: any,
       timestamp: number,
     },
+    _prefilledJob: any,
   }
   refreshUser: () => Promise<any>,
   refreshSystemConfig: () => Promise<void>,

@@ -76,7 +76,6 @@ export const resume = {
     formatNotSupported: { Chinese: '格式不支持', English: 'Format Not Supported' },
     supportedFormats: { Chinese: '仅支持 PDF, PNG, JPG, JPEG 格式的文件。', English: 'Only PDF, PNG, JPG, JPEG files are supported.' },
     cannotPreview: { Chinese: '无法预览文件', English: 'Cannot preview file' },
-    authFailedLogin: { Chinese: '认证失败，请通过主页重新登录', English: 'Authentication failed. Please login from Home page.' },
     loginExpired: { Chinese: '登录已过期，请重新登录', English: 'Session expired. Please login again.' },
 
     majorPlaceholder: { Chinese: '请输入专业名称', English: 'Enter major name' },
