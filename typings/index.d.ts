@@ -55,6 +55,7 @@ type AppUser = {
     aiMessage: string
   }
   inviteCode?: string
+  _id?: string
   createdAt?: Date | string
   updatedAt?: Date | string
 }

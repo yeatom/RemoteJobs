@@ -417,6 +417,8 @@ Page({
             isPaid: this.data.isPaid,
             showSuccessModal: false,
             waitForCompletion: true,
+            skipLangSelect: true,
+            preferredLang: targetLang === 'chinese' ? 'chinese' : 'english'
             // We handle finish manually
         });
 
